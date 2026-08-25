@@ -3,22 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="RealLife Inventory ist eine Flutter-App zum Verwalten echter Gegenstände in digitalen Zimmern."
-    />
-    <title>RealLife Inventory</title>
+    <title>RealLife Inventory Web</title>
     <style>
       :root {
         color-scheme: dark;
-        --bg: #101214;
-        --panel: #191d20;
-        --panel-2: #22282c;
-        --text: #f4f7f8;
-        --muted: #b6c2c7;
-        --accent: #4ce0b3;
-        --accent-2: #58a6ff;
+        --bg: #0f1214;
+        --panel: #171c1f;
+        --panel-2: #20272b;
         --line: #334047;
+        --text: #f5f8f8;
+        --muted: #aebbc1;
+        --accent: #4ce0b3;
+        --blue: #58a6ff;
+        --danger: #ff6b6b;
+        --warn: #f7c948;
+        --shadow: 0 18px 54px rgba(0, 0, 0, 0.28);
       }
 
       * {
@@ -27,285 +26,1129 @@
 
       body {
         margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 10% 10%, rgba(76, 224, 179, 0.13), transparent 28%),
+          radial-gradient(circle at 90% 0%, rgba(88, 166, 255, 0.14), transparent 26%),
+          var(--bg);
+        color: var(--text);
         font-family:
           Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
           "Segoe UI", sans-serif;
-        background:
-          radial-gradient(circle at 12% 18%, rgba(76, 224, 179, 0.14), transparent 28%),
-          radial-gradient(circle at 82% 12%, rgba(88, 166, 255, 0.14), transparent 24%),
-          var(--bg);
-        color: var(--text);
       }
 
-      main {
-        width: min(1120px, calc(100% - 32px));
-        margin: 0 auto;
-        padding: 48px 0;
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
       }
 
-      .hero {
-        min-height: 72vh;
-        display: grid;
-        grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
-        gap: 32px;
-        align-items: center;
-      }
-
-      .eyebrow {
-        color: var(--accent);
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-size: 0.78rem;
-      }
-
-      h1 {
-        margin: 12px 0;
-        font-size: clamp(2.6rem, 6vw, 5.8rem);
-        line-height: 0.95;
-        letter-spacing: 0;
-      }
-
-      p {
-        color: var(--muted);
-        line-height: 1.7;
-        font-size: 1.05rem;
-      }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 26px;
-      }
-
-      a.button {
-        min-height: 48px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 18px;
+      button {
+        min-height: 44px;
+        border: 0;
         border-radius: 8px;
-        color: #06100d;
+        padding: 0 14px;
+        background: var(--panel-2);
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      button.primary {
         background: var(--accent);
-        text-decoration: none;
+        color: #04110d;
         font-weight: 800;
       }
 
-      a.button.secondary {
-        color: var(--text);
-        background: var(--panel-2);
-        border: 1px solid var(--line);
+      button.danger {
+        background: rgba(255, 107, 107, 0.14);
+        color: #ffdada;
       }
 
-      .phone {
-        position: relative;
-        min-height: 560px;
-        border: 1px solid var(--line);
-        border-radius: 28px;
-        padding: 18px;
-        background: linear-gradient(160deg, #1a2024, #0d1012);
-        box-shadow: 0 24px 90px rgba(0, 0, 0, 0.34);
+      .app {
+        width: min(1180px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 22px 0 84px;
       }
 
-      .screen {
-        height: 100%;
-        min-height: 520px;
-        border-radius: 20px;
-        background: #111518;
-        padding: 18px;
-        overflow: hidden;
-      }
-
-      .topbar {
+      header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 16px;
+        gap: 14px;
+        margin-bottom: 18px;
       }
 
-      .pill {
-        border: 1px solid var(--line);
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .mark {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--accent), var(--blue));
+        color: #06100d;
+        font-weight: 900;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 0;
+        font-size: clamp(1.4rem, 4vw, 2.1rem);
+        letter-spacing: 0;
+      }
+
+      .subtitle,
+      .muted {
+        color: var(--muted);
+      }
+
+      .status-pill,
+      .tag {
         border-radius: 999px;
         padding: 7px 10px;
+        background: var(--panel-2);
         color: var(--muted);
-        font-size: 0.82rem;
+        font-size: 0.86rem;
+        white-space: nowrap;
+      }
+
+      .tabs {
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px 0;
+        background: rgba(15, 18, 20, 0.9);
+        backdrop-filter: blur(14px);
+      }
+
+      .tab {
+        border: 1px solid var(--line);
+      }
+
+      .tab.active {
+        background: var(--accent);
+        color: #06100d;
+        border-color: transparent;
+        font-weight: 800;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.active {
+        display: block;
       }
 
       .stats {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        margin-bottom: 12px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
       }
 
       .stat,
-      .item,
-      .room {
+      .panel,
+      .item-row {
         border: 1px solid var(--line);
         border-radius: 8px;
-        background: var(--panel);
+        background: rgba(23, 28, 31, 0.92);
       }
 
       .stat {
-        padding: 14px;
+        min-height: 96px;
+        padding: 16px;
       }
 
       .stat strong {
         display: block;
-        font-size: 1.6rem;
+        font-size: 2rem;
       }
 
-      .stat span,
-      .item span {
+      .panel {
+        box-shadow: var(--shadow);
+      }
+
+      .panel.pad {
+        padding: 16px;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin: 16px 0;
+      }
+
+      .toolbar input,
+      .field input,
+      .field select,
+      .field textarea,
+      .toolbar select {
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #101518;
+        color: var(--text);
+      }
+
+      .toolbar input {
+        flex: 1 1 260px;
+      }
+
+      .split,
+      .room-wrap,
+      .scan-card,
+      .history-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .scan-card {
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      }
+
+      .history-grid {
+        grid-template-columns: 360px minmax(0, 1fr);
+      }
+
+      .items {
+        display: grid;
+        gap: 10px;
+      }
+
+      .item-row {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 12px;
+      }
+
+      .thumb {
+        width: 52px;
+        height: 52px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: #143d34;
+        color: var(--accent);
+        font-weight: 900;
+      }
+
+      .item-title {
+        margin: 0 0 4px;
+        font-weight: 850;
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      .detail {
+        position: sticky;
+        top: 78px;
+      }
+
+      .detail-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        border-top: 1px solid var(--line);
+        padding-top: 9px;
+        margin-top: 9px;
+      }
+
+      .room-stage {
+        min-height: 560px;
+        overflow: hidden;
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(88, 166, 255, 0.1), transparent 48%),
+          #111619;
+      }
+
+      .floor {
+        position: absolute;
+        left: 12%;
+        right: 12%;
+        bottom: 10%;
+        height: 55%;
+        transform: perspective(700px) rotateX(62deg);
+        transform-origin: bottom;
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+          rgba(76, 224, 179, 0.05);
+        background-size: 56px 56px;
+      }
+
+      .wall {
+        position: absolute;
+        border: 1px solid rgba(174, 187, 193, 0.18);
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .wall.back {
+        left: 22%;
+        right: 22%;
+        top: 9%;
+        height: 32%;
+      }
+
+      .wall.left {
+        left: 12%;
+        top: 18%;
+        width: 20%;
+        height: 50%;
+        transform: skewY(-20deg);
+      }
+
+      .wall.right {
+        right: 12%;
+        top: 18%;
+        width: 20%;
+        height: 50%;
+        transform: skewY(20deg);
+      }
+
+      .object {
+        position: absolute;
+        width: var(--w);
+        height: var(--h);
+        left: var(--x);
+        top: var(--y);
+        transform: translate(-50%, -50%) rotate(var(--r));
+        display: grid;
+        place-items: center;
+        border: 2px solid rgba(245, 248, 248, 0.56);
+        background: var(--c);
+        color: #07100e;
+        font-size: 0.72rem;
+        font-weight: 900;
+        text-align: center;
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.32);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .object.sphere {
+        border-radius: 50%;
+      }
+
+      .object.cylinder {
+        border-radius: 999px;
+      }
+
+      .object.highlight {
+        border-color: var(--warn);
+        box-shadow: 0 0 0 8px rgba(247, 201, 72, 0.16), 0 12px 26px rgba(0, 0, 0, 0.32);
+      }
+
+      .object.selected {
+        outline: 4px solid rgba(76, 224, 179, 0.34);
+      }
+
+      .field {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+
+      .field label {
         color: var(--muted);
-        font-size: 0.86rem;
+        font-size: 0.92rem;
       }
 
-      .room {
-        height: 180px;
-        margin: 12px 0;
+      .two {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .camera {
+        min-height: 280px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
         display: grid;
         place-items: center;
         background:
-          linear-gradient(140deg, rgba(76, 224, 179, 0.12), transparent),
-          var(--panel);
+          linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+          linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+          #101518;
+        background-size: 34px 34px;
       }
 
-      .room-grid {
-        width: 78%;
-        height: 62%;
-        border: 1px solid var(--line);
-        transform: perspective(520px) rotateX(58deg) rotateZ(-18deg);
+      .camera-target {
+        width: min(170px, 70%);
+        aspect-ratio: 1;
+        border: 3px solid var(--accent);
+        border-radius: 18px;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(3, 1fr);
+        place-items: center;
+        color: var(--accent);
+        font-weight: 900;
       }
 
-      .room-grid div {
-        border: 1px solid rgba(182, 194, 199, 0.12);
+      .empty {
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        padding: 18px;
+        color: var(--muted);
       }
 
-      .marker {
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 0 8px rgba(76, 224, 179, 0.16);
-        transform: translate(84px, 48px);
-      }
-
-      .item {
-        padding: 12px;
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-
-      .item strong {
-        display: block;
-      }
-
-      .sections {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 16px;
-        margin-top: 18px;
-      }
-
-      .feature {
-        border-top: 1px solid var(--line);
-        padding-top: 18px;
-      }
-
-      .feature h2 {
-        margin: 0 0 8px;
-        font-size: 1.1rem;
-      }
-
-      @media (max-width: 860px) {
-        .hero,
-        .sections {
+      @media (max-width: 900px) {
+        .split,
+        .room-wrap,
+        .scan-card,
+        .history-grid {
           grid-template-columns: 1fr;
         }
 
-        .phone {
-          min-height: auto;
+        .detail {
+          position: static;
+        }
+
+        .tabs {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 560px) {
+        .app {
+          width: min(100% - 18px, 1180px);
+        }
+
+        header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .tabs {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .item-row {
+          grid-template-columns: 44px minmax(0, 1fr);
+        }
+
+        .item-row button {
+          grid-column: 1 / -1;
+        }
+
+        .room-stage {
+          min-height: 420px;
         }
       }
     </style>
   </head>
   <body>
-    <main>
-      <section class="hero">
-        <div>
-          <div class="eyebrow">Flutter Mobile App</div>
-          <h1>RealLife Inventory</h1>
-          <p>
-            Eine erste Version einer mobilen Inventar-App für echte Gegenstände:
-            Räume, Container, Suche, Besitzhistorie und eine einfache digitale
-            Raumansicht.
-          </p>
-          <div class="actions">
-            <a class="button" href="https://github.com/pascalruddat17-byte/RealLiveInventory">
-              Repository öffnen
-            </a>
-            <a class="button secondary" href="#features">Features ansehen</a>
+    <div class="app">
+      <header>
+        <div class="brand">
+          <div class="mark">RI</div>
+          <div>
+            <h1>RealLife Inventory</h1>
+            <p class="subtitle">Benutzbare Web-Demo der Inventar-App</p>
           </div>
         </div>
+        <div class="status-pill">Offline Demo · GitHub Pages</div>
+      </header>
 
-        <div class="phone" aria-label="App-Vorschau">
-          <div class="screen">
-            <div class="topbar">
-              <strong>Mein Zimmer</strong>
-              <span class="pill">Offline V1</span>
+      <nav class="tabs" aria-label="Bereiche">
+        <button class="tab active" data-view="home">Start</button>
+        <button class="tab" data-view="items">Gegenstände</button>
+        <button class="tab" data-view="search">Suche</button>
+        <button class="tab" data-view="scan">Scan</button>
+        <button class="tab" data-view="room">Zimmer</button>
+        <button class="tab" data-view="history">Historie</button>
+      </nav>
+
+      <main>
+        <section class="view active" id="home">
+          <div class="stats" id="stats"></div>
+          <div class="toolbar">
+            <button class="primary" data-open="scan">Neuen Gegenstand scannen</button>
+            <button data-open="room">Zimmer ansehen</button>
+            <button data-open="search">Suchen</button>
+            <button data-open="history">Nicht mehr im Besitz</button>
+          </div>
+          <div class="split">
+            <div>
+              <h2>Zuletzt im Besitz</h2>
+              <div class="items" id="homeItems"></div>
             </div>
-            <div class="stats">
-              <div class="stat"><strong>7</strong><span>Gegenstände</span></div>
-              <div class="stat"><strong>1</strong><span>Raum</span></div>
-              <div class="stat"><strong>1</strong><span>Verkauft</span></div>
-              <div class="stat"><strong>0</strong><span>Verschenkt</span></div>
-            </div>
-            <div class="room">
-              <div class="room-grid">
-                <div></div><div></div><div></div><div></div>
-                <div></div><div><span class="marker"></span></div><div></div><div></div>
-                <div></div><div></div><div></div><div></div>
+            <aside class="panel pad detail" id="homeDetail"></aside>
+          </div>
+        </section>
+
+        <section class="view" id="items">
+          <div class="toolbar">
+            <input id="itemFilter" type="search" placeholder="Gegenstände filtern" />
+            <button class="primary" data-open="scan">Scannen</button>
+          </div>
+          <div class="split">
+            <div class="items" id="itemList"></div>
+            <aside class="panel pad detail" id="itemDetail"></aside>
+          </div>
+        </section>
+
+        <section class="view" id="search">
+          <div class="toolbar">
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="Ding zum Schrauben, USB C Kabel, Arduino Sachen ..."
+            />
+            <button id="showSearchInRoom">Im Zimmer zeigen</button>
+          </div>
+          <div class="split">
+            <div class="items" id="searchResults"></div>
+            <aside class="panel pad detail" id="searchDetail"></aside>
+          </div>
+        </section>
+
+        <section class="view" id="scan">
+          <div class="scan-card">
+            <div class="panel pad">
+              <h2>Mock-Scan</h2>
+              <p class="muted">
+                Diese Web-Version erkennt beispielhaft einen Gegenstand und lässt
+                alle Felder bearbeiten.
+              </p>
+              <div class="camera">
+                <div class="camera-target">SCAN</div>
+              </div>
+              <div class="toolbar">
+                <button class="primary" id="scanButton">Gegenstand erkennen</button>
+                <button id="resetDemo">Demo zurücksetzen</button>
               </div>
             </div>
-            <div class="item">
-              <div><strong>Akkuschrauber</strong><span>Werkzeug · Regal</span></div>
-              <span class="pill">Bohren</span>
-            </div>
-            <div class="item">
-              <div><strong>Arduino Uno</strong><span>Elektronikbox</span></div>
-              <span class="pill">Treffer</span>
-            </div>
-            <div class="item">
-              <div><strong>USB-C Kabel</strong><span>Kabelbox</span></div>
-              <span class="pill">3x</span>
-            </div>
+            <form class="panel pad" id="scanForm">
+              <h2>Daten bearbeiten</h2>
+              <div class="two">
+                <div class="field">
+                  <label for="scanName">Name</label>
+                  <input id="scanName" required />
+                </div>
+                <div class="field">
+                  <label for="scanCategory">Kategorie</label>
+                  <input id="scanCategory" required />
+                </div>
+              </div>
+              <div class="field">
+                <label for="scanDescription">Beschreibung</label>
+                <textarea id="scanDescription" rows="3"></textarea>
+              </div>
+              <div class="two">
+                <div class="field">
+                  <label for="scanCapabilities">Fähigkeiten</label>
+                  <input id="scanCapabilities" />
+                </div>
+                <div class="field">
+                  <label for="scanProperties">Eigenschaften</label>
+                  <input id="scanProperties" />
+                </div>
+              </div>
+              <div class="two">
+                <div class="field">
+                  <label for="scanBrand">Marke</label>
+                  <input id="scanBrand" />
+                </div>
+                <div class="field">
+                  <label for="scanColor">Farbe</label>
+                  <input id="scanColor" />
+                </div>
+              </div>
+              <div class="two">
+                <div class="field">
+                  <label for="scanQuantity">Menge</label>
+                  <input id="scanQuantity" type="number" min="1" value="1" />
+                </div>
+                <div class="field">
+                  <label for="scanModel">3D-Modell</label>
+                  <select id="scanModel">
+                    <option value="cube">Quader</option>
+                    <option value="box">Box</option>
+                    <option value="sphere">Kugel</option>
+                    <option value="cylinder">Zylinder</option>
+                  </select>
+                </div>
+              </div>
+              <div class="toolbar">
+                <button class="primary" type="submit">Speichern</button>
+              </div>
+            </form>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="features" class="sections">
-        <div class="feature">
-          <h2>Inventar</h2>
-          <p>Gegenstände mit Kategorien, Fähigkeiten, Eigenschaften, Fotos und Besitzstatus.</p>
-        </div>
-        <div class="feature">
-          <h2>Räume</h2>
-          <p>Demo-Raumscan, einfache 3D-Ansicht und räumliche Platzierung von Items.</p>
-        </div>
-        <div class="feature">
-          <h2>Suche</h2>
-          <p>Lokale Suche mit Ranking, Normalisierung und toleranter Fuzzy-Erkennung.</p>
-        </div>
-      </section>
-    </main>
+        <section class="view" id="room">
+          <div class="room-wrap">
+            <div class="room-stage" id="roomStage">
+              <div class="wall back"></div>
+              <div class="wall left"></div>
+              <div class="wall right"></div>
+              <div class="floor"></div>
+              <div id="roomObjects"></div>
+            </div>
+            <aside class="panel pad">
+              <h2>Item platzieren</h2>
+              <div class="field">
+                <label for="roomItemSelect">Gegenstand</label>
+                <select id="roomItemSelect"></select>
+              </div>
+              <div class="two">
+                <div class="field">
+                  <label for="posX">X</label>
+                  <input id="posX" type="range" min="0" max="100" />
+                </div>
+                <div class="field">
+                  <label for="posY">Y</label>
+                  <input id="posY" type="range" min="8" max="88" />
+                </div>
+              </div>
+              <div class="two">
+                <div class="field">
+                  <label for="scale">Skalierung</label>
+                  <input id="scale" type="range" min="50" max="170" />
+                </div>
+                <div class="field">
+                  <label for="rotation">Rotation</label>
+                  <input id="rotation" type="range" min="-45" max="45" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="modelSelect">Modell</label>
+                <select id="modelSelect">
+                  <option value="cube">Quader</option>
+                  <option value="box">Box</option>
+                  <option value="sphere">Kugel</option>
+                  <option value="cylinder">Zylinder</option>
+                </select>
+              </div>
+              <div id="roomDetail"></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="history">
+          <div class="toolbar">
+            <select id="historyFilter">
+              <option value="all">Alle</option>
+              <option value="sold">Verkauft</option>
+              <option value="gifted">Verschenkt</option>
+              <option value="lost">Verloren</option>
+              <option value="broken">Kaputt</option>
+              <option value="disposed">Entsorgt</option>
+            </select>
+          </div>
+          <div class="history-grid">
+            <div class="panel pad" id="historyStats"></div>
+            <div class="items" id="historyList"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      var seedItems = [
+        item("desk", "Schreibtisch", "Möbel", "Großer Schreibtisch mit Schubladen.", ["arbeitsplatz", "container"], ["Aufbewahren"], ["Holz", "stationär"], "", "Braun", 1, null, "Mein Zimmer", true, "box", 70, 62, 150, -8),
+        item("electronics_box", "Elektronikbox", "Container", "Box für Mikrocontroller und Elektronikteile.", ["elektronik", "box", "arduino"], ["Aufbewahren"], ["Kunststoff", "tragbar"], "", "Grau", 1, "desk", "Schreibtisch", true, "box", 64, 52, 85, 5),
+        item("cable_box", "Kabelbox", "Container", "Box für Lade- und Datenkabel.", ["kabel", "usb", "box"], ["Aufbewahren"], ["Kunststoff"], "", "Grau", 1, "desk", "Schreibtisch", true, "box", 77, 52, 80, -2),
+        item("drill", "Akkuschrauber", "Werkzeug", "Akkubetriebener Schrauber für kleine Reparaturen.", ["werkzeug", "akku", "bohren"], ["Schrauben", "Bohren"], ["Akku", "tragbar"], "Bosch", "Grün", 1, null, "Regal", false, "cube", 28, 43, 88, 12),
+        item("arduino", "Arduino Uno", "Elektronik", "Entwicklungsboard für Elektronikprojekte.", ["arduino", "mikrocontroller", "programmieren"], ["Programmieren", "Mikrocontroller"], ["USB", "klein"], "Arduino", "Blau", 1, "electronics_box", "Elektronikbox", false, "cube", 62, 47, 55, 0),
+        item("usb_c", "USB-C Kabel", "Elektronik", "Kabel zum Laden und zur Datenübertragung.", ["usb", "kabel", "laden"], ["Laden", "Datenübertragung"], ["USB-C", "flexibel"], "", "Schwarz", 3, "cable_box", "Kabelbox", false, "cylinder", 78, 47, 58, -18),
+        item("scissors", "Schere", "Werkzeug", "Schere für Papier, Folie und Verpackungen.", ["schneiden", "werkzeug"], ["Schneiden"], ["Metall", "tragbar"], "", "Rot", 1, null, "Schublade", false, "cube", 42, 57, 58, 22)
+      ];
+
+      var seedHistory = [
+        {
+          id: "old_keyboard_sold",
+          itemName: "Alte Tastatur",
+          status: "sold",
+          statusLabel: "Verkauft",
+          price: 20,
+          person: "Example",
+          date: "25.08.2026",
+          note: "Über Kleinanzeigen verkauft"
+        }
+      ];
+
+      var labels = {
+        owned: "Im Besitz",
+        sold: "Verkauft",
+        gifted: "Verschenkt",
+        lost: "Verloren",
+        broken: "Kaputt",
+        disposed: "Entsorgt"
+      };
+
+      var colors = {
+        gruen: "#3fb950",
+        blau: "#58a6ff",
+        rot: "#ff6b6b",
+        schwarz: "#2b2d31",
+        grau: "#8b949e",
+        braun: "#8d6e63"
+      };
+
+      var state = {
+        items: load("ri-items", seedItems),
+        history: load("ri-history", seedHistory),
+        selectedId: "drill",
+        highlighted: new Set()
+      };
+
+      function item(id, name, category, description, tags, capabilities, properties, brand, color, quantity, containerId, location, isContainer, model, x, y, scale, rotation) {
+        return {
+          id: id,
+          name: name,
+          category: category,
+          description: description,
+          tags: tags,
+          capabilities: capabilities,
+          properties: properties,
+          brand: brand,
+          color: color,
+          condition: "Gut",
+          quantity: quantity,
+          containerId: containerId,
+          location: location,
+          isContainer: isContainer,
+          model: model,
+          status: "owned",
+          x: x,
+          y: y,
+          scale: scale,
+          rotation: rotation
+        };
+      }
+
+      function $(selector) {
+        return document.querySelector(selector);
+      }
+
+      function $$(selector) {
+        return Array.prototype.slice.call(document.querySelectorAll(selector));
+      }
+
+      function load(key, fallback) {
+        try {
+          return JSON.parse(localStorage.getItem(key)) || copy(fallback);
+        } catch (error) {
+          return copy(fallback);
+        }
+      }
+
+      function copy(value) {
+        return JSON.parse(JSON.stringify(value));
+      }
+
+      function save() {
+        localStorage.setItem("ri-items", JSON.stringify(state.items));
+        localStorage.setItem("ri-history", JSON.stringify(state.history));
+      }
+
+      function ownedItems() {
+        return state.items.filter(function (entry) {
+          return entry.status === "owned";
+        });
+      }
+
+      function selectedItem() {
+        return state.items.find(function (entry) {
+          return entry.id === state.selectedId;
+        }) || ownedItems()[0];
+      }
+
+      function normalize(value) {
+        return String(value)
+          .toLowerCase()
+          .replaceAll("ä", "ae")
+          .replaceAll("ö", "oe")
+          .replaceAll("ü", "ue")
+          .replaceAll("ß", "ss")
+          .replace(/[^a-z0-9 ]/g, " ")
+          .trim();
+      }
+
+      function scoreItem(query, entry) {
+        var q = normalize(query);
+        var stopWords = ["ich", "zum", "zur", "der", "die", "das", "ding", "etwas", "womit", "mit"];
+        var tokens = q.split(/\s+/).filter(function (token) {
+          return token.length > 1 && stopWords.indexOf(token) === -1;
+        });
+        if (!tokens.length) return 0;
+        var fields = [
+          [entry.name, 8],
+          [entry.category, 4],
+          [entry.description, 2],
+          [entry.tags.join(" "), 5],
+          [entry.capabilities.join(" "), 7],
+          [entry.properties.join(" "), 4],
+          [entry.brand, 3]
+        ];
+        return fields.reduce(function (sum, fieldData) {
+          var field = normalize(fieldData[0]);
+          var weight = fieldData[1];
+          var score = field.indexOf(q) >= 0 ? weight * 2.4 : 0;
+          tokens.forEach(function (token) {
+            field.split(/\s+/).forEach(function (part) {
+              if (part === token) score += weight;
+              else if (part.indexOf(token) >= 0 || token.indexOf(part) >= 0) score += weight * 0.55;
+              else if (similarity(part, token) >= 0.72) score += weight * 0.4;
+            });
+          });
+          return sum + score;
+        }, 0);
+      }
+
+      function similarity(a, b) {
+        if (Math.abs(a.length - b.length) > 4) return 0;
+        var rows = [];
+        for (var i = 0; i <= a.length; i += 1) {
+          rows[i] = [];
+          rows[i][0] = i;
+        }
+        for (var j = 0; j <= b.length; j += 1) rows[0][j] = j;
+        for (i = 1; i <= a.length; i += 1) {
+          for (j = 1; j <= b.length; j += 1) {
+            rows[i][j] = Math.min(
+              rows[i - 1][j] + 1,
+              rows[i][j - 1] + 1,
+              rows[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+            );
+          }
+        }
+        return 1 - rows[a.length][b.length] / Math.max(a.length, b.length, 1);
+      }
+
+      function switchView(id) {
+        $$(".tab").forEach(function (button) {
+          button.classList.toggle("active", button.dataset.view === id);
+        });
+        $$(".view").forEach(function (view) {
+          view.classList.toggle("active", view.id === id);
+        });
+        if (id === "room") renderRoom();
+      }
+
+      function renderStats() {
+        var owned = ownedItems();
+        var sold = state.history.filter(function (entry) { return entry.status === "sold"; });
+        var gifted = state.history.filter(function (entry) { return entry.status === "gifted"; });
+        $("#stats").innerHTML = [
+          ["Gegenstände im Besitz", owned.length],
+          ["Räume", 1],
+          ["Verkauft", sold.length],
+          ["Verschenkt", gifted.length]
+        ].map(function (entry) {
+          return '<div class="stat"><strong>' + entry[1] + '</strong><span>' + entry[0] + '</span></div>';
+        }).join("");
+      }
+
+      function itemRow(entry, archiveButton) {
+        var action = archiveButton
+          ? '<button class="danger" data-archive="' + entry.id + '">Nicht mehr im Besitz</button>'
+          : '<button data-select="' + entry.id + '">Details</button>';
+        var tags = entry.capabilities.concat([entry.brand]).filter(Boolean).slice(0, 4).map(function (tag) {
+          return '<span class="tag">' + escapeHtml(tag) + '</span>';
+        }).join("");
+        return '<article class="item-row">' +
+          '<div class="thumb">' + escapeHtml(entry.name.slice(0, 2).toUpperCase()) + '</div>' +
+          '<div><p class="item-title">' + escapeHtml(entry.name) + '</p>' +
+          '<div class="muted">' + escapeHtml(entry.category) + ' · ' + escapeHtml(locationFor(entry)) + ' · ' + entry.quantity + 'x</div>' +
+          '<div class="tags">' + tags + '</div></div>' + action + '</article>';
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
+
+      function locationFor(entry) {
+        var chain = [];
+        var cursor = entry.containerId;
+        while (cursor) {
+          var parent = state.items.find(function (candidate) {
+            return candidate.id === cursor;
+          });
+          if (!parent) break;
+          chain.unshift(parent.name);
+          cursor = parent.containerId;
+        }
+        return chain.length ? chain.join(" > ") : entry.location || "Mein Zimmer";
+      }
+
+      function renderDetail(target, entry) {
+        if (!entry) {
+          target.innerHTML = '<div class="empty">Kein Gegenstand ausgewählt.</div>';
+          return;
+        }
+        target.innerHTML =
+          '<h2>' + escapeHtml(entry.name) + '</h2>' +
+          '<p class="muted">' + escapeHtml(entry.description) + '</p>' +
+          line("Kategorie", entry.category) +
+          line("Standort", locationFor(entry)) +
+          line("Marke", entry.brand || "Unbekannt") +
+          line("Farbe", entry.color) +
+          line("Zustand", entry.condition) +
+          line("Modell", modelLabel(entry.model)) +
+          '<div class="toolbar"><button data-open="room">Im Zimmer zeigen</button>' +
+          '<button class="danger" data-archive="' + entry.id + '">Archivieren</button></div>';
+      }
+
+      function line(label, value) {
+        return '<div class="detail-line"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
+      }
+
+      function modelLabel(value) {
+        return { cube: "Quader", box: "Box", sphere: "Kugel", cylinder: "Zylinder" }[value] || "Quader";
+      }
+
+      function renderItems() {
+        var filter = normalize($("#itemFilter").value || "");
+        var list = ownedItems().filter(function (entry) {
+          return !filter || normalize(entry.name + " " + entry.category).indexOf(filter) >= 0;
+        });
+        $("#itemList").innerHTML = list.length
+          ? list.map(function (entry) { return itemRow(entry, true); }).join("")
+          : '<div class="empty">Keine Gegenstände gefunden.</div>';
+        $("#homeItems").innerHTML = ownedItems().slice(0, 5).map(function (entry) {
+          return itemRow(entry, false);
+        }).join("");
+        renderDetail($("#itemDetail"), selectedItem());
+        renderDetail($("#homeDetail"), selectedItem());
+      }
+
+      function renderSearch() {
+        var query = $("#searchInput").value;
+        var results = ownedItems().map(function (entry) {
+          return { item: entry, score: scoreItem(query, entry) };
+        }).filter(function (result) {
+          return result.score > 0;
+        }).sort(function (a, b) {
+          return b.score - a.score;
+        });
+        state.highlighted = new Set(results.map(function (result) { return result.item.id; }));
+        $("#searchResults").innerHTML = query.trim()
+          ? results.map(function (result) { return itemRow(result.item, false); }).join("") || '<div class="empty">Keine Treffer gefunden.</div>'
+          : '<div class="empty">Suche nach Namen, Fähigkeiten, Tags, Kategorie oder Marke.</div>';
+        renderDetail($("#searchDetail"), results[0] ? results[0].item : selectedItem());
+      }
+
+      function renderRoom() {
+        var selected = selectedItem();
+        var list = ownedItems();
+        $("#roomItemSelect").innerHTML = list.map(function (entry) {
+          return '<option value="' + entry.id + '"' + (entry.id === (selected && selected.id) ? " selected" : "") + '>' + escapeHtml(entry.name) + '</option>';
+        }).join("");
+        if (selected) {
+          $("#posX").value = selected.x;
+          $("#posY").value = selected.y;
+          $("#scale").value = selected.scale;
+          $("#rotation").value = selected.rotation;
+          $("#modelSelect").value = selected.model;
+        }
+        $("#roomObjects").innerHTML = list.map(function (entry) {
+          var color = colors[normalize(entry.color)] || "#4ce0b3";
+          var width = Math.max(34, entry.scale * (entry.model === "cylinder" ? 0.9 : 0.72));
+          var height = Math.max(26, entry.scale * (entry.model === "cylinder" ? 0.28 : 0.48));
+          var classes = "object " + entry.model +
+            (state.highlighted.has(entry.id) ? " highlight" : "") +
+            (entry.id === (selected && selected.id) ? " selected" : "");
+          return '<button class="' + classes + '" data-select="' + entry.id + '" style="--x:' + entry.x + '%; --y:' + entry.y + '%; --w:' + width + 'px; --h:' + height + 'px; --r:' + entry.rotation + 'deg; --c:' + color + ';">' + escapeHtml(entry.name.split(" ")[0]) + '</button>';
+        }).join("");
+        renderDetail($("#roomDetail"), selected);
+      }
+
+      function renderHistory() {
+        var filter = $("#historyFilter").value;
+        var entries = state.history.filter(function (entry) {
+          return filter === "all" || entry.status === filter;
+        });
+        var totalSales = state.history.filter(function (entry) {
+          return entry.status === "sold";
+        }).reduce(function (sum, entry) {
+          return sum + (Number(entry.price) || 0);
+        }, 0);
+        $("#historyStats").innerHTML =
+          '<h2>Statistik</h2>' +
+          line("Verkauft", state.history.filter(function (entry) { return entry.status === "sold"; }).length) +
+          line("Gesamteinnahmen", totalSales.toFixed(2) + " €") +
+          line("Verschenkt", state.history.filter(function (entry) { return entry.status === "gifted"; }).length);
+        $("#historyList").innerHTML = entries.length
+          ? entries.map(function (entry) {
+              return '<article class="item-row"><div class="thumb">' + escapeHtml(entry.itemName.slice(0, 2).toUpperCase()) + '</div><div><p class="item-title">' + escapeHtml(entry.itemName) + '</p><div class="muted">' + escapeHtml(entry.statusLabel || labels[entry.status]) + ' · ' + escapeHtml(entry.date) + '</div><div class="tags">' +
+                (entry.price ? '<span class="tag">' + Number(entry.price).toFixed(2) + ' €</span>' : '') +
+                (entry.person ? '<span class="tag">' + escapeHtml(entry.person) + '</span>' : '') +
+                (entry.note ? '<span class="tag">' + escapeHtml(entry.note) + '</span>' : '') +
+                '</div></div></article>';
+            }).join("")
+          : '<div class="empty">Keine Einträge für diesen Filter.</div>';
+      }
+
+      function renderAll() {
+        renderStats();
+        renderItems();
+        renderSearch();
+        renderRoom();
+        renderHistory();
+      }
+
+      function fillScanDemo() {
+        $("#scanName").value = "Bosch Akkuschrauber";
+        $("#scanCategory").value = "Werkzeug";
+        $("#scanDescription").value = "Akkubetriebener Schrauber";
+        $("#scanCapabilities").value = "Schrauben, Bohren";
+        $("#scanProperties").value = "Akku, tragbar";
+        $("#scanBrand").value = "Bosch";
+        $("#scanColor").value = "Grün";
+        $("#scanQuantity").value = 1;
+        $("#scanModel").value = "cube";
+      }
+
+      function archiveItem(id) {
+        var entry = state.items.find(function (candidate) { return candidate.id === id; });
+        if (!entry) return;
+        var statusInput = prompt("Grund: verkauft, verschenkt, verloren, kaputt oder entsorgt", "verkauft");
+        if (!statusInput) return;
+        var statusMap = { verkauft: "sold", verschenkt: "gifted", verloren: "lost", kaputt: "broken", entsorgt: "disposed" };
+        var newStatus = statusMap[normalize(statusInput)] || "disposed";
+        var price = null;
+        var person = "";
+        if (newStatus === "sold") {
+          price = Number(prompt("Verkaufspreis", "20") || 0);
+          person = prompt("Verkauft an", "Example") || "";
+        } else if (newStatus === "gifted") {
+          person = prompt("Verschenkt an", "") || "";
+        }
+        entry.status = newStatus;
+        state.history.unshift({
+          id: "history_" + Date.now(),
+          itemName: entry.name,
+          status: newStatus,
+          statusLabel: labels[newStatus],
+          price: price,
+          person: person,
+          date: new Date().toLocaleDateString("de-DE"),
+          note: prompt("Notiz", "") || ""
+        });
+        state.selectedId = ownedItems()[0] ? ownedItems()[0].id : "";
+        save();
+        renderAll();
+      }
+
+      document.addEventListener("click", function (event) {
+        var tab = event.target.closest("[data-view]");
+        if (tab) switchView(tab.dataset.view);
+        var open = event.target.closest("[data-open]");
+        if (open) switchView(open.dataset.open);
+        var select = event.target.closest("[data-select]");
+        if (select) {
+          state.selectedId = select.dataset.select;
+          renderAll();
+        }
+        var archive = event.target.closest("[data-archive]");
+        if (archive) archiveItem(archive.dataset.archive);
+      });
+
+      $("#itemFilter").addEventListener("input", renderItems);
+      $("#searchInput").addEventListener("input", renderSearch);
+      $("#showSearchInRoom").addEventListener("click", function () { switchView("room"); });
+      $("#historyFilter").addEventListener("change", renderHistory);
+      $("#scanButton").addEventListener("click", fillScanDemo);
+      $("#resetDemo").addEventListener("click", function () {
+        localStorage.removeItem("ri-items");
+        localStorage.removeItem("ri-history");
+        state.items = copy(seedItems);
+        state.history = copy(seedHistory);
+        state.selectedId = "drill";
+        renderAll();
+      });
+      $("#scanForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        var entry = item(
+          "item_" + Date.now(),
+          $("#scanName").value.trim(),
+          $("#scanCategory").value.trim(),
+          $("#scanDescription").value.trim(),
+          $("#scanCategory").value.split(",").map(function (value) { return value.trim(); }).filter(Boolean),
+          $("#scanCapabilities").value.split(",").map(function (value) { return value.trim(); }).filter(Boolean),
+          $("#scanProperties").value.split(",").map(function (value) { return value.trim(); }).filter(Boolean),
+          $("#scanBrand").value.trim(),
+          $("#scanColor").value.trim() || "Grün",
+          Number($("#scanQuantity").value) || 1,
+          null,
+          "Mein Zimmer",
+          false,
+          $("#scanModel").value,
+          35 + Math.round(Math.random() * 35),
+          35 + Math.round(Math.random() * 28),
+          75,
+          0
+        );
+        if (!entry.name) return;
+        state.items.unshift(entry);
+        state.selectedId = entry.id;
+        save();
+        event.target.reset();
+        $("#scanQuantity").value = 1;
+        renderAll();
+        switchView("items");
+      });
+      $("#roomItemSelect").addEventListener("change", function (event) {
+        state.selectedId = event.target.value;
+        renderAll();
+      });
+      ["posX", "posY", "scale", "rotation", "modelSelect"].forEach(function (id) {
+        $("#" + id).addEventListener("input", function () {
+          var entry = selectedItem();
+          if (!entry) return;
+          entry.x = Number($("#posX").value);
+          entry.y = Number($("#posY").value);
+          entry.scale = Number($("#scale").value);
+          entry.rotation = Number($("#rotation").value);
+          entry.model = $("#modelSelect").value;
+          save();
+          renderRoom();
+        });
+      });
+
+      fillScanDemo();
+      renderAll();
+    </script>
   </body>
 </html>

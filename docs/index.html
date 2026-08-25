@@ -3,21 +3,22 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RealLife Inventory Web</title>
+    <title>RealLife Inventory</title>
     <style>
       :root {
         color-scheme: light;
         --bg: #eef6ff;
-        --panel: #ffffff;
-        --panel-2: #e7f0ff;
+        --surface: #ffffff;
+        --surface-soft: #f6fbff;
         --line: #d7e4f5;
-        --text: #102238;
+        --ink: #102238;
         --muted: #60748f;
-        --accent: #246bfe;
-        --blue: #37a2ff;
-        --danger: #ef594c;
-        --warn: #f2bd2f;
-        --shadow: 0 18px 44px rgba(36, 107, 254, 0.14);
+        --blue: #246bfe;
+        --blue-2: #37a2ff;
+        --green: #0f8f62;
+        --yellow: #f2bd2f;
+        --red: #ef594c;
+        --shadow: 0 1rem 2.4rem rgba(36, 107, 254, 0.14);
       }
 
       * {
@@ -25,13 +26,12 @@
       }
 
       body {
+        min-width: 320px;
         margin: 0;
-        min-height: 100vh;
         background:
-          radial-gradient(circle at 16% 0%, rgba(36, 107, 254, 0.16), transparent 28rem),
-          linear-gradient(160deg, #f6fbff 0%, var(--bg) 52%, #dbeeff 100%),
-          var(--bg);
-        color: var(--text);
+          radial-gradient(circle at 16% 0%, rgba(36, 107, 254, 0.18), transparent 26rem),
+          linear-gradient(160deg, #f8fcff 0%, var(--bg) 56%, #ddecff 100%);
+        color: var(--ink);
         font-family:
           Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
           "Segoe UI", sans-serif;
@@ -39,34 +39,38 @@
 
       button,
       input,
-      select,
-      textarea {
+      select {
         font: inherit;
       }
 
       button {
-        min-height: 44px;
+        min-height: 2.75rem;
         border: 0;
-        border-radius: 8px;
-        padding: 0 14px;
-        background: var(--panel-2);
-        color: var(--text);
+        border-radius: 0.95rem;
+        background: #e7f0ff;
+        color: var(--ink);
         cursor: pointer;
-        box-shadow: 0 0.45rem 1.1rem rgba(36, 107, 254, 0.08);
+        font-weight: 850;
+        padding: 0 1rem;
         transition:
           transform 160ms ease,
-          border-color 160ms ease,
+          box-shadow 160ms ease,
           background 160ms ease;
       }
 
-      button:hover {
-        transform: translateY(-1px);
+      button:active {
+        transform: translateY(1px);
       }
 
       button.primary {
-        background: var(--accent);
-        color: #ffffff;
-        font-weight: 800;
+        background: var(--blue);
+        color: white;
+        box-shadow: 0 0.7rem 1.3rem rgba(36, 107, 254, 0.24);
+      }
+
+      button.ink {
+        background: var(--ink);
+        color: white;
       }
 
       button.danger {
@@ -74,43 +78,60 @@
         color: #9f2d25;
       }
 
-      .app {
-        width: min(520px, calc(100% - 24px));
-        margin: 0 auto;
-        min-height: 100vh;
-        padding: 16px 0 54px;
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
       }
 
-      header {
+      input,
+      select {
+        width: 100%;
+        min-height: 2.75rem;
+        border: 1px solid var(--line);
+        border-radius: 0.9rem;
+        background: var(--surface-soft);
+        color: var(--ink);
+        padding: 0 0.85rem;
+      }
+
+      .app {
+        display: grid;
+        width: min(520px, calc(100% - 1.4rem));
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 0.9rem 0 5.6rem;
+      }
+
+      .topbar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 14px;
-        margin-bottom: 12px;
+        gap: 0.85rem;
         border: 1px solid var(--line);
-        border-radius: 24px;
-        background: rgba(255, 255, 255, 0.86);
+        border-radius: 1.45rem;
+        background: rgba(255, 255, 255, 0.88);
         box-shadow: var(--shadow);
-        padding: 14px;
+        padding: 0.85rem;
         backdrop-filter: blur(18px);
       }
 
       .brand {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 0.75rem;
+        min-width: 0;
       }
 
       .mark {
-        width: 44px;
-        height: 44px;
-        border-radius: 999px;
         display: grid;
+        width: 2.65rem;
+        height: 2.65rem;
+        flex: 0 0 auto;
         place-items: center;
-        background: linear-gradient(135deg, var(--accent), var(--blue));
-        color: #ffffff;
-        font-weight: 900;
-        box-shadow: 0 0 0 4px rgba(36, 107, 254, 0.1);
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--blue), var(--blue-2));
+        color: white;
+        font-weight: 950;
       }
 
       h1,
@@ -122,653 +143,472 @@
 
       h1 {
         margin-bottom: 0;
-        font-size: clamp(1.4rem, 4vw, 2.1rem);
-        letter-spacing: 0;
+        font-size: 1.35rem;
+        line-height: 1.05;
       }
 
-      .subtitle,
-      .muted {
-        color: var(--muted);
-      }
-
-      .status-pill,
-      .tag {
-        border-radius: 999px;
-        padding: 7px 10px;
-        background: #eef5ff;
+      .sub {
+        margin: 0.1rem 0 0;
         color: var(--muted);
         font-size: 0.86rem;
+        font-weight: 720;
+      }
+
+      .pill {
+        flex: 0 0 auto;
+        border-radius: 999px;
+        background: #eef5ff;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 850;
+        padding: 0.42rem 0.6rem;
         white-space: nowrap;
       }
 
-      .tabs {
-        position: sticky;
-        top: 8px;
-        z-index: 4;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
-        margin-bottom: 10px;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        padding: 5px;
-        background: rgba(255, 255, 255, 0.84);
-        backdrop-filter: blur(14px);
-      }
-
-      .tab {
-        border: 0;
-        border-radius: 999px;
-        background: transparent;
-        color: var(--muted);
-        box-shadow: none;
-        font-weight: 850;
-      }
-
-      .tab.active {
-        background: var(--text);
-        color: #ffffff;
-        border-color: transparent;
-        font-weight: 800;
-      }
-
-      .view {
+      .screen {
         display: none;
+        margin-top: 0.8rem;
       }
 
-      .view.active {
-        display: block;
-      }
-
-      .stats {
+      .screen.active {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        gap: 0.8rem;
       }
 
-      .stat,
-      .panel,
-      .item-row {
+      .card,
+      .item {
         border: 1px solid var(--line);
-        border-radius: 8px;
+        border-radius: 1.15rem;
         background: rgba(255, 255, 255, 0.94);
-      }
-
-      .stat {
-        min-height: 88px;
-        padding: 14px;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .stat::after {
-        content: "";
-        position: absolute;
-        inset: auto 12px 12px auto;
-        width: 32px;
-        height: 10px;
-        border: 2px solid rgba(36, 107, 254, 0.22);
-        border-radius: 999px;
-        transform: rotate(-12deg);
-      }
-
-      .stat strong {
-        display: block;
-        font-size: 2rem;
-      }
-
-      .panel {
         box-shadow: var(--shadow);
       }
 
-      .panel.pad {
-        padding: 16px;
+      .card {
+        padding: 0.9rem;
       }
 
-      .toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 10px;
-        margin: 16px 0;
-      }
-
-      .toolbar input,
-      .field input,
-      .field select,
-      .field textarea,
-      .toolbar select {
-        width: 100%;
-        min-height: 44px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 10px 12px;
-        background: #f7fbff;
-        color: var(--text);
-      }
-
-      .toolbar input {
-        flex: 1 1 260px;
-      }
-
-      .split,
-      .room-wrap,
-      .scan-card,
-      .history-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 16px;
-        align-items: start;
-      }
-
-      .scan-card {
-        grid-template-columns: 1fr;
-      }
-
-      .history-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .items {
-        display: grid;
-        gap: 10px;
-      }
-
-      .item-row {
-        display: grid;
-        grid-template-columns: 52px minmax(0, 1fr) auto;
-        gap: 12px;
-        align-items: center;
-        padding: 12px;
-      }
-
-      .thumb {
-        width: 52px;
-        height: 52px;
-        border-radius: 8px;
-        display: grid;
-        place-items: center;
-        background: linear-gradient(135deg, #e7f0ff, #ffffff);
-        color: var(--accent);
-        font-weight: 900;
-      }
-
-      .item-title {
-        margin: 0 0 4px;
-        font-weight: 850;
-      }
-
-      .tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 8px;
-      }
-
-      .detail {
-        position: static;
-      }
-
-      .detail-line {
-        display: flex;
-        justify-content: space-between;
-        gap: 14px;
-        border-top: 1px solid var(--line);
-        padding-top: 9px;
-        margin-top: 9px;
-      }
-
-      .room-stage {
-        min-height: 560px;
-        overflow: hidden;
+      .room {
         position: relative;
+        min-height: 28rem;
+        overflow: hidden;
         border: 1px solid var(--line);
-        border-radius: 8px;
+        border-radius: 1.3rem;
         background:
-          linear-gradient(180deg, rgba(55, 162, 255, 0.15), transparent 48%),
-          #f7fbff;
-      }
-
-      .floor {
-        position: absolute;
-        left: 12%;
-        right: 12%;
-        bottom: 10%;
-        height: 55%;
-        transform: perspective(700px) rotateX(62deg);
-        transform-origin: bottom;
-        border: 1px solid var(--line);
-        background:
-          linear-gradient(rgba(36, 107, 254, 0.08) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(36, 107, 254, 0.08) 1px, transparent 1px),
-          rgba(36, 107, 254, 0.04);
-        background-size: 56px 56px;
+          linear-gradient(180deg, rgba(55, 162, 255, 0.14), transparent 42%),
+          var(--surface-soft);
+        box-shadow: var(--shadow);
       }
 
       .wall {
         position: absolute;
-        border: 1px solid rgba(36, 107, 254, 0.12);
-        background: rgba(255, 255, 255, 0.62);
+        border: 1px solid rgba(36, 107, 254, 0.14);
+        background: rgba(255, 255, 255, 0.68);
       }
 
       .wall.back {
-        left: 22%;
-        right: 22%;
-        top: 9%;
-        height: 32%;
+        left: 20%;
+        right: 20%;
+        top: 8%;
+        height: 30%;
       }
 
       .wall.left {
-        left: 12%;
+        left: 9%;
         top: 18%;
-        width: 20%;
-        height: 50%;
+        width: 22%;
+        height: 48%;
         transform: skewY(-20deg);
       }
 
       .wall.right {
-        right: 12%;
+        right: 9%;
         top: 18%;
-        width: 20%;
-        height: 50%;
+        width: 22%;
+        height: 48%;
         transform: skewY(20deg);
       }
 
-      .object {
+      .floor {
         position: absolute;
-        width: var(--w);
-        height: var(--h);
+        left: 10%;
+        right: 10%;
+        bottom: 8%;
+        height: 56%;
+        border: 1px solid rgba(36, 107, 254, 0.16);
+        background:
+          linear-gradient(rgba(36, 107, 254, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(36, 107, 254, 0.08) 1px, transparent 1px),
+          rgba(36, 107, 254, 0.04);
+        background-size: 3rem 3rem;
+        transform: perspective(720px) rotateX(62deg);
+        transform-origin: bottom;
+      }
+
+      .room-empty {
+        position: absolute;
+        inset: auto 1rem 1rem;
+        display: grid;
+        gap: 0.6rem;
+        border: 1px dashed rgba(36, 107, 254, 0.28);
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.74);
+        padding: 0.9rem;
+      }
+
+      .obj {
+        position: absolute;
         left: var(--x);
         top: var(--y);
-        transform: translate(-50%, -50%) rotate(var(--r));
         display: grid;
+        width: var(--w);
+        height: var(--h);
         place-items: center;
-        border: 2px solid rgba(245, 248, 248, 0.56);
+        border: 2px solid white;
         background: var(--c);
-        color: #ffffff;
+        color: white;
         font-size: 0.72rem;
         font-weight: 900;
         text-align: center;
-        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.32);
-        cursor: pointer;
-        user-select: none;
+        transform: translate(-50%, -50%) rotate(var(--r));
+        box-shadow: 0 0.8rem 1.6rem rgba(36, 107, 254, 0.2);
       }
 
-      .object.sphere {
-        border-radius: 50%;
-      }
-
-      .object.cylinder {
+      .obj.sphere {
         border-radius: 999px;
       }
 
-      .object.highlight {
-        border-color: var(--warn);
-        box-shadow: 0 0 0 8px rgba(242, 189, 47, 0.2), 0 12px 26px rgba(36, 107, 254, 0.2);
+      .obj.cylinder {
+        border-radius: 999px;
+        height: calc(var(--h) * 0.55);
       }
 
-      .object.selected {
-        outline: 4px solid rgba(36, 107, 254, 0.22);
+      .room-actions,
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
       }
 
-      .field {
+      .room-actions {
+        position: absolute;
+        left: 1rem;
+        right: 1rem;
+        top: 1rem;
+        z-index: 2;
+      }
+
+      .room-actions button {
+        flex: 1 1 9rem;
+      }
+
+      .scan-camera {
+        position: relative;
+        min-height: 20rem;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 1.2rem;
+        background: #dfeeff;
+      }
+
+      video {
+        display: none;
+        width: 100%;
+        height: 20rem;
+        object-fit: cover;
+        background: #dfeeff;
+      }
+
+      video.on {
+        display: block;
+      }
+
+      .camera-placeholder,
+      .scan-overlay {
+        position: absolute;
+        inset: 0;
         display: grid;
-        gap: 6px;
-        margin-bottom: 10px;
+        place-items: center;
+        padding: 1rem;
+        text-align: center;
       }
 
-      .field label {
-        color: var(--muted);
-        font-size: 0.92rem;
+      .camera-placeholder.hidden {
+        display: none;
+      }
+
+      .scan-frame {
+        width: min(72%, 15rem);
+        aspect-ratio: 1;
+        border: 0.22rem solid var(--blue);
+        border-radius: 1.4rem;
+        box-shadow: 0 0 0 999px rgba(16, 34, 56, 0.12);
+      }
+
+      .scan-overlay {
+        pointer-events: none;
+      }
+
+      .scan-progress {
+        height: 0.7rem;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #dbe8fb;
+      }
+
+      .scan-progress span {
+        display: block;
+        width: var(--progress);
+        height: 100%;
+        border-radius: inherit;
+        background: var(--blue);
+        transition: width 260ms ease;
+      }
+
+      .preview {
+        display: grid;
+        grid-template-columns: 5.5rem minmax(0, 1fr);
+        gap: 0.8rem;
+        align-items: center;
+      }
+
+      .preview-shot {
+        display: grid;
+        width: 5.5rem;
+        height: 5.5rem;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, var(--blue), var(--blue-2));
+        color: white;
+        font-weight: 950;
+      }
+
+      .preview-shot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .fields {
+        display: grid;
+        gap: 0.55rem;
       }
 
       .two {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.55rem;
       }
 
-      .camera {
-        min-height: 280px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
+      .items {
         display: grid;
-        place-items: center;
-        background:
-          linear-gradient(90deg, rgba(36, 107, 254, 0.06) 1px, transparent 1px),
-          linear-gradient(rgba(36, 107, 254, 0.06) 1px, transparent 1px),
-          #f7fbff;
-        background-size: 34px 34px;
+        gap: 0.65rem;
       }
 
-      .camera-target {
-        width: min(170px, 70%);
-        aspect-ratio: 1;
-        border: 3px solid var(--accent);
-        border-radius: 18px;
+      .item {
         display: grid;
-        place-items: center;
-        color: var(--accent);
-        font-weight: 900;
+        grid-template-columns: 3rem minmax(0, 1fr) auto;
+        gap: 0.65rem;
+        align-items: center;
+        padding: 0.7rem;
       }
 
-      .empty {
-        border: 1px dashed var(--line);
-        border-radius: 8px;
-        padding: 22px;
+      .thumb {
+        display: grid;
+        width: 3rem;
+        height: 3rem;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 0.9rem;
+        background: #e7f0ff;
+        color: var(--blue);
+        font-weight: 950;
+      }
+
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .item h3 {
+        margin: 0;
+        font-size: 0.98rem;
+      }
+
+      .item p {
+        margin: 0.16rem 0 0;
         color: var(--muted);
-        background: rgba(255, 255, 255, 0.62);
+        font-size: 0.84rem;
       }
 
-      .empty strong {
-        display: block;
-        color: var(--text);
-        font-size: 1.08rem;
-        margin-bottom: 6px;
+      .bottom-nav {
+        position: fixed;
+        right: 0;
+        bottom: 0.75rem;
+        left: 0;
+        z-index: 10;
+        display: grid;
+        width: min(520px, calc(100% - 1.4rem));
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.35rem;
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: var(--shadow);
+        padding: 0.35rem;
+        backdrop-filter: blur(18px);
       }
 
-      @media (max-width: 900px) {
-        .split,
-        .room-wrap,
-        .scan-card,
-        .history-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .detail {
-          position: static;
-        }
-
-        .stats {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
+      .bottom-nav button {
+        border-radius: 999px;
+        background: transparent;
+        box-shadow: none;
+        color: var(--muted);
       }
 
-      @media (max-width: 560px) {
-        .app {
-          width: min(100% - 18px, 1180px);
-        }
+      .bottom-nav button.active {
+        background: var(--ink);
+        color: white;
+      }
 
-        header {
-          align-items: flex-start;
-          flex-direction: column;
-        }
+      .small {
+        color: var(--muted);
+        font-size: 0.86rem;
+        line-height: 1.35;
+      }
 
-        .item-row {
-          grid-template-columns: 44px minmax(0, 1fr);
-        }
-
-        .item-row button {
-          grid-column: 1 / -1;
-        }
-
-        .room-stage {
-          min-height: 420px;
-        }
+      .hidden {
+        display: none !important;
       }
     </style>
   </head>
   <body>
     <div class="app">
-      <header>
+      <header class="topbar">
         <div class="brand">
           <div class="mark">RI</div>
           <div>
             <h1>RealLife Inventory</h1>
-            <p class="subtitle">Dein leerer Inventar-Raum wartet auf den ersten Gegenstand</p>
+            <p class="sub" id="headerSub">Zimmer</p>
           </div>
         </div>
-        <div class="status-pill">Level 1 · Leer gestartet</div>
+        <span class="pill" id="countPill">0 Items</span>
       </header>
 
-      <nav class="tabs" aria-label="Bereiche">
-        <button class="tab active" data-view="home">Start</button>
-        <button class="tab" data-view="items">Gegenstände</button>
-        <button class="tab" data-view="search">Suche</button>
-        <button class="tab" data-view="scan">Scan</button>
-        <button class="tab" data-view="room">Zimmer</button>
-        <button class="tab" data-view="history">Historie</button>
-      </nav>
-
       <main>
-        <section class="view active" id="home">
-          <div class="stats" id="stats"></div>
-          <div class="toolbar">
-            <button class="primary" data-open="scan">Neuen Gegenstand scannen</button>
-            <button data-open="room">Zimmer ansehen</button>
-            <button data-open="search">Suchen</button>
-            <button data-open="history">Nicht mehr im Besitz</button>
-          </div>
-          <div class="split">
-            <div>
-            <h2>Dein Inventar</h2>
-              <div class="items" id="homeItems"></div>
+        <section class="screen active" id="roomScreen">
+          <div class="room" id="room">
+            <div class="wall back"></div>
+            <div class="wall left"></div>
+            <div class="wall right"></div>
+            <div class="floor"></div>
+            <div class="room-actions">
+              <button class="primary" id="scanRoomFromRoom">Zimmer scannen</button>
+              <button id="scanObjectFromRoom">Objekt scannen</button>
             </div>
-            <aside class="panel pad detail" id="homeDetail"></aside>
+            <div id="roomObjects"></div>
+            <div class="room-empty" id="roomEmpty">
+              <strong>Dein Zimmer ist leer.</strong>
+              <span class="small">Scanne erst dein Zimmer und danach ein Objekt.</span>
+            </div>
           </div>
         </section>
 
-        <section class="view" id="items">
-          <div class="toolbar">
-            <input id="itemFilter" type="search" placeholder="Gegenstände filtern" />
-            <button class="primary" data-open="scan">Scannen</button>
+        <section class="screen" id="scanScreen">
+          <div class="card">
+            <div class="row">
+              <button class="ink" id="modeRoom">Zimmer</button>
+              <button id="modeObject">Objekt</button>
+            </div>
           </div>
-          <div class="split">
-            <div class="items" id="itemList"></div>
-            <aside class="panel pad detail" id="itemDetail"></aside>
-          </div>
-        </section>
 
-        <section class="view" id="search">
-          <div class="toolbar">
-            <input
-              id="searchInput"
-              type="search"
-              placeholder="Ding zum Schrauben, USB C Kabel, Arduino Sachen ..."
-            />
-            <button id="showSearchInRoom">Im Zimmer zeigen</button>
-          </div>
-          <div class="split">
-            <div class="items" id="searchResults"></div>
-            <aside class="panel pad detail" id="searchDetail"></aside>
-          </div>
-        </section>
-
-        <section class="view" id="scan">
-          <div class="scan-card">
-            <div class="panel pad">
-              <h2>Mock-Scan</h2>
-              <p class="muted">
-                Diese Web-Version erkennt beispielhaft einen Gegenstand und lässt
-                alle Felder bearbeiten.
-              </p>
-              <div class="camera">
-                <div class="camera-target">SCAN</div>
-              </div>
-              <div class="toolbar">
-                <button class="primary" id="scanButton">Gegenstand erkennen</button>
-                <button id="resetDemo">Alles leeren</button>
+          <div class="scan-camera">
+            <video id="camera" playsinline muted></video>
+            <div class="camera-placeholder" id="cameraPlaceholder">
+              <div>
+                <h2>Kamera bereit</h2>
+                <p class="small">Tippe auf Scan starten. Dann fragt der Browser nach Kamerazugriff.</p>
               </div>
             </div>
-            <form class="panel pad" id="scanForm">
-              <h2>Daten bearbeiten</h2>
-              <div class="two">
-                <div class="field">
-                  <label for="scanName">Name</label>
-                  <input id="scanName" required />
-                </div>
-                <div class="field">
-                  <label for="scanCategory">Kategorie</label>
-                  <input id="scanCategory" required />
-                </div>
-              </div>
-              <div class="field">
-                <label for="scanDescription">Beschreibung</label>
-                <textarea id="scanDescription" rows="3"></textarea>
-              </div>
-              <div class="two">
-                <div class="field">
-                  <label for="scanCapabilities">Fähigkeiten</label>
-                  <input id="scanCapabilities" />
-                </div>
-                <div class="field">
-                  <label for="scanProperties">Eigenschaften</label>
-                  <input id="scanProperties" />
-                </div>
-              </div>
-              <div class="two">
-                <div class="field">
-                  <label for="scanBrand">Marke</label>
-                  <input id="scanBrand" />
-                </div>
-                <div class="field">
-                  <label for="scanColor">Farbe</label>
-                  <input id="scanColor" />
-                </div>
-              </div>
-              <div class="two">
-                <div class="field">
-                  <label for="scanQuantity">Menge</label>
-                  <input id="scanQuantity" type="number" min="1" value="1" />
-                </div>
-                <div class="field">
-                  <label for="scanModel">3D-Modell</label>
-                  <select id="scanModel">
-                    <option value="cube">Quader</option>
-                    <option value="box">Box</option>
-                    <option value="sphere">Kugel</option>
-                    <option value="cylinder">Zylinder</option>
-                  </select>
-                </div>
-              </div>
-              <div class="toolbar">
-                <button class="primary" type="submit">Speichern</button>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <section class="view" id="room">
-          <div class="room-wrap">
-            <div class="room-stage" id="roomStage">
-              <div class="wall back"></div>
-              <div class="wall left"></div>
-              <div class="wall right"></div>
-              <div class="floor"></div>
-              <div id="roomObjects"></div>
+            <div class="scan-overlay">
+              <div class="scan-frame"></div>
             </div>
-            <aside class="panel pad">
-              <h2>Item platzieren</h2>
-              <div class="field">
-                <label for="roomItemSelect">Gegenstand</label>
-                <select id="roomItemSelect"></select>
+          </div>
+
+          <div class="card">
+            <h2 id="scanTitle">Zimmer scannen</h2>
+            <p class="small" id="scanHint">Bewege dich langsam im Zimmer und halte die Kamera ruhig.</p>
+            <div class="scan-progress" aria-label="Scan-Fortschritt">
+              <span id="progressBar" style="--progress: 0%"></span>
+            </div>
+            <div class="row" style="margin-top: 0.75rem">
+              <button class="primary" id="startScan">Scan starten</button>
+              <button id="finishScan" disabled>Fertig</button>
+            </div>
+          </div>
+
+          <div class="card hidden" id="previewCard">
+            <div class="preview">
+              <div class="preview-shot" id="previewShot">3D</div>
+              <div>
+                <h2>Objekt-Preview</h2>
+                <p class="small">Pruefe die Daten und platziere es im Zimmer.</p>
               </div>
+            </div>
+            <div class="fields" style="margin-top: 0.8rem">
+              <input id="itemName" placeholder="Name" />
               <div class="two">
-                <div class="field">
-                  <label for="posX">X</label>
-                  <input id="posX" type="range" min="0" max="100" />
-                </div>
-                <div class="field">
-                  <label for="posY">Y</label>
-                  <input id="posY" type="range" min="8" max="88" />
-                </div>
-              </div>
-              <div class="two">
-                <div class="field">
-                  <label for="scale">Skalierung</label>
-                  <input id="scale" type="range" min="50" max="170" />
-                </div>
-                <div class="field">
-                  <label for="rotation">Rotation</label>
-                  <input id="rotation" type="range" min="-45" max="45" />
-                </div>
-              </div>
-              <div class="field">
-                <label for="modelSelect">Modell</label>
-                <select id="modelSelect">
+                <input id="itemCategory" placeholder="Kategorie" />
+                <select id="itemModel">
                   <option value="cube">Quader</option>
                   <option value="box">Box</option>
                   <option value="sphere">Kugel</option>
                   <option value="cylinder">Zylinder</option>
                 </select>
               </div>
-              <div id="roomDetail"></div>
-            </aside>
+              <button class="primary" id="saveItem">Im Zimmer platzieren</button>
+            </div>
           </div>
         </section>
 
-        <section class="view" id="history">
-          <div class="toolbar">
-            <select id="historyFilter">
-              <option value="all">Alle</option>
-              <option value="sold">Verkauft</option>
-              <option value="gifted">Verschenkt</option>
-              <option value="lost">Verloren</option>
-              <option value="broken">Kaputt</option>
-              <option value="disposed">Entsorgt</option>
-            </select>
+        <section class="screen" id="itemsScreen">
+          <div class="card">
+            <div class="row">
+              <input id="search" type="search" placeholder="Suchen" />
+              <button class="primary" id="scanObjectFromItems">Scan</button>
+            </div>
           </div>
-          <div class="history-grid">
-            <div class="panel pad" id="historyStats"></div>
-            <div class="items" id="historyList"></div>
-          </div>
+          <div class="items" id="items"></div>
         </section>
       </main>
+
+      <nav class="bottom-nav" aria-label="Navigation">
+        <button class="active" data-view="room">Zimmer</button>
+        <button data-view="scan">Scan</button>
+        <button data-view="items">Inventar</button>
+      </nav>
     </div>
 
     <script>
-      var seedItems = [];
-      var seedHistory = [];
-
-      var labels = {
-        owned: "Im Besitz",
-        sold: "Verkauft",
-        gifted: "Verschenkt",
-        lost: "Verloren",
-        broken: "Kaputt",
-        disposed: "Entsorgt"
-      };
+      var storageItemsKey = "ri-ar-simple-items-v1";
+      var storageRoomKey = "ri-ar-simple-room-v1";
+      var items = load(storageItemsKey, []);
+      var roomScanned = load(storageRoomKey, false);
+      var activeView = "room";
+      var scanMode = "room";
+      var scanTimer = null;
+      var scanProgress = 0;
+      var cameraStream = null;
+      var draft = null;
 
       var colors = {
-        gruen: "#0f8f62",
-        blau: "#58a6ff",
-        rot: "#ff6b6b",
-        schwarz: "#2b2d31",
-        grau: "#8b949e",
-        braun: "#8d6e63"
+        cube: "#246bfe",
+        box: "#37a2ff",
+        sphere: "#0f8f62",
+        cylinder: "#102238"
       };
-
-      var state = {
-        items: load("ri-empty-vault-items", seedItems),
-        history: load("ri-empty-vault-history", seedHistory),
-        selectedId: "",
-        highlighted: new Set()
-      };
-
-      function item(id, name, category, description, tags, capabilities, properties, brand, color, quantity, containerId, location, isContainer, model, x, y, scale, rotation) {
-        return {
-          id: id,
-          name: name,
-          category: category,
-          description: description,
-          tags: tags,
-          capabilities: capabilities,
-          properties: properties,
-          brand: brand,
-          color: color,
-          condition: "Gut",
-          quantity: quantity,
-          containerId: containerId,
-          location: location,
-          isContainer: isContainer,
-          model: model,
-          status: "owned",
-          x: x,
-          y: y,
-          scale: scale,
-          rotation: rotation
-        };
-      }
 
       function $(selector) {
         return document.querySelector(selector);
@@ -780,131 +620,196 @@
 
       function load(key, fallback) {
         try {
-          return JSON.parse(localStorage.getItem(key)) || copy(fallback);
+          var saved = localStorage.getItem(key);
+          return saved ? JSON.parse(saved) : fallback;
         } catch (error) {
-          return copy(fallback);
+          return fallback;
         }
-      }
-
-      function copy(value) {
-        return JSON.parse(JSON.stringify(value));
       }
 
       function save() {
-        localStorage.setItem("ri-empty-vault-items", JSON.stringify(state.items));
-        localStorage.setItem("ri-empty-vault-history", JSON.stringify(state.history));
+        localStorage.setItem(storageItemsKey, JSON.stringify(items));
+        localStorage.setItem(storageRoomKey, JSON.stringify(roomScanned));
       }
 
-      function ownedItems() {
-        return state.items.filter(function (entry) {
-          return entry.status === "owned";
+      function show(view) {
+        activeView = view;
+        $$(".screen").forEach(function (screen) {
+          screen.classList.toggle("active", screen.id === view + "Screen");
         });
-      }
-
-      function selectedItem() {
-        return state.items.find(function (entry) {
-          return entry.id === state.selectedId;
-        }) || ownedItems()[0];
-      }
-
-      function normalize(value) {
-        return String(value)
-          .toLowerCase()
-          .replaceAll("ä", "ae")
-          .replaceAll("ö", "oe")
-          .replaceAll("ü", "ue")
-          .replaceAll("ß", "ss")
-          .replace(/[^a-z0-9 ]/g, " ")
-          .trim();
-      }
-
-      function scoreItem(query, entry) {
-        var q = normalize(query);
-        var stopWords = ["ich", "zum", "zur", "der", "die", "das", "ding", "etwas", "womit", "mit"];
-        var tokens = q.split(/\s+/).filter(function (token) {
-          return token.length > 1 && stopWords.indexOf(token) === -1;
+        $$(".bottom-nav button").forEach(function (button) {
+          button.classList.toggle("active", button.dataset.view === view);
         });
-        if (!tokens.length) return 0;
-        var fields = [
-          [entry.name, 8],
-          [entry.category, 4],
-          [entry.description, 2],
-          [entry.tags.join(" "), 5],
-          [entry.capabilities.join(" "), 7],
-          [entry.properties.join(" "), 4],
-          [entry.brand, 3]
-        ];
-        return fields.reduce(function (sum, fieldData) {
-          var field = normalize(fieldData[0]);
-          var weight = fieldData[1];
-          var score = field.indexOf(q) >= 0 ? weight * 2.4 : 0;
-          tokens.forEach(function (token) {
-            field.split(/\s+/).forEach(function (part) {
-              if (part === token) score += weight;
-              else if (part.indexOf(token) >= 0 || token.indexOf(part) >= 0) score += weight * 0.55;
-              else if (similarity(part, token) >= 0.72) score += weight * 0.4;
+        $("#headerSub").textContent = view === "room" ? "Zimmer" : view === "scan" ? "Scan" : "Inventar";
+        render();
+      }
+
+      async function requestCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          alert("Dieser Browser unterstuetzt keine direkte Kameraabfrage.");
+          return false;
+        }
+
+        try {
+          if (!cameraStream) {
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: { ideal: "environment" } },
+              audio: false
             });
-          });
-          return sum + score;
-        }, 0);
-      }
-
-      function similarity(a, b) {
-        if (Math.abs(a.length - b.length) > 4) return 0;
-        var rows = [];
-        for (var i = 0; i <= a.length; i += 1) {
-          rows[i] = [];
-          rows[i][0] = i;
-        }
-        for (var j = 0; j <= b.length; j += 1) rows[0][j] = j;
-        for (i = 1; i <= a.length; i += 1) {
-          for (j = 1; j <= b.length; j += 1) {
-            rows[i][j] = Math.min(
-              rows[i - 1][j] + 1,
-              rows[i][j - 1] + 1,
-              rows[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
-            );
           }
+          $("#camera").srcObject = cameraStream;
+          await $("#camera").play();
+          $("#camera").classList.add("on");
+          $("#cameraPlaceholder").classList.add("hidden");
+          return true;
+        } catch (error) {
+          alert("Kamera wurde nicht erlaubt oder ist nicht verfuegbar.");
+          return false;
         }
-        return 1 - rows[a.length][b.length] / Math.max(a.length, b.length, 1);
       }
 
-      function switchView(id) {
-        $$(".tab").forEach(function (button) {
-          button.classList.toggle("active", button.dataset.view === id);
-        });
-        $$(".view").forEach(function (view) {
-          view.classList.toggle("active", view.id === id);
-        });
-        if (id === "room") renderRoom();
+      async function startScan() {
+        var hasCamera = await requestCamera();
+        if (!hasCamera) return;
+
+        scanProgress = 0;
+        $("#finishScan").disabled = true;
+        $("#startScan").disabled = true;
+        $("#scanHint").textContent =
+          scanMode === "room"
+            ? "Langsam umsehen. Boden und Waende werden markiert."
+            : "Einmal um das Objekt herumgehen. Halte es im Rahmen.";
+
+        clearInterval(scanTimer);
+        scanTimer = setInterval(function () {
+          scanProgress += scanMode === "room" ? 12 : 9;
+          if (scanProgress >= 100) {
+            scanProgress = 100;
+            clearInterval(scanTimer);
+            $("#finishScan").disabled = false;
+            $("#startScan").disabled = false;
+            $("#scanHint").textContent = scanMode === "room" ? "Zimmer erkannt." : "Objekt erkannt.";
+            if (scanMode === "object") makeDraft();
+          }
+          $("#progressBar").style.setProperty("--progress", scanProgress + "%");
+        }, 320);
       }
 
-      function renderStats() {
-        var owned = ownedItems();
-        var sold = state.history.filter(function (entry) { return entry.status === "sold"; });
-        var gifted = state.history.filter(function (entry) { return entry.status === "gifted"; });
-        $("#stats").innerHTML = [
-          ["Gegenstände im Besitz", owned.length],
-          ["Räume", owned.length ? 1 : 0],
-          ["Verkauft", sold.length],
-          ["Verschenkt", gifted.length]
-        ].map(function (entry) {
-          return '<div class="stat"><strong>' + entry[1] + '</strong><span>' + entry[0] + '</span></div>';
+      function finishScan() {
+        if (scanMode === "room") {
+          roomScanned = true;
+          save();
+          show("room");
+          return;
+        }
+        if (!draft) makeDraft();
+        $("#previewCard").classList.remove("hidden");
+      }
+
+      function makeDraft() {
+        draft = {
+          id: "item_" + Date.now(),
+          name: "Neues Objekt",
+          category: "Unsortiert",
+          model: "cube",
+          x: 50,
+          y: 56,
+          rotation: 0,
+          scale: 84,
+          photo: captureFrame()
+        };
+        $("#itemName").value = draft.name;
+        $("#itemCategory").value = draft.category;
+        $("#itemModel").value = draft.model;
+        if (draft.photo) {
+          $("#previewShot").innerHTML = '<img alt="Objektfoto" src="' + draft.photo + '">';
+        } else {
+          $("#previewShot").textContent = "3D";
+        }
+      }
+
+      function captureFrame() {
+        var video = $("#camera");
+        if (!video.videoWidth || !video.videoHeight) return "";
+        var canvas = document.createElement("canvas");
+        canvas.width = 480;
+        canvas.height = 480;
+        var context = canvas.getContext("2d");
+        var side = Math.min(video.videoWidth, video.videoHeight);
+        var sx = (video.videoWidth - side) / 2;
+        var sy = (video.videoHeight - side) / 2;
+        context.drawImage(video, sx, sy, side, side, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL("image/jpeg", 0.72);
+      }
+
+      function saveDraft() {
+        if (!draft) return;
+        draft.name = $("#itemName").value.trim() || "Neues Objekt";
+        draft.category = $("#itemCategory").value.trim() || "Unsortiert";
+        draft.model = $("#itemModel").value;
+        draft.x = 46 + Math.round(Math.random() * 12);
+        draft.y = 48 + Math.round(Math.random() * 18);
+        items.unshift(draft);
+        draft = null;
+        save();
+        $("#previewCard").classList.add("hidden");
+        show("room");
+      }
+
+      function setMode(mode) {
+        scanMode = mode;
+        scanProgress = 0;
+        $("#progressBar").style.setProperty("--progress", "0%");
+        $("#finishScan").disabled = true;
+        $("#modeRoom").classList.toggle("ink", mode === "room");
+        $("#modeObject").classList.toggle("ink", mode === "object");
+        $("#scanTitle").textContent = mode === "room" ? "Zimmer scannen" : "Objekt scannen";
+        $("#scanHint").textContent =
+          mode === "room"
+            ? "Bewege dich langsam im Zimmer und halte die Kamera ruhig."
+            : "Gehe einmal um das Objekt herum.";
+      }
+
+      function renderRoom() {
+        var room = $("#roomObjects");
+        room.innerHTML = items.map(function (item) {
+          var width = Math.max(44, item.scale * (item.model === "cylinder" ? 0.85 : 0.68));
+          var height = Math.max(32, item.scale * (item.model === "cylinder" ? 0.34 : 0.5));
+          return '<button class="obj ' + item.model + '" data-id="' + item.id + '" style="--x:' + item.x + '%;--y:' + item.y + '%;--w:' + width + 'px;--h:' + height + 'px;--r:' + item.rotation + 'deg;--c:' + colors[item.model] + '">' + escapeHtml(shortName(item.name)) + '</button>';
         }).join("");
+        $("#roomEmpty").classList.toggle("hidden", roomScanned && items.length > 0);
+        if (!roomScanned && items.length === 0) {
+          $("#roomEmpty").innerHTML = '<strong>Zimmer noch nicht gescannt.</strong><span class="small">Tippe auf Zimmer scannen. Danach kannst du Objekte scannen und platzieren.</span>';
+        } else if (items.length === 0) {
+          $("#roomEmpty").innerHTML = '<strong>Zimmer ist bereit.</strong><span class="small">Scanne ein Objekt und platziere es hier.</span>';
+        }
       }
 
-      function itemRow(entry, archiveButton) {
-        var action = archiveButton
-          ? '<button class="danger" data-archive="' + entry.id + '">Nicht mehr im Besitz</button>'
-          : '<button data-select="' + entry.id + '">Details</button>';
-        var tags = entry.capabilities.concat([entry.brand]).filter(Boolean).slice(0, 4).map(function (tag) {
-          return '<span class="tag">' + escapeHtml(tag) + '</span>';
-        }).join("");
-        return '<article class="item-row">' +
-          '<div class="thumb">' + escapeHtml(entry.name.slice(0, 2).toUpperCase()) + '</div>' +
-          '<div><p class="item-title">' + escapeHtml(entry.name) + '</p>' +
-          '<div class="muted">' + escapeHtml(entry.category) + ' · ' + escapeHtml(locationFor(entry)) + ' · ' + entry.quantity + 'x</div>' +
-          '<div class="tags">' + tags + '</div></div>' + action + '</article>';
+      function renderItems() {
+        var query = $("#search").value.trim().toLowerCase();
+        var visible = items.filter(function (item) {
+          return !query || (item.name + " " + item.category).toLowerCase().indexOf(query) >= 0;
+        });
+        $("#items").innerHTML = visible.length
+          ? visible.map(function (item) {
+              var photo = item.photo ? '<img alt="" src="' + item.photo + '">' : escapeHtml(shortName(item.name));
+              return '<article class="item"><div class="thumb">' + photo + '</div><div><h3>' + escapeHtml(item.name) + '</h3><p>' + escapeHtml(item.category) + ' · ' + modelLabel(item.model) + '</p></div><button class="danger" data-delete="' + item.id + '">Weg</button></article>';
+            }).join("")
+          : '<div class="card"><h2>Noch leer</h2><p class="small">Scanne ein Objekt. Danach erscheint es hier.</p></div>';
+      }
+
+      function render() {
+        $("#countPill").textContent = items.length + (items.length === 1 ? " Item" : " Items");
+        renderRoom();
+        renderItems();
+      }
+
+      function shortName(name) {
+        return name.split(/\s+/)[0] || "Objekt";
+      }
+
+      function modelLabel(model) {
+        return { cube: "Quader", box: "Box", sphere: "Kugel", cylinder: "Zylinder" }[model] || "Quader";
       }
 
       function escapeHtml(value) {
@@ -915,273 +820,40 @@
           .replaceAll('"', "&quot;");
       }
 
-      function locationFor(entry) {
-        var chain = [];
-        var cursor = entry.containerId;
-        while (cursor) {
-          var parent = state.items.find(function (candidate) {
-            return candidate.id === cursor;
-          });
-          if (!parent) break;
-          chain.unshift(parent.name);
-          cursor = parent.containerId;
-        }
-        return chain.length ? chain.join(" > ") : entry.location || "Mein Zimmer";
-      }
-
-      function renderDetail(target, entry) {
-        if (!entry) {
-          target.innerHTML = '<div class="empty"><strong>Kein Item ausgewählt.</strong>Sobald du etwas speicherst, erscheinen hier Werte, Fundort und Modell.</div>';
-          return;
-        }
-        target.innerHTML =
-          '<h2>' + escapeHtml(entry.name) + '</h2>' +
-          '<p class="muted">' + escapeHtml(entry.description) + '</p>' +
-          line("Kategorie", entry.category) +
-          line("Standort", locationFor(entry)) +
-          line("Marke", entry.brand || "Unbekannt") +
-          line("Farbe", entry.color) +
-          line("Zustand", entry.condition) +
-          line("Modell", modelLabel(entry.model)) +
-          '<div class="toolbar"><button data-open="room">Im Zimmer zeigen</button>' +
-          '<button class="danger" data-archive="' + entry.id + '">Archivieren</button></div>';
-      }
-
-      function line(label, value) {
-        return '<div class="detail-line"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></div>';
-      }
-
-      function modelLabel(value) {
-        return { cube: "Quader", box: "Box", sphere: "Kugel", cylinder: "Zylinder" }[value] || "Quader";
-      }
-
-      function renderItems() {
-        var filter = normalize($("#itemFilter").value || "");
-        var list = ownedItems().filter(function (entry) {
-          return !filter || normalize(entry.name + " " + entry.category).indexOf(filter) >= 0;
+      $$(".bottom-nav button").forEach(function (button) {
+        button.addEventListener("click", function () {
+          show(button.dataset.view);
         });
-        $("#itemList").innerHTML = list.length
-          ? list.map(function (entry) { return itemRow(entry, true); }).join("")
-          : '<div class="empty"><strong>Noch keine Gegenstände.</strong>Starte mit dem Scan-Button und lege deinen ersten echten Gegenstand an.</div>';
-        var homeList = ownedItems().slice(0, 5);
-        $("#homeItems").innerHTML = homeList.length
-          ? homeList.map(function (entry) { return itemRow(entry, false); }).join("")
-          : '<div class="empty"><strong>Inventar leer.</strong>Dein Zimmer ist noch unentdeckt. Scanne einen Gegenstand und platziere ihn danach im Raum.</div>';
-        renderDetail($("#itemDetail"), selectedItem());
-        renderDetail($("#homeDetail"), selectedItem());
-      }
-
-      function renderSearch() {
-        var query = $("#searchInput").value;
-        var results = ownedItems().map(function (entry) {
-          return { item: entry, score: scoreItem(query, entry) };
-        }).filter(function (result) {
-          return result.score > 0;
-        }).sort(function (a, b) {
-          return b.score - a.score;
-        });
-        state.highlighted = new Set(results.map(function (result) { return result.item.id; }));
-        $("#searchResults").innerHTML = query.trim()
-          ? results.map(function (result) { return itemRow(result.item, false); }).join("") || '<div class="empty">Keine Treffer gefunden.</div>'
-          : '<div class="empty"><strong>Suchradar bereit.</strong>Wenn dein Inventar wächst, findest du Dinge über Namen, Fähigkeiten, Tags oder Marke.</div>';
-        renderDetail($("#searchDetail"), results[0] ? results[0].item : selectedItem());
-      }
-
-      function renderRoom() {
-        var selected = selectedItem();
-        var list = ownedItems();
-        $("#roomItemSelect").innerHTML = list.map(function (entry) {
-          return '<option value="' + entry.id + '"' + (entry.id === (selected && selected.id) ? " selected" : "") + '>' + escapeHtml(entry.name) + '</option>';
-        }).join("");
-        if (selected) {
-          $("#roomItemSelect").disabled = false;
-          $("#posX").disabled = false;
-          $("#posY").disabled = false;
-          $("#scale").disabled = false;
-          $("#rotation").disabled = false;
-          $("#modelSelect").disabled = false;
-          $("#posX").value = selected.x;
-          $("#posY").value = selected.y;
-          $("#scale").value = selected.scale;
-          $("#rotation").value = selected.rotation;
-          $("#modelSelect").value = selected.model;
-        } else {
-          $("#roomItemSelect").disabled = true;
-          $("#posX").disabled = true;
-          $("#posY").disabled = true;
-          $("#scale").disabled = true;
-          $("#rotation").disabled = true;
-          $("#modelSelect").disabled = true;
-        }
-        $("#roomObjects").innerHTML = list.map(function (entry) {
-          var color = colors[normalize(entry.color)] || "#246bfe";
-          var width = Math.max(34, entry.scale * (entry.model === "cylinder" ? 0.9 : 0.72));
-          var height = Math.max(26, entry.scale * (entry.model === "cylinder" ? 0.28 : 0.48));
-          var classes = "object " + entry.model +
-            (state.highlighted.has(entry.id) ? " highlight" : "") +
-            (entry.id === (selected && selected.id) ? " selected" : "");
-          return '<button class="' + classes + '" data-select="' + entry.id + '" style="--x:' + entry.x + '%; --y:' + entry.y + '%; --w:' + width + 'px; --h:' + height + 'px; --r:' + entry.rotation + 'deg; --c:' + color + ';">' + escapeHtml(entry.name.split(" ")[0]) + '</button>';
-        }).join("");
-        renderDetail($("#roomDetail"), selected);
-      }
-
-      function renderHistory() {
-        var filter = $("#historyFilter").value;
-        var entries = state.history.filter(function (entry) {
-          return filter === "all" || entry.status === filter;
-        });
-        var totalSales = state.history.filter(function (entry) {
-          return entry.status === "sold";
-        }).reduce(function (sum, entry) {
-          return sum + (Number(entry.price) || 0);
-        }, 0);
-        $("#historyStats").innerHTML =
-          '<h2>Statistik</h2>' +
-          line("Verkauft", state.history.filter(function (entry) { return entry.status === "sold"; }).length) +
-          line("Gesamteinnahmen", totalSales.toFixed(2) + " €") +
-          line("Verschenkt", state.history.filter(function (entry) { return entry.status === "gifted"; }).length);
-        $("#historyList").innerHTML = entries.length
-          ? entries.map(function (entry) {
-              return '<article class="item-row"><div class="thumb">' + escapeHtml(entry.itemName.slice(0, 2).toUpperCase()) + '</div><div><p class="item-title">' + escapeHtml(entry.itemName) + '</p><div class="muted">' + escapeHtml(entry.statusLabel || labels[entry.status]) + ' · ' + escapeHtml(entry.date) + '</div><div class="tags">' +
-                (entry.price ? '<span class="tag">' + Number(entry.price).toFixed(2) + ' €</span>' : '') +
-                (entry.person ? '<span class="tag">' + escapeHtml(entry.person) + '</span>' : '') +
-                (entry.note ? '<span class="tag">' + escapeHtml(entry.note) + '</span>' : '') +
-                '</div></div></article>';
-            }).join("")
-          : '<div class="empty"><strong>Archiv leer.</strong>Verkaufte, verschenkte oder verlorene Items landen später hier.</div>';
-      }
-
-      function renderAll() {
-        renderStats();
-        renderItems();
-        renderSearch();
-        renderRoom();
-        renderHistory();
-      }
-
-      function fillScanDemo() {
-        $("#scanName").value = "Bosch Akkuschrauber";
-        $("#scanCategory").value = "Werkzeug";
-        $("#scanDescription").value = "Akkubetriebener Schrauber";
-        $("#scanCapabilities").value = "Schrauben, Bohren";
-        $("#scanProperties").value = "Akku, tragbar";
-        $("#scanBrand").value = "Bosch";
-        $("#scanColor").value = "Blau";
-        $("#scanQuantity").value = 1;
-        $("#scanModel").value = "cube";
-      }
-
-      function archiveItem(id) {
-        var entry = state.items.find(function (candidate) { return candidate.id === id; });
-        if (!entry) return;
-        var statusInput = prompt("Grund: verkauft, verschenkt, verloren, kaputt oder entsorgt", "verkauft");
-        if (!statusInput) return;
-        var statusMap = { verkauft: "sold", verschenkt: "gifted", verloren: "lost", kaputt: "broken", entsorgt: "disposed" };
-        var newStatus = statusMap[normalize(statusInput)] || "disposed";
-        var price = null;
-        var person = "";
-        if (newStatus === "sold") {
-          price = Number(prompt("Verkaufspreis", "20") || 0);
-          person = prompt("Verkauft an", "Example") || "";
-        } else if (newStatus === "gifted") {
-          person = prompt("Verschenkt an", "") || "";
-        }
-        entry.status = newStatus;
-        state.history.unshift({
-          id: "history_" + Date.now(),
-          itemName: entry.name,
-          status: newStatus,
-          statusLabel: labels[newStatus],
-          price: price,
-          person: person,
-          date: new Date().toLocaleDateString("de-DE"),
-          note: prompt("Notiz", "") || ""
-        });
-        state.selectedId = ownedItems()[0] ? ownedItems()[0].id : "";
-        save();
-        renderAll();
-      }
-
+      });
+      $("#scanRoomFromRoom").addEventListener("click", function () {
+        setMode("room");
+        show("scan");
+      });
+      $("#scanObjectFromRoom").addEventListener("click", function () {
+        setMode("object");
+        show("scan");
+      });
+      $("#scanObjectFromItems").addEventListener("click", function () {
+        setMode("object");
+        show("scan");
+      });
+      $("#modeRoom").addEventListener("click", function () { setMode("room"); });
+      $("#modeObject").addEventListener("click", function () { setMode("object"); });
+      $("#startScan").addEventListener("click", startScan);
+      $("#finishScan").addEventListener("click", finishScan);
+      $("#saveItem").addEventListener("click", saveDraft);
+      $("#search").addEventListener("input", renderItems);
       document.addEventListener("click", function (event) {
-        var tab = event.target.closest("[data-view]");
-        if (tab) switchView(tab.dataset.view);
-        var open = event.target.closest("[data-open]");
-        if (open) switchView(open.dataset.open);
-        var select = event.target.closest("[data-select]");
-        if (select) {
-          state.selectedId = select.dataset.select;
-          renderAll();
-        }
-        var archive = event.target.closest("[data-archive]");
-        if (archive) archiveItem(archive.dataset.archive);
-      });
-
-      $("#itemFilter").addEventListener("input", renderItems);
-      $("#searchInput").addEventListener("input", renderSearch);
-      $("#showSearchInRoom").addEventListener("click", function () { switchView("room"); });
-      $("#historyFilter").addEventListener("change", renderHistory);
-      $("#scanButton").addEventListener("click", fillScanDemo);
-      $("#resetDemo").addEventListener("click", function () {
-        localStorage.removeItem("ri-items");
-        localStorage.removeItem("ri-history");
-        localStorage.removeItem("ri-empty-vault-items");
-        localStorage.removeItem("ri-empty-vault-history");
-        state.items = copy(seedItems);
-        state.history = copy(seedHistory);
-        state.selectedId = "";
-        renderAll();
-      });
-      $("#scanForm").addEventListener("submit", function (event) {
-        event.preventDefault();
-        var entry = item(
-          "item_" + Date.now(),
-          $("#scanName").value.trim(),
-          $("#scanCategory").value.trim(),
-          $("#scanDescription").value.trim(),
-          $("#scanCategory").value.split(",").map(function (value) { return value.trim(); }).filter(Boolean),
-          $("#scanCapabilities").value.split(",").map(function (value) { return value.trim(); }).filter(Boolean),
-          $("#scanProperties").value.split(",").map(function (value) { return value.trim(); }).filter(Boolean),
-          $("#scanBrand").value.trim(),
-          $("#scanColor").value.trim() || "Blau",
-          Number($("#scanQuantity").value) || 1,
-          null,
-          "Mein Zimmer",
-          false,
-          $("#scanModel").value,
-          35 + Math.round(Math.random() * 35),
-          35 + Math.round(Math.random() * 28),
-          75,
-          0
-        );
-        if (!entry.name) return;
-        state.items.unshift(entry);
-        state.selectedId = entry.id;
-        save();
-        event.target.reset();
-        $("#scanQuantity").value = 1;
-        renderAll();
-        switchView("items");
-      });
-      $("#roomItemSelect").addEventListener("change", function (event) {
-        state.selectedId = event.target.value;
-        renderAll();
-      });
-      ["posX", "posY", "scale", "rotation", "modelSelect"].forEach(function (id) {
-        $("#" + id).addEventListener("input", function () {
-          var entry = selectedItem();
-          if (!entry) return;
-          entry.x = Number($("#posX").value);
-          entry.y = Number($("#posY").value);
-          entry.scale = Number($("#scale").value);
-          entry.rotation = Number($("#rotation").value);
-          entry.model = $("#modelSelect").value;
+        var deleteButton = event.target.closest("[data-delete]");
+        if (deleteButton) {
+          items = items.filter(function (item) { return item.id !== deleteButton.dataset.delete; });
           save();
-          renderRoom();
-        });
+          render();
+        }
       });
 
-      fillScanDemo();
-      renderAll();
+      setMode("room");
+      show("room");
     </script>
   </body>
 </html>

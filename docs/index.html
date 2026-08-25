@@ -6,19 +6,18 @@
     <title>RealLife Inventory Web</title>
     <style>
       :root {
-        color-scheme: dark;
-        --bg: #141018;
-        --panel: #211b2a;
-        --panel-2: #302640;
-        --line: #554366;
-        --text: #fff8ec;
-        --muted: #d6c7df;
-        --accent: #78f6c6;
-        --blue: #70c7ff;
-        --danger: #ff6b6b;
-        --warn: #ffd166;
-        --pink: #ff8bd2;
-        --shadow: 0 18px 54px rgba(0, 0, 0, 0.34);
+        color-scheme: light;
+        --bg: #eef6ff;
+        --panel: #ffffff;
+        --panel-2: #e7f0ff;
+        --line: #d7e4f5;
+        --text: #102238;
+        --muted: #60748f;
+        --accent: #246bfe;
+        --blue: #37a2ff;
+        --danger: #ef594c;
+        --warn: #f2bd2f;
+        --shadow: 0 18px 44px rgba(36, 107, 254, 0.14);
       }
 
       * {
@@ -29,10 +28,8 @@
         margin: 0;
         min-height: 100vh;
         background:
-          linear-gradient(135deg, rgba(255, 139, 210, 0.12), transparent 34%),
-          linear-gradient(225deg, rgba(112, 199, 255, 0.14), transparent 38%),
-          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 42px),
-          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 42px),
+          radial-gradient(circle at 16% 0%, rgba(36, 107, 254, 0.16), transparent 28rem),
+          linear-gradient(160deg, #f6fbff 0%, var(--bg) 52%, #dbeeff 100%),
           var(--bg);
         color: var(--text);
         font-family:
@@ -55,7 +52,7 @@
         background: var(--panel-2);
         color: var(--text);
         cursor: pointer;
-        box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.24);
+        box-shadow: 0 0.45rem 1.1rem rgba(36, 107, 254, 0.08);
         transition:
           transform 160ms ease,
           border-color 160ms ease,
@@ -68,19 +65,20 @@
 
       button.primary {
         background: var(--accent);
-        color: #04110d;
+        color: #ffffff;
         font-weight: 800;
       }
 
       button.danger {
-        background: rgba(255, 107, 107, 0.14);
-        color: #ffdada;
+        background: rgba(239, 89, 76, 0.12);
+        color: #9f2d25;
       }
 
       .app {
-        width: min(1180px, calc(100% - 28px));
+        width: min(520px, calc(100% - 24px));
         margin: 0 auto;
-        padding: 22px 0 84px;
+        min-height: 100vh;
+        padding: 16px 0 54px;
       }
 
       header {
@@ -88,7 +86,13 @@
         align-items: center;
         justify-content: space-between;
         gap: 14px;
-        margin-bottom: 18px;
+        margin-bottom: 12px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.86);
+        box-shadow: var(--shadow);
+        padding: 14px;
+        backdrop-filter: blur(18px);
       }
 
       .brand {
@@ -100,13 +104,13 @@
       .mark {
         width: 44px;
         height: 44px;
-        border-radius: 8px;
+        border-radius: 999px;
         display: grid;
         place-items: center;
-        background: linear-gradient(135deg, var(--accent), var(--warn) 52%, var(--pink));
-        color: #06100d;
+        background: linear-gradient(135deg, var(--accent), var(--blue));
+        color: #ffffff;
         font-weight: 900;
-        box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.15);
+        box-shadow: 0 0 0 4px rgba(36, 107, 254, 0.1);
       }
 
       h1,
@@ -131,7 +135,7 @@
       .tag {
         border-radius: 999px;
         padding: 7px 10px;
-        background: var(--panel-2);
+        background: #eef5ff;
         color: var(--muted);
         font-size: 0.86rem;
         white-space: nowrap;
@@ -139,23 +143,31 @@
 
       .tabs {
         position: sticky;
-        top: 0;
+        top: 8px;
         z-index: 4;
         display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 8px;
-        padding: 10px 0;
-        background: rgba(20, 16, 24, 0.9);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin-bottom: 10px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 5px;
+        background: rgba(255, 255, 255, 0.84);
         backdrop-filter: blur(14px);
       }
 
       .tab {
-        border: 1px solid var(--line);
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--muted);
+        box-shadow: none;
+        font-weight: 850;
       }
 
       .tab.active {
-        background: linear-gradient(135deg, var(--accent), var(--warn));
-        color: #06100d;
+        background: var(--text);
+        color: #ffffff;
         border-color: transparent;
         font-weight: 800;
       }
@@ -170,8 +182,8 @@
 
       .stats {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
       }
 
       .stat,
@@ -179,12 +191,12 @@
       .item-row {
         border: 1px solid var(--line);
         border-radius: 8px;
-        background: rgba(33, 27, 42, 0.92);
+        background: rgba(255, 255, 255, 0.94);
       }
 
       .stat {
-        min-height: 96px;
-        padding: 16px;
+        min-height: 88px;
+        padding: 14px;
         position: relative;
         overflow: hidden;
       }
@@ -195,7 +207,7 @@
         inset: auto 12px 12px auto;
         width: 32px;
         height: 10px;
-        border: 2px solid rgba(255, 209, 102, 0.34);
+        border: 2px solid rgba(36, 107, 254, 0.22);
         border-radius: 999px;
         transform: rotate(-12deg);
       }
@@ -231,7 +243,7 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         padding: 10px 12px;
-        background: #101518;
+        background: #f7fbff;
         color: var(--text);
       }
 
@@ -244,17 +256,17 @@
       .scan-card,
       .history-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 360px;
+        grid-template-columns: 1fr;
         gap: 16px;
         align-items: start;
       }
 
       .scan-card {
-        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        grid-template-columns: 1fr;
       }
 
       .history-grid {
-        grid-template-columns: 360px minmax(0, 1fr);
+        grid-template-columns: 1fr;
       }
 
       .items {
@@ -276,7 +288,7 @@
         border-radius: 8px;
         display: grid;
         place-items: center;
-        background: linear-gradient(135deg, #213d34, #3a2a5a);
+        background: linear-gradient(135deg, #e7f0ff, #ffffff);
         color: var(--accent);
         font-weight: 900;
       }
@@ -294,8 +306,7 @@
       }
 
       .detail {
-        position: sticky;
-        top: 78px;
+        position: static;
       }
 
       .detail-line {
@@ -314,9 +325,8 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         background:
-          linear-gradient(180deg, rgba(112, 199, 255, 0.14), transparent 48%),
-          linear-gradient(135deg, rgba(255, 139, 210, 0.08), transparent),
-          #16111d;
+          linear-gradient(180deg, rgba(55, 162, 255, 0.15), transparent 48%),
+          #f7fbff;
       }
 
       .floor {
@@ -329,16 +339,16 @@
         transform-origin: bottom;
         border: 1px solid var(--line);
         background:
-          linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-          rgba(120, 246, 198, 0.07);
+          linear-gradient(rgba(36, 107, 254, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(36, 107, 254, 0.08) 1px, transparent 1px),
+          rgba(36, 107, 254, 0.04);
         background-size: 56px 56px;
       }
 
       .wall {
         position: absolute;
-        border: 1px solid rgba(174, 187, 193, 0.18);
-        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(36, 107, 254, 0.12);
+        background: rgba(255, 255, 255, 0.62);
       }
 
       .wall.back {
@@ -375,7 +385,7 @@
         place-items: center;
         border: 2px solid rgba(245, 248, 248, 0.56);
         background: var(--c);
-        color: #07100e;
+        color: #ffffff;
         font-size: 0.72rem;
         font-weight: 900;
         text-align: center;
@@ -394,11 +404,11 @@
 
       .object.highlight {
         border-color: var(--warn);
-        box-shadow: 0 0 0 8px rgba(247, 201, 72, 0.16), 0 12px 26px rgba(0, 0, 0, 0.32);
+        box-shadow: 0 0 0 8px rgba(242, 189, 47, 0.2), 0 12px 26px rgba(36, 107, 254, 0.2);
       }
 
       .object.selected {
-        outline: 4px solid rgba(76, 224, 179, 0.34);
+        outline: 4px solid rgba(36, 107, 254, 0.22);
       }
 
       .field {
@@ -425,9 +435,9 @@
         display: grid;
         place-items: center;
         background:
-          linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-          linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-          #101518;
+          linear-gradient(90deg, rgba(36, 107, 254, 0.06) 1px, transparent 1px),
+          linear-gradient(rgba(36, 107, 254, 0.06) 1px, transparent 1px),
+          #f7fbff;
         background-size: 34px 34px;
       }
 
@@ -447,7 +457,7 @@
         border-radius: 8px;
         padding: 22px;
         color: var(--muted);
-        background: rgba(48, 38, 64, 0.5);
+        background: rgba(255, 255, 255, 0.62);
       }
 
       .empty strong {
@@ -469,10 +479,6 @@
           position: static;
         }
 
-        .tabs {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
         .stats {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
@@ -486,10 +492,6 @@
         header {
           align-items: flex-start;
           flex-direction: column;
-        }
-
-        .tabs {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         .item-row {
@@ -513,10 +515,10 @@
           <div class="mark">RI</div>
           <div>
             <h1>RealLife Inventory</h1>
-            <p class="subtitle">Dein leerer Loot-Raum wartet auf die ersten Fundstücke</p>
+            <p class="subtitle">Dein leerer Inventar-Raum wartet auf den ersten Gegenstand</p>
           </div>
         </div>
-        <div class="status-pill">Level 1 · Leerer Vault</div>
+        <div class="status-pill">Level 1 · Leer gestartet</div>
       </header>
 
       <nav class="tabs" aria-label="Bereiche">
@@ -728,7 +730,7 @@
       };
 
       var colors = {
-        gruen: "#3fb950",
+        gruen: "#0f8f62",
         blau: "#58a6ff",
         rot: "#ff6b6b",
         schwarz: "#2b2d31",
@@ -960,7 +962,7 @@
         });
         $("#itemList").innerHTML = list.length
           ? list.map(function (entry) { return itemRow(entry, true); }).join("")
-          : '<div class="empty"><strong>Noch keine Beute im Vault.</strong>Starte mit dem Scan-Button und lege deinen ersten echten Gegenstand an.</div>';
+          : '<div class="empty"><strong>Noch keine Gegenstände.</strong>Starte mit dem Scan-Button und lege deinen ersten echten Gegenstand an.</div>';
         var homeList = ownedItems().slice(0, 5);
         $("#homeItems").innerHTML = homeList.length
           ? homeList.map(function (entry) { return itemRow(entry, false); }).join("")
@@ -1012,7 +1014,7 @@
           $("#modelSelect").disabled = true;
         }
         $("#roomObjects").innerHTML = list.map(function (entry) {
-          var color = colors[normalize(entry.color)] || "#4ce0b3";
+          var color = colors[normalize(entry.color)] || "#246bfe";
           var width = Math.max(34, entry.scale * (entry.model === "cylinder" ? 0.9 : 0.72));
           var height = Math.max(26, entry.scale * (entry.model === "cylinder" ? 0.28 : 0.48));
           var classes = "object " + entry.model +
@@ -1064,7 +1066,7 @@
         $("#scanCapabilities").value = "Schrauben, Bohren";
         $("#scanProperties").value = "Akku, tragbar";
         $("#scanBrand").value = "Bosch";
-        $("#scanColor").value = "Grün";
+        $("#scanColor").value = "Blau";
         $("#scanQuantity").value = 1;
         $("#scanModel").value = "cube";
       }
@@ -1140,7 +1142,7 @@
           $("#scanCapabilities").value.split(",").map(function (value) { return value.trim(); }).filter(Boolean),
           $("#scanProperties").value.split(",").map(function (value) { return value.trim(); }).filter(Boolean),
           $("#scanBrand").value.trim(),
-          $("#scanColor").value.trim() || "Grün",
+          $("#scanColor").value.trim() || "Blau",
           Number($("#scanQuantity").value) || 1,
           null,
           "Mein Zimmer",

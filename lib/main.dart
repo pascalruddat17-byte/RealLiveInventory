@@ -7,7 +7,7 @@ import 'features/home/home_screen.dart';
 import 'features/room/room_screen.dart';
 import 'features/scan/scan_screen.dart';
 import 'features/search/search_screen.dart';
-import 'repositories/json_inventory_repository.dart';
+import 'repositories/sqlite_inventory_repository.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +27,7 @@ class _RealLifeInventoryAppState extends State<RealLifeInventoryApp> {
   @override
   void initState() {
     super.initState();
-    controller = InventoryController(repository: JsonInventoryRepository());
+    controller = InventoryController(repository: SqliteInventoryRepository());
     controller.initialize();
   }
 

@@ -15,7 +15,7 @@ RealLife Inventory ist eine erste funktionsfähige Flutter-Version einer mobilen
 - Suchergebnisse werden im Raum hervorgehoben
 - Besitzstatus inklusive verkauft, verschenkt, verloren, kaputt und entsorgt
 - Historie mit Verkaufs-/Verschenkungsdaten und Statistiken
-- Lokale Offline-Speicherung über ein Repository mit JSON-Datei als V1-Persistenz
+- Lokale Offline-Speicherung über SQLite/Sqflite hinter einem Repository-Interface
 - Dark Mode und touchfreundliche UI
 
 ## Screenshots
@@ -72,7 +72,7 @@ lib/
   core/          App-weite Controller, Theme und Enums
   models/        Datenmodelle fuer Items, Räume, Positionen und Historie
   services/      Scan- und Recognition-Abstraktionen mit Mock-Implementierungen
-  repositories/  Persistenz-Abstraktion und lokale V1-Implementierung
+  repositories/  Persistenz-Abstraktion, SQLite-Repository und JSON-Fallback
   database/      Demo-Daten und lokale Speicher-Seed-Logik
   features/      Screens fuer Home, Scan, Suche, Raum und Historie
   widgets/       Wiederverwendbare UI-Bausteine
@@ -82,7 +82,7 @@ test/            Modell-, Such-, Container-, Besitzstatus- und Repository-Tests
 
 ## Aktueller Stand
 
-V1 ist als lokale, offline nutzbare App umgesetzt. Die 3D-Ansicht ist eine leichte Flutter-Raumdarstellung statt einer nativen AR/3D-Engine. Die Datenbank ist in V1 eine JSON-Datei hinter einem Repository-Interface, damit später SQLite/Drift oder Cloud-Sync angeschlossen werden können.
+V1 ist als lokale, offline nutzbare App umgesetzt. Die 3D-Ansicht ist eine leichte Flutter-Raumdarstellung statt einer nativen AR/3D-Engine. Die Datenbank ist SQLite/Sqflite hinter einem Repository-Interface, damit später Drift, Indizes für größere Datenmengen oder Cloud-Sync angeschlossen werden können.
 
 ## Noch nicht implementierte Funktionen
 

@@ -614,6 +614,61 @@
         background: var(--slot);
       }
 
+      .category-manager {
+        width: min(430px, calc(100% - 24px));
+        max-height: min(620px, calc(100vh - 48px));
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--surface);
+        color: var(--ink);
+      }
+
+      .category-manager::backdrop {
+        background: rgba(0, 0, 0, 0.52);
+      }
+
+      .category-manager-head,
+      .category-manager-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .category-manager-head {
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .category-manager-list {
+        display: grid;
+        gap: 8px;
+        overflow-y: auto;
+      }
+
+      .category-manager-row input[type="text"] {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .category-manager-image {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        place-items: center;
+        padding: 3px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface-2);
+      }
+
+      .category-manager-image img {
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+      }
+
       .photo-background-row {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -859,6 +914,7 @@
           </div>
           <div class="category-row" id="categoryRow"></div>
           <button class="secondary" id="addCategoryButton" type="button">+ Kategorie</button>
+          <button class="secondary" id="manageCategoriesButton" type="button">Kategorien bearbeiten</button>
           <input id="categoryImageInput" type="file" accept="image/*" class="hidden" />
           <div class="tabs inventory-tabs" id="inventoryViewTabs">
             <button class="tab-pill active" type="button" data-inventory-view="inventory"><span>INV</span><span>Inventar</span></button>
@@ -958,6 +1014,14 @@
         <div class="museum-picker-list" id="museumPickerList"></div>
       </dialog>
 
+      <dialog class="category-manager" id="categoryManager">
+        <div class="category-manager-head">
+          <strong>Kategorien</strong>
+          <button class="icon-btn" id="closeCategoryManagerButton" type="button" title="Schliessen">×</button>
+        </div>
+        <div class="category-manager-list" id="categoryManagerList"></div>
+      </dialog>
+
       <section class="screen" id="customizeScreen">
         <div class="panel customizer">
           <div class="tabs">
@@ -1054,6 +1118,8 @@
       const museumPicker = document.querySelector("#museumPicker");
       const museumPickerList = document.querySelector("#museumPickerList");
       const categoryImageInput = document.querySelector("#categoryImageInput");
+      const categoryManager = document.querySelector("#categoryManager");
+      const categoryManagerList = document.querySelector("#categoryManagerList");
 
       function itemSeed(name, category, icon, rarity, note, favorite) {
         return {
@@ -1176,6 +1242,18 @@
           .filter((category) => category.id !== "all")
           .map((category) => `<option value="${category.id}">${category.label}</option>`)
           .join("");
+      }
+
+      function renderCategoryManager() {
+        categoryManagerList.innerHTML = categories.map((category) => `
+          <div class="category-manager-row">
+            <button class="category-manager-image" type="button" data-category-image="${category.id}" title="Bild aendern">
+              <img src="${category.image || DEFAULT_CATEGORY_IMAGE}" alt="" />
+            </button>
+            <input type="text" maxlength="18" value="${escapeHtml(category.label)}" data-category-name="${category.id}" aria-label="Name von ${escapeHtml(category.label)}" />
+            <button class="icon-btn" type="button" data-delete-category="${category.id}" title="Kategorie loeschen">×</button>
+          </div>
+        `).join("");
       }
 
       function slotMarkup(item, extraClass = "") {
@@ -1432,6 +1510,21 @@
           return;
         }
 
+        const deleteCategoryButton = event.target.closest("[data-delete-category]");
+        if (deleteCategoryButton) {
+          if (categories.length <= 1) return;
+          const categoryId = deleteCategoryButton.dataset.deleteCategory;
+          categories = categories.filter((category) => category.id !== categoryId);
+          const fallback = categories.find((category) => category.id === "other") || categories[0];
+          items = items.map((item) => item.category === categoryId ? { ...item, category: fallback.id } : item);
+          if (activeCategory === categoryId) activeCategory = "all";
+          saveCustomCategories();
+          saveItems();
+          renderCategoryManager();
+          renderAll();
+          return;
+        }
+
         const museumSlot = event.target.closest("[data-museum-slot]");
         if (museumSlot) {
           openMuseumPicker(Number(museumSlot.dataset.museumSlot));
@@ -1521,6 +1614,22 @@
         renderCategories();
         categoryInput.value = id;
       });
+      document.querySelector("#manageCategoriesButton").addEventListener("click", () => {
+        renderCategoryManager();
+        categoryManager.showModal();
+      });
+      document.querySelector("#closeCategoryManagerButton").addEventListener("click", () => categoryManager.close());
+      categoryManagerList.addEventListener("change", (event) => {
+        const input = event.target.closest("[data-category-name]");
+        if (!input) return;
+        const category = categories.find((entry) => entry.id === input.dataset.categoryName);
+        const label = input.value.trim();
+        if (!category || !label) return;
+        category.label = label;
+        saveCustomCategories();
+        renderCategories();
+        renderCategoryManager();
+      });
       document.querySelector("#photoButton").addEventListener("click", () => photoInput.click());
       document.querySelector("#avatarButton").addEventListener("click", () => showScreen("customize"));
       document.querySelector("#profilePhotoButton").addEventListener("click", () => profilePhotoInput.click());
@@ -1563,6 +1672,7 @@
           category.image = String(reader.result);
           saveCustomCategories();
           renderCategories();
+          if (categoryManager.open) renderCategoryManager();
         };
         reader.readAsDataURL(file);
       });

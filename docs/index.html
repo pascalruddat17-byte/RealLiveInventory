@@ -181,6 +181,23 @@
         padding: 12px;
       }
 
+      .form-head {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .form-head strong {
+        font-size: 1.1rem;
+      }
+
+      .form-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
       .search-row {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -648,6 +665,10 @@
 
       <section class="screen" id="photoScreen">
         <form class="panel form" id="itemForm">
+          <div class="form-head">
+            <strong id="formTitle">Neues Item</strong>
+            <button class="icon-btn hidden" id="cancelEditButton" type="button" title="Bearbeiten abbrechen">↩</button>
+          </div>
           <div class="photo-box" id="photoBox">
             <span><strong style="font-size: 3rem">📷</strong>Foto oder Symbol</span>
             <img class="hidden" id="previewImage" alt="Item Foto" />
@@ -674,7 +695,10 @@
             <input id="favoriteInput" type="checkbox" />
             <span>Ins Museum stellen</span>
           </label>
-          <button class="primary" type="submit">Speichern</button>
+          <div class="form-actions">
+            <button type="button" id="clearFormButton">Leeren</button>
+            <button class="primary" id="submitItemButton" type="submit">Speichern</button>
+          </div>
         </form>
       </section>
 
@@ -758,6 +782,7 @@
 
       let items = loadItems();
       let selectedId = null;
+      let editingId = null;
       let activeCategory = "all";
       let activeFilter = "all";
       let currentPhoto = "";
@@ -783,6 +808,10 @@
       const photoInput = document.querySelector("#photoInput");
       const previewImage = document.querySelector("#previewImage");
       const photoBox = document.querySelector("#photoBox");
+      const itemForm = document.querySelector("#itemForm");
+      const formTitle = document.querySelector("#formTitle");
+      const submitItemButton = document.querySelector("#submitItemButton");
+      const cancelEditButton = document.querySelector("#cancelEditButton");
 
       function itemSeed(name, category, icon, rarity, note, favorite) {
         return {
@@ -951,6 +980,7 @@
             <p>${escapeHtml(item.note || "Keine Info")}</p>
           </div>
           <div class="detail-actions">
+            <button class="icon-btn" type="button" data-action="edit">✎</button>
             <button class="icon-btn" type="button" data-action="favorite">${item.favorite ? "★" : "☆"}</button>
             <button class="icon-btn" type="button" data-action="delete">✕</button>
           </div>
@@ -972,6 +1002,48 @@
         renderAll();
       }
 
+      function resetItemForm() {
+        editingId = null;
+        itemForm.reset();
+        document.querySelector("#amountInput").value = "1";
+        document.querySelector("#rarityInput").value = "Normal";
+        currentPhoto = "";
+        previewImage.removeAttribute("src");
+        previewImage.classList.add("hidden");
+        photoBox.querySelector("span").classList.remove("hidden");
+        formTitle.textContent = "Neues Item";
+        submitItemButton.textContent = "Speichern";
+        cancelEditButton.classList.add("hidden");
+      }
+
+      function startEditItem(id) {
+        const item = items.find((entry) => entry.id === id);
+        if (!item) return;
+        editingId = id;
+        selectedId = id;
+        document.querySelector("#nameInput").value = item.name;
+        document.querySelector("#categoryInput").value = item.category;
+        document.querySelector("#amountInput").value = item.amount;
+        document.querySelector("#dateInput").value = item.date || "";
+        document.querySelector("#rarityInput").value = item.rarity;
+        document.querySelector("#noteInput").value = item.note || "";
+        document.querySelector("#favoriteInput").checked = item.favorite;
+        currentPhoto = item.photo || "";
+        if (currentPhoto) {
+          previewImage.src = currentPhoto;
+          previewImage.classList.remove("hidden");
+          photoBox.querySelector("span").classList.add("hidden");
+        } else {
+          previewImage.removeAttribute("src");
+          previewImage.classList.add("hidden");
+          photoBox.querySelector("span").classList.remove("hidden");
+        }
+        formTitle.textContent = "Item bearbeiten";
+        submitItemButton.textContent = "Update";
+        cancelEditButton.classList.remove("hidden");
+        showScreen("photo");
+      }
+
       function showScreen(name) {
         Object.entries(screens).forEach(([key, screen]) => {
           screen.classList.toggle("active", key === name);
@@ -979,7 +1051,10 @@
         document.querySelectorAll(".nav-btn").forEach((button) => {
           button.classList.toggle("active", button.dataset.nav === name);
         });
-        if (name !== "inventory" && name !== "museum" && name !== "search") {
+        if (name === "photo" && !editingId) {
+          resetItemForm();
+        }
+        if (name !== "inventory" && name !== "museum" && name !== "search" && !editingId) {
           selectedId = null;
           renderDetail();
         }
@@ -997,6 +1072,7 @@
       document.addEventListener("click", (event) => {
         const nav = event.target.closest("[data-nav]");
         if (nav) {
+          if (nav.dataset.nav === "photo") resetItemForm();
           showScreen(nav.dataset.nav);
           return;
         }
@@ -1020,6 +1096,10 @@
 
         const action = event.target.closest("[data-action]");
         if (action && selectedId) {
+          if (action.dataset.action === "edit") {
+            startEditItem(selectedId);
+            return;
+          }
           if (action.dataset.action === "favorite") {
             items = items.map((item) => item.id === selectedId ? { ...item, favorite: !item.favorite } : item);
           }
@@ -1050,6 +1130,11 @@
       document.querySelector("#museumStyleButton").addEventListener("click", () => showScreen("customize"));
       document.querySelector("#photoButton").addEventListener("click", () => photoInput.click());
       document.querySelector("#avatarButton").addEventListener("click", () => showScreen("customize"));
+      cancelEditButton.addEventListener("click", () => {
+        resetItemForm();
+        showScreen("inventory");
+      });
+      document.querySelector("#clearFormButton").addEventListener("click", resetItemForm);
 
       searchInput.addEventListener("input", renderInventory);
       bigSearchInput.addEventListener("input", renderSearch);
@@ -1089,8 +1174,10 @@
 
       document.querySelector("#itemForm").addEventListener("submit", (event) => {
         event.preventDefault();
+        const original = items.find((item) => item.id === editingId);
         const formItem = {
-          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+          ...(original || {}),
+          id: editingId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
           name: document.querySelector("#nameInput").value.trim(),
           category: document.querySelector("#categoryInput").value,
           amount: Math.max(1, Number(document.querySelector("#amountInput").value || 1)),
@@ -1099,15 +1186,14 @@
           note: document.querySelector("#noteInput").value.trim(),
           favorite: document.querySelector("#favoriteInput").checked,
           photo: currentPhoto,
-          icon: "📦"
+          icon: original?.icon || "📦"
         };
-        items = [formItem, ...items];
+        items = editingId
+          ? items.map((item) => item.id === editingId ? formItem : item)
+          : [formItem, ...items];
         saveItems();
-        event.target.reset();
-        currentPhoto = "";
-        previewImage.removeAttribute("src");
-        previewImage.classList.add("hidden");
-        photoBox.querySelector("span").classList.remove("hidden");
+        selectedId = formItem.id;
+        resetItemForm();
         selectedId = formItem.id;
         renderAll();
         showScreen("inventory");

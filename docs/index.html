@@ -607,6 +607,7 @@
           linear-gradient(180deg, #ffffff 0%, #fff7dc 100%);
         box-shadow: 0 14px 28px rgba(255, 200, 61, 0.18);
         cursor: grab;
+        touch-action: none;
       }
 
       .pedestal:active {
@@ -1173,6 +1174,8 @@
       let photoJob = 0;
       let categoryImageId = null;
       let draggedMuseumSlot = null;
+      let pointerMuseumDrag = null;
+      let suppressMuseumClickUntil = 0;
       let settings = loadSettings();
       const defaultUserName = `User ${getUserNumber()}`;
 
@@ -1650,6 +1653,7 @@
 
         const museumSlot = event.target.closest("[data-museum-slot]");
         if (museumSlot) {
+          if (Date.now() < suppressMuseumClickUntil) return;
           openMuseumPicker(Number(museumSlot.dataset.museumSlot));
           return;
         }
@@ -1741,6 +1745,43 @@
       museumGrid.addEventListener("dragend", () => {
         draggedMuseumSlot = null;
         museumGrid.querySelectorAll(".drag-over, .dragging").forEach((element) => element.classList.remove("drag-over", "dragging"));
+      });
+      museumGrid.addEventListener("pointerdown", (event) => {
+        if (event.pointerType !== "touch") return;
+        const source = event.target.closest("[data-museum-slot]");
+        const slotIndex = Number(source?.dataset.museumSlot);
+        if (!source || museumSlots[slotIndex] === null) return;
+        pointerMuseumDrag = { slotIndex, active: false, timer: window.setTimeout(() => {
+          pointerMuseumDrag.active = true;
+          source.classList.add("dragging");
+        }, 180) };
+        source.setPointerCapture?.(event.pointerId);
+      });
+      museumGrid.addEventListener("pointermove", (event) => {
+        if (!pointerMuseumDrag?.active) return;
+        event.preventDefault();
+        const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-museum-slot]");
+        museumGrid.querySelectorAll(".drag-over").forEach((element) => element.classList.remove("drag-over"));
+        if (target && museumGrid.contains(target)) target.classList.add("drag-over");
+      });
+      museumGrid.addEventListener("pointerup", (event) => {
+        if (!pointerMuseumDrag) return;
+        window.clearTimeout(pointerMuseumDrag.timer);
+        if (pointerMuseumDrag.active) {
+          const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-museum-slot]");
+          if (target && museumGrid.contains(target)) {
+            const targetIndex = Number(target.dataset.museumSlot);
+            [museumSlots[pointerMuseumDrag.slotIndex], museumSlots[targetIndex]] = [museumSlots[targetIndex], museumSlots[pointerMuseumDrag.slotIndex]];
+            saveMuseumSlots();
+            suppressMuseumClickUntil = Date.now() + 500;
+            renderMuseum();
+          }
+        }
+        pointerMuseumDrag = null;
+      });
+      museumGrid.addEventListener("pointercancel", () => {
+        if (pointerMuseumDrag) window.clearTimeout(pointerMuseumDrag.timer);
+        pointerMuseumDrag = null;
       });
       document.querySelector("#searchInput").addEventListener("input", (event) => {
         searchTerm = event.target.value.trim().toLocaleLowerCase();

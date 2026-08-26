@@ -400,16 +400,6 @@
         box-shadow: 0 6px 12px rgba(14, 36, 64, 0.14);
       }
 
-      .count {
-        position: absolute;
-        right: 7px;
-        bottom: 6px;
-        color: var(--blue-dark);
-        font-size: 0.78rem;
-        font-weight: 950;
-        text-shadow: 0 1px 0 white;
-      }
-
       .empty-note {
         display: grid;
         gap: 8px;
@@ -795,10 +785,6 @@
           <input id="nameInput" required maxlength="28" placeholder="Name vom Item" />
           <div class="two-col">
             <select id="categoryInput"></select>
-            <input id="amountInput" type="number" min="1" value="1" aria-label="Anzahl" />
-          </div>
-          <div class="two-col">
-            <input id="dateInput" type="month" aria-label="Seit wann" />
             <select id="rarityInput" aria-label="Seltenheit">
               <option value="Normal">Normal</option>
               <option value="Cool">Cool</option>
@@ -806,6 +792,7 @@
               <option value="Ultra">Ultra</option>
             </select>
           </div>
+          <input id="dateInput" type="month" aria-label="Seit wann" />
           <textarea id="noteInput" rows="2" maxlength="90" placeholder="Kurze Info"></textarea>
           <label class="switch-line">
             <input id="favoriteInput" type="checkbox" />
@@ -927,7 +914,6 @@
           rarity,
           note,
           favorite,
-          amount: 1,
           date: "2026-08",
           photo: ""
         };
@@ -1017,7 +1003,6 @@
           <button class="slot ${selectedId === item.id ? "selected" : ""} ${extraClass}" type="button" data-item="${item.id}">
             ${art}
             ${item.favorite ? `<span class="star">FAV</span>` : ""}
-            ${item.amount > 1 ? `<span class="count">x${item.amount}</span>` : ""}
           </button>
         `;
       }
@@ -1073,7 +1058,7 @@
           <div class="detail-art">${art}</div>
           <div>
             <h2>${escapeHtml(item.name)}</h2>
-            <p>${categoryName(item.category)} · ${item.rarity} · x${item.amount}</p>
+            <p>${categoryName(item.category)} · ${item.rarity}</p>
             <p>${escapeHtml(item.note || "Keine Info")}</p>
           </div>
           <div class="detail-actions">
@@ -1101,7 +1086,6 @@
       function resetItemForm() {
         editingId = null;
         itemForm.reset();
-        document.querySelector("#amountInput").value = "1";
         document.querySelector("#rarityInput").value = "Normal";
         currentPhoto = "";
         previewImage.removeAttribute("src");
@@ -1119,7 +1103,6 @@
         selectedId = id;
         document.querySelector("#nameInput").value = item.name;
         document.querySelector("#categoryInput").value = item.category;
-        document.querySelector("#amountInput").value = item.amount;
         document.querySelector("#dateInput").value = item.date || "";
         document.querySelector("#rarityInput").value = item.rarity;
         document.querySelector("#noteInput").value = item.note || "";
@@ -1277,7 +1260,6 @@
           id: editingId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
           name: document.querySelector("#nameInput").value.trim(),
           category: document.querySelector("#categoryInput").value,
-          amount: Math.max(1, Number(document.querySelector("#amountInput").value || 1)),
           date: document.querySelector("#dateInput").value || "",
           rarity: document.querySelector("#rarityInput").value,
           note: document.querySelector("#noteInput").value.trim(),

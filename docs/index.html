@@ -904,13 +904,8 @@
           <div class="toolbar-head">
             <strong>Sammlung</strong>
             <div>
-              <button class="icon-btn search-toggle" id="searchToggleButton" type="button" title="Inventar durchsuchen">⌕</button>
               <button class="icon-btn" id="customizeButton" type="button" title="Anpassen">⚙</button>
             </div>
-          </div>
-          <div class="search-row hidden" id="searchRow">
-            <input id="searchInput" type="search" placeholder="Item suchen" />
-            <button class="icon-btn" id="clearSearchButton" type="button" title="Suche leeren">×</button>
           </div>
           <div class="category-row" id="categoryRow"></div>
           <button class="secondary" id="addCategoryButton" type="button">+ Kategorie</button>
@@ -950,20 +945,19 @@
         </div>
       </section>
 
-      <section class="screen" id="marketScreen">
+      <section class="screen" id="searchScreen">
         <div class="panel inventory-shell">
-          <div class="tabs">
+          <div class="toolbar-head">
             <button class="tab-pill active" type="button">
-              <span>MKT</span><span>Market</span>
-            </button>
-            <button class="tab-pill" type="button" data-nav="inventory">
-              <span>INV</span><span>Zurueck</span>
+              <span>⌕</span><span>Suchen</span>
             </button>
           </div>
-          <div class="empty-note">
-            <strong>MKT</strong>
-            <p>Market kommt spaeter. Hier koennen mal Tausch, Wunschliste oder Preise rein.</p>
+          <div class="search-row" id="searchRow">
+            <input id="searchInput" type="search" placeholder="Item suchen" autocomplete="off" />
+            <button class="icon-btn" id="clearSearchButton" type="button" title="Suche leeren">×</button>
           </div>
+          <div class="grid" id="searchGrid"></div>
+          <div class="empty-note hidden" id="searchEmpty"><strong>NICHTS</strong><p>Kein Item gefunden.</p></div>
         </div>
       </section>
 
@@ -1048,7 +1042,7 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Navigation">
-      <button class="nav-btn" type="button" data-nav="market"><span>MKT</span>Market</button>
+      <button class="nav-btn" type="button" data-nav="search"><span>⌕</span>Suchen</button>
       <button class="nav-btn main-tab active" type="button" data-nav="inventory">
         <img src="./backpack-icon.png" alt="" />
         Inventar
@@ -1095,13 +1089,15 @@
 
       const screens = {
         inventory: document.querySelector("#inventoryScreen"),
-        market: document.querySelector("#marketScreen"),
+        search: document.querySelector("#searchScreen"),
         photo: document.querySelector("#photoScreen"),
         customize: document.querySelector("#customizeScreen")
       };
       const itemGrid = document.querySelector("#itemGrid");
+      const searchGrid = document.querySelector("#searchGrid");
       const museumGrid = document.querySelector("#museumGrid");
       const emptyNote = document.querySelector("#emptyNote");
+      const searchEmpty = document.querySelector("#searchEmpty");
       const museumEmpty = document.querySelector("#museumEmpty");
       const detailCard = document.querySelector("#detailCard");
       const categoryRow = document.querySelector("#categoryRow");
@@ -1219,9 +1215,13 @@
       function filteredItems() {
         return items.filter((item) => {
           const byCategory = activeCategory === "all" || item.category === activeCategory;
-          const byName = !searchTerm || item.name.toLocaleLowerCase().includes(searchTerm);
-          return byCategory && byName;
+          return byCategory;
         }).sort((a, b) => a.name.localeCompare(b.name, "de", { sensitivity: "base" }));
+      }
+
+      function searchItems() {
+        return items.filter((item) => !searchTerm || item.name.toLocaleLowerCase().includes(searchTerm))
+          .sort((a, b) => a.name.localeCompare(b.name, "de", { sensitivity: "base" }));
       }
 
       function renderCategories() {
@@ -1276,6 +1276,12 @@
         emptyNote.classList.toggle("hidden", items.length !== 0);
         document.querySelector("#scoreText").textContent = String(items.length * 10);
         document.querySelector("#playerLine").textContent = `${settings.nickname || "Level 1"} · ${items.length} Sachen`;
+      }
+
+      function renderSearch() {
+        const shown = searchItems();
+        searchGrid.innerHTML = shown.map((item) => slotMarkup(item)).join("");
+        searchEmpty.classList.toggle("hidden", shown.length !== 0 || !searchTerm);
       }
 
       function renderMuseum() {
@@ -1345,6 +1351,7 @@
         renderCategories();
         applySettings();
         renderInventory();
+        renderSearch();
         renderMuseum();
         renderDetail();
       }
@@ -1588,19 +1595,15 @@
 
       document.querySelector("#customizeButton").addEventListener("click", () => showScreen("customize"));
       document.querySelector("#closeMuseumPickerButton").addEventListener("click", () => museumPicker.close());
-      document.querySelector("#searchToggleButton").addEventListener("click", () => {
-        const row = document.querySelector("#searchRow");
-        row.classList.toggle("hidden");
-        if (!row.classList.contains("hidden")) document.querySelector("#searchInput").focus();
-      });
       document.querySelector("#searchInput").addEventListener("input", (event) => {
         searchTerm = event.target.value.trim().toLocaleLowerCase();
-        renderInventory();
+        renderSearch();
       });
       document.querySelector("#clearSearchButton").addEventListener("click", () => {
         searchTerm = "";
         document.querySelector("#searchInput").value = "";
-        renderInventory();
+        renderSearch();
+        document.querySelector("#searchInput").focus();
       });
       document.querySelector("#addCategoryButton").addEventListener("click", () => {
         const label = window.prompt("Name der neuen Kategorie");

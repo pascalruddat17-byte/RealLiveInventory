@@ -206,6 +206,17 @@
         gap: 10px;
       }
 
+      .toolbar-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .toolbar-head strong {
+        font-size: 1rem;
+      }
+
       .category-row {
         display: grid;
         grid-auto-flow: column;
@@ -601,8 +612,8 @@
         left: 0;
         z-index: 10;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 6px;
+        grid-template-columns: 0.82fr 1.32fr 0.82fr;
+        gap: 8px;
         width: min(540px, 100%);
         margin: 0 auto;
         padding: 8px 10px 10px;
@@ -625,6 +636,13 @@
         font-weight: 900;
       }
 
+      .nav-btn.main-tab {
+        min-height: 70px;
+        transform: translateY(-10px);
+        border: 4px solid white;
+        border-radius: 18px;
+      }
+
       .nav-btn span {
         font-size: 0.95rem;
         font-weight: 950;
@@ -635,6 +653,10 @@
         background: linear-gradient(135deg, var(--blue), var(--cyan));
         color: white;
         box-shadow: 0 10px 20px rgba(22, 119, 255, 0.22);
+      }
+
+      .nav-btn.main-tab span {
+        font-size: 1.05rem;
       }
 
       .hidden {
@@ -669,8 +691,8 @@
 
       <section class="screen active" id="inventoryScreen">
         <div class="panel toolbar">
-          <div class="search-row">
-            <input id="searchInput" type="search" placeholder="Suchen" autocomplete="off" />
+          <div class="toolbar-head">
+            <strong>Sammlung</strong>
             <button class="icon-btn" id="customizeButton" type="button" title="Anpassen">⚙</button>
           </div>
           <div class="category-row" id="categoryRow"></div>
@@ -692,9 +714,7 @@
             <button class="primary" type="button" data-nav="photo">Item anlegen</button>
           </div>
         </div>
-      </section>
 
-      <section class="screen" id="museumScreen">
         <div class="panel museum-stage">
           <div class="tabs">
             <button class="tab-pill active" type="button">
@@ -708,6 +728,23 @@
           <div class="empty-note hidden" id="museumEmpty">
             <strong>FAV</strong>
             <p>Markiere Lieblingssachen. Dann landen sie hier.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="marketScreen">
+        <div class="panel inventory-shell">
+          <div class="tabs">
+            <button class="tab-pill active" type="button">
+              <span>MKT</span><span>Market</span>
+            </button>
+            <button class="tab-pill" type="button" data-nav="inventory">
+              <span>INV</span><span>Zurueck</span>
+            </button>
+          </div>
+          <div class="empty-note">
+            <strong>MKT</strong>
+            <p>Market kommt spaeter. Hier koennen mal Tausch, Wunschliste oder Preise rein.</p>
           </div>
         </div>
       </section>
@@ -751,15 +788,6 @@
         </form>
       </section>
 
-      <section class="screen" id="searchScreen">
-        <div class="panel toolbar">
-          <input id="bigSearchInput" type="search" placeholder="Was suchst du?" autocomplete="off" />
-        </div>
-        <div class="panel inventory-shell">
-          <div class="grid" id="searchGrid"></div>
-        </div>
-      </section>
-
       <section class="screen" id="customizeScreen">
         <div class="panel customizer">
           <div class="tabs">
@@ -795,10 +823,9 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Navigation">
-      <button class="nav-btn active" type="button" data-nav="inventory"><span>INV</span>Inventar</button>
-      <button class="nav-btn" type="button" data-nav="museum"><span>MUS</span>Museum</button>
+      <button class="nav-btn" type="button" data-nav="market"><span>MKT</span>Market</button>
+      <button class="nav-btn main-tab active" type="button" data-nav="inventory"><span>INV</span>Inventar</button>
       <button class="nav-btn" type="button" data-nav="photo"><span>ADD</span>Foto</button>
-      <button class="nav-btn" type="button" data-nav="search"><span>FND</span>Suche</button>
     </nav>
 
     <script>
@@ -839,19 +866,15 @@
 
       const screens = {
         inventory: document.querySelector("#inventoryScreen"),
-        museum: document.querySelector("#museumScreen"),
+        market: document.querySelector("#marketScreen"),
         photo: document.querySelector("#photoScreen"),
-        search: document.querySelector("#searchScreen"),
         customize: document.querySelector("#customizeScreen")
       };
       const itemGrid = document.querySelector("#itemGrid");
-      const searchGrid = document.querySelector("#searchGrid");
       const museumGrid = document.querySelector("#museumGrid");
       const emptyNote = document.querySelector("#emptyNote");
       const museumEmpty = document.querySelector("#museumEmpty");
       const detailCard = document.querySelector("#detailCard");
-      const searchInput = document.querySelector("#searchInput");
-      const bigSearchInput = document.querySelector("#bigSearchInput");
       const categoryRow = document.querySelector("#categoryRow");
       const categoryInput = document.querySelector("#categoryInput");
       const photoInput = document.querySelector("#photoInput");
@@ -929,13 +952,11 @@
         return categories.find((category) => category.id === id)?.label || "Anderes";
       }
 
-      function filteredItems(querySource = searchInput) {
-        const term = querySource.value.trim().toLowerCase();
+      function filteredItems() {
         return items.filter((item) => {
           const byCategory = activeCategory === "all" || item.category === activeCategory;
           const byFilter = activeFilter === "all" || item.favorite;
-          const byText = !term || `${item.name} ${item.note} ${categoryName(item.category)}`.toLowerCase().includes(term);
-          return byCategory && byFilter && byText;
+          return byCategory && byFilter;
         });
       }
 
@@ -969,11 +990,11 @@
       }
 
       function renderInventory() {
-        const shown = filteredItems(searchInput);
+        const shown = filteredItems();
         itemGrid.innerHTML = shown.map((item) => slotMarkup(item)).join("");
         const emptySlots = Math.max(12 - shown.length, shown.length ? 0 : 8);
         itemGrid.insertAdjacentHTML("beforeend", Array.from({ length: emptySlots }, () => slotMarkup()).join(""));
-        emptyNote.classList.toggle("hidden", items.length !== 0 || Boolean(searchInput.value.trim()));
+        emptyNote.classList.toggle("hidden", items.length !== 0);
         document.querySelector("#scoreText").textContent = String(items.filter((item) => item.favorite).length * 100 + items.length * 10);
         document.querySelector("#playerLine").textContent = `${settings.nickname || "Level 1"} · ${items.length} Sachen`;
       }
@@ -989,14 +1010,6 @@
           `)
           .join("");
         museumEmpty.classList.toggle("hidden", favorites.length !== 0);
-      }
-
-      function renderSearch() {
-        const term = bigSearchInput.value.trim().toLowerCase();
-        const found = items.filter((item) =>
-          `${item.name} ${item.note} ${categoryName(item.category)}`.toLowerCase().includes(term)
-        );
-        searchGrid.innerHTML = found.map((item) => slotMarkup(item)).join("");
       }
 
       function renderSwatches() {
@@ -1044,7 +1057,6 @@
         applySettings();
         renderInventory();
         renderMuseum();
-        renderSearch();
         renderDetail();
       }
 
@@ -1105,7 +1117,7 @@
         if (name === "photo" && !editingId) {
           resetItemForm();
         }
-        if (name !== "inventory" && name !== "museum" && name !== "search" && !editingId) {
+        if (name !== "inventory" && !editingId) {
           selectedId = null;
           renderDetail();
         }
@@ -1187,8 +1199,6 @@
       });
       document.querySelector("#clearFormButton").addEventListener("click", resetItemForm);
 
-      searchInput.addEventListener("input", renderInventory);
-      bigSearchInput.addEventListener("input", renderSearch);
       document.querySelector("#nicknameInput").addEventListener("input", (event) => {
         settings.nickname = event.target.value.trim();
         saveSettings();

@@ -986,6 +986,7 @@
       let searchTerm = "";
       let museumSlots = loadMuseumSlots();
       let currentPhoto = "";
+      let photoJob = 0;
       let settings = loadSettings();
 
       const screens = {
@@ -1227,6 +1228,7 @@
         document.querySelector("#rarityInput").value = "Common";
         photoBackgroundInput.value = "#eeeeee";
         currentPhoto = "";
+        photoJob += 1;
         photoBox.style.backgroundColor = "#eeeeee";
         previewImage.removeAttribute("src");
         previewImage.classList.add("hidden");
@@ -1480,12 +1482,20 @@
         const file = photoInput.files?.[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = async () => {
-          currentPhoto = await removePhotoBackground(String(reader.result));
-          previewImage.src = currentPhoto;
+        reader.onload = () => {
+          const rawPhoto = String(reader.result);
+          const job = ++photoJob;
+          currentPhoto = rawPhoto;
+          previewImage.src = rawPhoto;
           photoBox.style.backgroundColor = photoBackgroundInput.value;
           previewImage.classList.remove("hidden");
           photoBox.querySelector("span").classList.add("hidden");
+          window.setTimeout(async () => {
+            const processedPhoto = await removePhotoBackground(rawPhoto);
+            if (job !== photoJob) return;
+            currentPhoto = processedPhoto;
+            previewImage.src = processedPhoto;
+          }, 60);
         };
         reader.readAsDataURL(file);
       });

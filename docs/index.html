@@ -168,17 +168,32 @@
 
       .screen.active {
         display: grid;
-        animation: screen-in 180ms ease-out both;
+        animation: screen-in 360ms cubic-bezier(0.18, 0.92, 0.28, 1.08) both;
       }
 
       @keyframes screen-in {
         from {
           opacity: 0;
-          transform: translateY(8px);
+          transform: translateX(22px) scale(0.98);
         }
         to {
           opacity: 1;
-          transform: translateY(0);
+          transform: translateX(0) scale(1);
+        }
+      }
+
+      .subview-panel.motion-in {
+        animation: panel-swap 340ms cubic-bezier(0.2, 0.9, 0.24, 1.08) both;
+      }
+
+      @keyframes panel-swap {
+        0% {
+          opacity: 0;
+          transform: translateY(16px) scale(0.97);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
       }
 
@@ -376,6 +391,19 @@
         border-color: transparent;
         background: #111111;
         color: white;
+        animation: tab-pop 280ms cubic-bezier(0.2, 1.35, 0.32, 1) both;
+      }
+
+      @keyframes tab-pop {
+        0% {
+          transform: scale(0.94);
+        }
+        70% {
+          transform: scale(1.04);
+        }
+        100% {
+          transform: scale(1);
+        }
       }
 
       .grid {
@@ -395,18 +423,19 @@
         background: var(--surface);
         color: var(--ink);
         text-align: left;
-        transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
-        animation: card-in 180ms ease-out both;
+        transform-origin: center bottom;
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        animation: card-in 360ms cubic-bezier(0.18, 0.92, 0.28, 1.18) both;
       }
 
       @keyframes card-in {
         from {
           opacity: 0;
-          transform: translateY(5px) scale(0.98);
+          transform: translateY(18px) rotateX(12deg) scale(0.92);
         }
         to {
           opacity: 1;
-          transform: translateY(0) scale(1);
+          transform: translateY(0) rotateX(0) scale(1);
         }
       }
 
@@ -417,9 +446,25 @@
 
       .item-card:hover,
       .item-card.selected {
-        transform: translateY(-2px);
+        transform: translateY(-4px) scale(1.02);
         border-color: var(--gold);
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+      }
+
+      .item-card.selected {
+        animation: item-select 360ms cubic-bezier(0.18, 1.35, 0.32, 1) both;
+      }
+
+      @keyframes item-select {
+        0% {
+          transform: scale(0.94);
+        }
+        55% {
+          transform: scale(1.07) translateY(-5px);
+        }
+        100% {
+          transform: scale(1.02) translateY(-4px);
+        }
       }
 
       .item-card-art {
@@ -607,6 +652,18 @@
 
       .detail-card.show {
         display: grid;
+        animation: detail-rise 320ms cubic-bezier(0.18, 0.92, 0.28, 1.08) both;
+      }
+
+      @keyframes detail-rise {
+        from {
+          opacity: 0;
+          transform: translateY(24px) scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
 
       .detail-art {
@@ -672,10 +729,23 @@
         box-shadow: 0 14px 28px rgba(255, 200, 61, 0.18);
         cursor: grab;
         touch-action: none;
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        animation: museum-rise 360ms cubic-bezier(0.18, 0.92, 0.28, 1.12) both;
       }
 
       .pedestal:active {
         cursor: grabbing;
+      }
+
+      @keyframes museum-rise {
+        from {
+          opacity: 0;
+          transform: translateY(18px) scale(0.92);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
 
       .pedestal.drag-over,
@@ -683,6 +753,27 @@
         border-color: var(--gold);
         outline: 3px dashed var(--gold);
         outline-offset: 2px;
+        transform: scale(1.04);
+      }
+
+      .pedestal.dropped,
+      .museum-add.dropped {
+        animation: museum-drop 460ms cubic-bezier(0.2, 1.45, 0.32, 1) both;
+      }
+
+      @keyframes museum-drop {
+        0% {
+          transform: scale(0.82) rotate(-2deg);
+          filter: brightness(1);
+        }
+        55% {
+          transform: scale(1.12) rotate(1deg);
+          filter: brightness(1.08);
+        }
+        100% {
+          transform: scale(1) rotate(0);
+          filter: brightness(1);
+        }
       }
 
       .pedestal .slot {
@@ -708,6 +799,7 @@
         color: var(--muted);
         font-weight: 850;
         cursor: pointer;
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
       }
 
       .museum-add strong {
@@ -1052,6 +1144,7 @@
         color: var(--muted);
         font-size: 0.72rem;
         font-weight: 900;
+        transition: transform 190ms ease, background 190ms ease, color 190ms ease, box-shadow 190ms ease;
       }
 
       .nav-btn.main-tab {
@@ -1078,6 +1171,35 @@
         background: linear-gradient(135deg, #111111, #555555);
         color: white;
         box-shadow: 0 10px 20px rgba(22, 119, 255, 0.22);
+        animation: nav-bounce 300ms cubic-bezier(0.2, 1.35, 0.32, 1) both;
+      }
+
+      @keyframes nav-bounce {
+        0% {
+          transform: translateY(4px) scale(0.94);
+        }
+        70% {
+          transform: translateY(-2px) scale(1.04);
+        }
+        100% {
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .nav-btn.main-tab.active {
+        animation: main-nav-bounce 300ms cubic-bezier(0.2, 1.35, 0.32, 1) both;
+      }
+
+      @keyframes main-nav-bounce {
+        0% {
+          transform: translateY(-6px) scale(0.94);
+        }
+        70% {
+          transform: translateY(-14px) scale(1.04);
+        }
+        100% {
+          transform: translateY(-10px) scale(1);
+        }
       }
 
       .nav-btn.main-tab span {
@@ -1360,6 +1482,7 @@
       let draggedMuseumSlot = null;
       let pointerMuseumDrag = null;
       let suppressMuseumClickUntil = 0;
+      let animatedMuseumSlot = null;
       let editorImage = null;
       let editorPath = [];
       let manualEditMode = false;
@@ -1619,12 +1742,19 @@
       function renderMuseum() {
         museumGrid.innerHTML = museumSlots.map((itemId, index) => {
           const item = items.find((entry) => entry.id === itemId);
-          if (!item) return `<button class="museum-add" type="button" data-museum-slot="${index}"><strong>+</strong><span>Hinzufuegen</span></button>`;
+          const dropClass = animatedMuseumSlot === index ? " dropped" : "";
+          if (!item) return `<button class="museum-add${dropClass}" type="button" data-museum-slot="${index}"><strong>+</strong><span>Hinzufuegen</span></button>`;
           const art = item.photo
             ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
             : `<span class="slot-icon">${item.icon || "IT"}</span>`;
-          return `<div class="pedestal" role="button" tabindex="0" draggable="true" data-item="${item.id}" data-museum-slot="${index}"><span class="slot museum-slot">${art}</span><div class="pedestal-name">${escapeHtml(item.name)}</div></div>`;
+          return `<div class="pedestal${dropClass}" role="button" tabindex="0" draggable="true" data-item="${item.id}" data-museum-slot="${index}"><span class="slot museum-slot">${art}</span><div class="pedestal-name">${escapeHtml(item.name)}</div></div>`;
         }).join("");
+        if (animatedMuseumSlot !== null) {
+          window.setTimeout(() => {
+            animatedMuseumSlot = null;
+            museumGrid.querySelectorAll(".dropped").forEach((element) => element.classList.remove("dropped"));
+          }, 520);
+        }
         museumEmpty.classList.add("hidden");
       }
 
@@ -1763,8 +1893,14 @@
 
       function setInventoryView(view) {
         inventoryView = view;
-        document.querySelector("#inventoryPanel").classList.toggle("hidden", view !== "inventory");
-        document.querySelector("#museumPanel").classList.toggle("hidden", view !== "museum");
+        const inventoryPanel = document.querySelector("#inventoryPanel");
+        const museumPanel = document.querySelector("#museumPanel");
+        inventoryPanel.classList.toggle("hidden", view !== "inventory");
+        museumPanel.classList.toggle("hidden", view !== "museum");
+        const activePanel = view === "inventory" ? inventoryPanel : museumPanel;
+        activePanel.classList.remove("motion-in");
+        void activePanel.offsetWidth;
+        activePanel.classList.add("motion-in");
         document.querySelectorAll("[data-inventory-view]").forEach((button) => {
           button.classList.toggle("active", button.dataset.inventoryView === view);
         });
@@ -1935,7 +2071,8 @@
 
         const museumChoice = event.target.closest("[data-choice-item]");
         if (museumChoice) {
-          museumSlots[Number(museumPicker.dataset.slotIndex)] = museumChoice.dataset.choiceItem;
+          animatedMuseumSlot = Number(museumPicker.dataset.slotIndex);
+          museumSlots[animatedMuseumSlot] = museumChoice.dataset.choiceItem;
           saveMuseumSlots();
           museumPicker.close();
           renderMuseum();
@@ -1965,6 +2102,7 @@
                 window.alert("Das Museum hat nur vier Plaetze.");
                 return;
               }
+              animatedMuseumSlot = emptyIndex;
               museumSlots[emptyIndex] = selectedId;
             }
             saveMuseumSlots();
@@ -2016,6 +2154,7 @@
         event.preventDefault();
         const targetIndex = Number(target.dataset.museumSlot);
         [museumSlots[draggedMuseumSlot], museumSlots[targetIndex]] = [museumSlots[targetIndex], museumSlots[draggedMuseumSlot]];
+        animatedMuseumSlot = targetIndex;
         saveMuseumSlots();
         draggedMuseumSlot = null;
         renderMuseum();
@@ -2050,6 +2189,7 @@
           if (target && museumGrid.contains(target)) {
             const targetIndex = Number(target.dataset.museumSlot);
             [museumSlots[pointerMuseumDrag.slotIndex], museumSlots[targetIndex]] = [museumSlots[targetIndex], museumSlots[pointerMuseumDrag.slotIndex]];
+            animatedMuseumSlot = targetIndex;
             saveMuseumSlots();
             suppressMuseumClickUntil = Date.now() + 500;
             renderMuseum();

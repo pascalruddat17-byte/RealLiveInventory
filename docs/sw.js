@@ -1,4 +1,4 @@
-const CACHE_NAME = "reallife-inventory-v1";
+const CACHE_NAME = "reallife-inventory-v2";
 const APP_SHELL = [
   "./",
   "./index.html",

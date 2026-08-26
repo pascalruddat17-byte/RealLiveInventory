@@ -1,7 +1,7 @@
 {
   "name": "RealLife Inventory",
   "short_name": "Inventory",
-  "description": "Scanne dein Zimmer und verwalte echte Gegenstaende als digitales Inventar.",
+  "description": "Fotografiere deine Gegenstaende und verwalte sie in deinem digitalen Zimmer.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

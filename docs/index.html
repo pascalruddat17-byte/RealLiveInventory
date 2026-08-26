@@ -14,19 +14,19 @@
     <style>
       :root {
         color-scheme: light;
-        --blue: #1677ff;
-        --blue-dark: #0658d8;
-        --cyan: #49bfff;
-        --gold: #ffc83d;
-        --bg: #eef7ff;
+        --blue: #1267f2;
+        --blue-dark: #073f9e;
+        --cyan: #36a7ff;
+        --gold: #f4b83f;
+        --bg: #eaf3ff;
         --surface: #ffffff;
         --surface-2: #f5fbff;
         --slot: #f8fcff;
-        --line: #d8e8fb;
+        --line: #c6d9f1;
         --ink: #0e2440;
         --muted: #6f8299;
-        --shadow: 0 18px 38px rgba(22, 119, 255, 0.18);
-        --slot-size: 78px;
+        --shadow: 0 14px 28px rgba(18, 103, 242, 0.12);
+        --slot-size: 76px;
       }
 
       * {
@@ -55,11 +55,11 @@
       button {
         min-height: 44px;
         border: 0;
-        border-radius: 16px;
+        border-radius: 12px;
         background: #e9f3ff;
         color: var(--ink);
         cursor: pointer;
-        font-weight: 850;
+        font-weight: 820;
         touch-action: manipulation;
       }
 
@@ -80,7 +80,7 @@
       textarea {
         width: 100%;
         border: 1px solid var(--line);
-        border-radius: 16px;
+        border-radius: 12px;
         background: var(--surface-2);
         color: var(--ink);
         padding: 12px 14px;
@@ -108,28 +108,30 @@
         align-items: center;
         padding: 12px;
         border: 1px solid var(--line);
-        border-radius: 26px;
-        background: rgba(255, 255, 255, 0.9);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.94);
         box-shadow: var(--shadow);
         backdrop-filter: blur(16px);
       }
 
       .avatar {
         display: grid;
-        width: 52px;
-        height: 52px;
+        width: 48px;
+        height: 48px;
         place-items: center;
-        border: 4px solid white;
-        border-radius: 18px;
+        border: 3px solid white;
+        border-radius: 13px;
         background: linear-gradient(135deg, var(--blue), var(--cyan));
         box-shadow: 0 10px 20px rgba(22, 119, 255, 0.24);
         color: white;
-        font-size: 1.55rem;
+        font-size: 0.95rem;
+        letter-spacing: 0;
+        text-transform: uppercase;
       }
 
       .brand-title {
         margin: 0;
-        font-size: 1.75rem;
+        font-size: 1.58rem;
         line-height: 1;
         letter-spacing: 0;
       }
@@ -148,7 +150,7 @@
         align-items: center;
         min-height: 38px;
         padding: 0 12px;
-        border-radius: 999px;
+        border-radius: 12px;
         background: #0f63df;
         color: white;
         font-weight: 950;
@@ -166,7 +168,7 @@
 
       .panel {
         border: 1px solid var(--line);
-        border-radius: 24px;
+        border-radius: 17px;
         background: rgba(255, 255, 255, 0.92);
         box-shadow: var(--shadow);
       }
@@ -220,12 +222,12 @@
 
       .chip {
         display: grid;
-        min-height: 62px;
+        min-height: 56px;
         place-items: center;
         gap: 2px;
         padding: 8px 6px;
         border: 1px solid var(--line);
-        border-radius: 18px;
+        border-radius: 13px;
         background: var(--surface);
         color: var(--muted);
         font-size: 0.76rem;
@@ -233,8 +235,16 @@
       }
 
       .chip strong {
-        font-size: 1.28rem;
+        display: grid;
+        width: 30px;
+        height: 24px;
+        place-items: center;
+        border-radius: 8px;
+        background: #e8f2ff;
+        color: var(--blue-dark);
+        font-size: 0.68rem;
         line-height: 1;
+        letter-spacing: 0;
       }
 
       .chip.active {
@@ -242,6 +252,11 @@
         background: linear-gradient(135deg, var(--blue), var(--cyan));
         color: white;
         box-shadow: 0 10px 18px rgba(22, 119, 255, 0.22);
+      }
+
+      .chip.active strong {
+        background: rgba(255, 255, 255, 0.18);
+        color: white;
       }
 
       .tabs {
@@ -257,7 +272,7 @@
         gap: 8px;
         padding: 10px 12px;
         border: 1px solid var(--line);
-        border-radius: 18px;
+        border-radius: 13px;
         background: var(--surface-2);
         color: var(--muted);
         font-weight: 900;
@@ -283,11 +298,13 @@
         place-items: center;
         overflow: hidden;
         border: 1px solid var(--line);
-        border-radius: 17px;
+        border-radius: 12px;
         background:
-          linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(235, 246, 255, 0.9)),
+          linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(227, 240, 255, 0.92)),
           var(--slot);
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.82);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.82),
+          inset 0 -6px 0 rgba(7, 63, 158, 0.04);
         transition:
           transform 150ms ease,
           box-shadow 150ms ease,
@@ -301,7 +318,8 @@
           rgba(255, 255, 255, 0.62);
         background-size: 18px 18px;
         color: #9dc5f6;
-        font-size: 1.6rem;
+        font-size: 1.15rem;
+        font-weight: 850;
       }
 
       body[data-slot-style="arcade"] .slot {
@@ -325,11 +343,20 @@
       }
 
       .slot-icon {
-        max-width: 72%;
-        max-height: 72%;
-        object-fit: contain;
-        font-size: calc(var(--slot-size) * 0.43);
-        filter: drop-shadow(0 7px 9px rgba(14, 36, 64, 0.12));
+        display: grid;
+        width: 58%;
+        aspect-ratio: 1;
+        place-items: center;
+        border: 1px solid rgba(7, 63, 158, 0.14);
+        border-radius: 13px;
+        background:
+          linear-gradient(145deg, rgba(54, 167, 255, 0.92), rgba(18, 103, 242, 0.98));
+        color: white;
+        font-size: calc(var(--slot-size) * 0.18);
+        font-weight: 950;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        box-shadow: 0 10px 18px rgba(18, 103, 242, 0.22);
       }
 
       .slot-photo {
@@ -343,13 +370,15 @@
         right: 7px;
         top: 7px;
         display: grid;
-        width: 24px;
-        height: 24px;
+        min-width: 28px;
+        height: 20px;
+        padding: 0 6px;
         place-items: center;
         border-radius: 999px;
         background: white;
         color: var(--gold);
-        font-size: 0.9rem;
+        font-size: 0.62rem;
+        font-weight: 950;
         box-shadow: 0 6px 12px rgba(14, 36, 64, 0.14);
       }
 
@@ -373,7 +402,12 @@
       }
 
       .empty-note strong {
-        font-size: 3rem;
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: var(--ink);
+        color: white;
+        font-size: 0.82rem;
+        letter-spacing: 0;
       }
 
       .empty-note p {
@@ -393,7 +427,7 @@
         align-items: center;
         padding: 10px;
         border: 1px solid var(--line);
-        border-radius: 24px;
+        border-radius: 17px;
         background: rgba(255, 255, 255, 0.96);
         box-shadow: 0 18px 42px rgba(14, 36, 64, 0.18);
       }
@@ -407,9 +441,10 @@
         height: 76px;
         place-items: center;
         overflow: hidden;
-        border-radius: 18px;
+        border-radius: 12px;
         background: var(--surface-2);
-        font-size: 2.1rem;
+        font-size: 1rem;
+        font-weight: 950;
       }
 
       .detail-art img {
@@ -437,11 +472,12 @@
 
       .icon-btn {
         display: grid;
-        width: 44px;
+        width: 46px;
         min-height: 44px;
         place-items: center;
         padding: 0;
-        font-size: 1.1rem;
+        font-size: 0.72rem;
+        font-weight: 950;
       }
 
       .showcase {
@@ -456,7 +492,7 @@
         place-items: center;
         padding: 12px;
         border: 1px solid rgba(255, 200, 61, 0.48);
-        border-radius: 22px;
+        border-radius: 16px;
         background:
           radial-gradient(circle at 50% 18%, rgba(255, 200, 61, 0.28), transparent 42%),
           linear-gradient(180deg, #ffffff 0%, #fff7dc 100%);
@@ -482,7 +518,7 @@
         overflow: hidden;
         place-items: center;
         border: 2px dashed #a9cffc;
-        border-radius: 24px;
+        border-radius: 16px;
         background: #f7fbff;
       }
 
@@ -498,6 +534,18 @@
         gap: 8px;
         color: var(--muted);
         font-weight: 850;
+      }
+
+      .photo-box span strong {
+        display: grid;
+        width: 64px;
+        height: 48px;
+        place-items: center;
+        border-radius: 12px;
+        background: var(--ink);
+        color: white;
+        font-size: 0.82rem;
+        letter-spacing: 0;
       }
 
       .two-col {
@@ -529,7 +577,7 @@
       .swatch {
         min-height: 46px;
         border: 3px solid white;
-        border-radius: 16px;
+        border-radius: 12px;
         box-shadow: 0 8px 14px rgba(14, 36, 64, 0.12);
       }
 
@@ -559,7 +607,7 @@
         margin: 0 auto;
         padding: 8px 10px 10px;
         border-top: 1px solid rgba(216, 232, 251, 0.9);
-        border-radius: 24px 24px 0 0;
+        border-radius: 18px 18px 0 0;
         background: rgba(255, 255, 255, 0.95);
         box-shadow: 0 -14px 30px rgba(14, 36, 64, 0.14);
         backdrop-filter: blur(16px);
@@ -570,7 +618,7 @@
         min-height: 58px;
         place-items: center;
         gap: 2px;
-        border-radius: 18px;
+        border-radius: 13px;
         background: transparent;
         color: var(--muted);
         font-size: 0.72rem;
@@ -578,7 +626,8 @@
       }
 
       .nav-btn span {
-        font-size: 1.35rem;
+        font-size: 0.95rem;
+        font-weight: 950;
         line-height: 1;
       }
 
@@ -610,12 +659,12 @@
   <body>
     <main class="app">
       <header class="topbar">
-        <button class="avatar" id="avatarButton" type="button" title="Avatar wechseln">🎒</button>
+        <button class="avatar" id="avatarButton" type="button" title="Avatar wechseln">RL</button>
         <div>
           <h1 class="brand-title">RealLife</h1>
           <p class="brand-sub" id="playerLine">Level 1 · 0 Sachen</p>
         </div>
-        <div class="coin"><span>⭐</span><span id="scoreText">0</span></div>
+        <div class="coin"><span>XP</span><span id="scoreText">0</span></div>
       </header>
 
       <section class="screen active" id="inventoryScreen">
@@ -630,16 +679,16 @@
         <div class="panel inventory-shell">
           <div class="tabs">
             <button class="tab-pill active" type="button" data-filter="all">
-              <span>📦</span><span>Meine Sachen</span>
+              <span>INV</span><span>Meine Sachen</span>
             </button>
             <button class="tab-pill" type="button" data-filter="favorite">
-              <span>⭐</span><span>Liebling</span>
+              <span>FAV</span><span>Liebling</span>
             </button>
           </div>
           <div class="grid" id="itemGrid"></div>
           <div class="empty-note hidden" id="emptyNote">
-            <strong>🎮</strong>
-            <p>Noch leer. Mit Foto kommt dein erstes Item rein.</p>
+            <strong>EMPTY</strong>
+            <p>Noch leer. Fueg dein erstes Item hinzu.</p>
             <button class="primary" type="button" data-nav="photo">Item anlegen</button>
           </div>
         </div>
@@ -649,15 +698,15 @@
         <div class="panel museum-stage">
           <div class="tabs">
             <button class="tab-pill active" type="button">
-              <span>🏆</span><span>Museum</span>
+              <span>MUS</span><span>Museum</span>
             </button>
             <button class="tab-pill" id="museumStyleButton" type="button">
-              <span>✨</span><span>Style</span>
+              <span>FX</span><span>Style</span>
             </button>
           </div>
           <div class="showcase" id="museumGrid"></div>
           <div class="empty-note hidden" id="museumEmpty">
-            <strong>⭐</strong>
+            <strong>FAV</strong>
             <p>Markiere Lieblingssachen. Dann landen sie hier.</p>
           </div>
         </div>
@@ -670,7 +719,7 @@
             <button class="icon-btn hidden" id="cancelEditButton" type="button" title="Bearbeiten abbrechen">↩</button>
           </div>
           <div class="photo-box" id="photoBox">
-            <span><strong style="font-size: 3rem">📷</strong>Foto oder Symbol</span>
+            <span><strong>ITEM</strong>Foto oder Datei</span>
             <img class="hidden" id="previewImage" alt="Item Foto" />
           </div>
           <input id="photoInput" type="file" accept="image/*" capture="environment" class="hidden" />
@@ -715,19 +764,19 @@
         <div class="panel customizer">
           <div class="tabs">
             <button class="tab-pill active" type="button">
-              <span>🎨</span><span>Anpassen</span>
+              <span>CFG</span><span>Anpassen</span>
             </button>
             <button class="tab-pill" id="addDemoButton" type="button">
-              <span>🎁</span><span>Demo</span>
+              <span>SET</span><span>Demo</span>
             </button>
           </div>
           <input id="nicknameInput" maxlength="18" placeholder="Name" />
           <select id="avatarInput" aria-label="Avatar">
-            <option value="🎒">Rucksack</option>
-            <option value="🎮">Controller</option>
-            <option value="🛹">Skateboard</option>
-            <option value="📚">Buecher</option>
-            <option value="⭐">Stern</option>
+            <option value="RL">RealLife</option>
+            <option value="XP">XP</option>
+            <option value="01">01</option>
+            <option value="VIP">VIP</option>
+            <option value="MAX">MAX</option>
           </select>
           <div class="swatches" id="swatches"></div>
           <label class="range-row">
@@ -746,23 +795,23 @@
     </main>
 
     <nav class="bottom-nav" aria-label="Navigation">
-      <button class="nav-btn active" type="button" data-nav="inventory"><span>🎒</span>Inventar</button>
-      <button class="nav-btn" type="button" data-nav="museum"><span>🏆</span>Museum</button>
-      <button class="nav-btn" type="button" data-nav="photo"><span>📷</span>Foto</button>
-      <button class="nav-btn" type="button" data-nav="search"><span>🔎</span>Suche</button>
+      <button class="nav-btn active" type="button" data-nav="inventory"><span>INV</span>Inventar</button>
+      <button class="nav-btn" type="button" data-nav="museum"><span>MUS</span>Museum</button>
+      <button class="nav-btn" type="button" data-nav="photo"><span>ADD</span>Foto</button>
+      <button class="nav-btn" type="button" data-nav="search"><span>FND</span>Suche</button>
     </nav>
 
     <script>
-      const STORAGE_KEY = "reallife-game-inventory-v2";
+      const STORAGE_KEY = "reallife-game-inventory-v3";
       const STYLE_KEY = "reallife-game-style-v1";
       const categories = [
-        { id: "all", label: "Alle", icon: "▦" },
-        { id: "lifestyle", label: "Style", icon: "👕" },
-        { id: "tech", label: "Tech", icon: "🎮" },
-        { id: "school", label: "Schule", icon: "📘" },
-        { id: "fun", label: "Freizeit", icon: "🛹" },
-        { id: "collect", label: "Sammeln", icon: "🃏" },
-        { id: "other", label: "Anderes", icon: "📦" }
+        { id: "all", label: "Alle", icon: "ALL" },
+        { id: "lifestyle", label: "Style", icon: "ST" },
+        { id: "tech", label: "Tech", icon: "GX" },
+        { id: "school", label: "Schule", icon: "SC" },
+        { id: "fun", label: "Freizeit", icon: "FR" },
+        { id: "collect", label: "Sammeln", icon: "TC" },
+        { id: "other", label: "Anderes", icon: "ET" }
       ];
       const colors = [
         { name: "Blau", value: "#1677ff", dark: "#0658d8", cyan: "#49bfff" },
@@ -772,12 +821,12 @@
         { name: "Schwarz", value: "#1d2a3a", dark: "#0b1320", cyan: "#6da9ff" }
       ];
       const demoItems = [
-        itemSeed("Skateboard", "fun", "🛹", "Selten", "Mein Board fuer draussen.", true),
-        itemSeed("Controller", "tech", "🎮", "Cool", "Lieblingscontroller.", false),
-        itemSeed("Hoodie", "lifestyle", "👕", "Normal", "Blauer Hoodie.", true),
-        itemSeed("Trading Card", "collect", "🃏", "Ultra", "Glitzerkarte.", true),
-        itemSeed("Notizbuch", "school", "📘", "Normal", "Schule und Ideen.", false),
-        itemSeed("Sneaker", "lifestyle", "👟", "Cool", "Saubere Schuhe.", false)
+        itemSeed("Skateboard", "fun", "SK", "Selten", "Mein Board fuer draussen.", true),
+        itemSeed("Controller", "tech", "CT", "Cool", "Lieblingscontroller.", false),
+        itemSeed("Hoodie", "lifestyle", "HD", "Normal", "Blauer Hoodie.", true),
+        itemSeed("Trading Card", "collect", "TC", "Ultra", "Glitzerkarte.", true),
+        itemSeed("Notizbuch", "school", "NB", "Normal", "Schule und Ideen.", false),
+        itemSeed("Sneaker", "lifestyle", "SN", "Cool", "Saubere Schuhe.", false)
       ];
 
       let items = loadItems();
@@ -839,13 +888,15 @@
       function loadSettings() {
         const fallback = {
           nickname: "",
-          avatar: "🎒",
+          avatar: "RL",
           color: "#1677ff",
           slotSize: 78,
           slotStyle: "soft"
         };
         try {
-          return { ...fallback, ...(JSON.parse(localStorage.getItem(STYLE_KEY)) || {}) };
+          const saved = { ...fallback, ...(JSON.parse(localStorage.getItem(STYLE_KEY)) || {}) };
+          if (!["RL", "XP", "01", "VIP", "MAX"].includes(saved.avatar)) saved.avatar = "RL";
+          return saved;
         } catch {
           return fallback;
         }
@@ -907,11 +958,11 @@
         if (!item) return `<button class="slot empty ${extraClass}" type="button" data-nav="photo">+</button>`;
         const art = item.photo
           ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
-          : `<span class="slot-icon">${item.icon || "📦"}</span>`;
+          : `<span class="slot-icon">${item.icon || "IT"}</span>`;
         return `
           <button class="slot ${selectedId === item.id ? "selected" : ""} ${extraClass}" type="button" data-item="${item.id}">
             ${art}
-            ${item.favorite ? `<span class="star">★</span>` : ""}
+            ${item.favorite ? `<span class="star">FAV</span>` : ""}
             ${item.amount > 1 ? `<span class="count">x${item.amount}</span>` : ""}
           </button>
         `;
@@ -971,7 +1022,7 @@
         }
         const art = item.photo
           ? `<img src="${item.photo}" alt="${escapeHtml(item.name)}" />`
-          : `<span>${item.icon || "📦"}</span>`;
+          : `<span class="slot-icon">${item.icon || "IT"}</span>`;
         detailCard.innerHTML = `
           <div class="detail-art">${art}</div>
           <div>
@@ -981,7 +1032,7 @@
           </div>
           <div class="detail-actions">
             <button class="icon-btn" type="button" data-action="edit">✎</button>
-            <button class="icon-btn" type="button" data-action="favorite">${item.favorite ? "★" : "☆"}</button>
+            <button class="icon-btn" type="button" data-action="favorite">${item.favorite ? "FAV" : "ADD"}</button>
             <button class="icon-btn" type="button" data-action="delete">✕</button>
           </div>
         `;
@@ -1186,7 +1237,7 @@
           note: document.querySelector("#noteInput").value.trim(),
           favorite: document.querySelector("#favoriteInput").checked,
           photo: currentPhoto,
-          icon: original?.icon || "📦"
+          icon: original?.icon || "IT"
         };
         items = editingId
           ? items.map((item) => item.id === editingId ? formItem : item)

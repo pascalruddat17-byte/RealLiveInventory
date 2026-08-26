@@ -1183,7 +1183,7 @@
               <option value="Secret">Secret</option>
             </select>
           </div>
-          <input id="dateInput" type="month" aria-label="Seit wann" />
+          <input id="dateInput" type="date" aria-label="Erhalten am" />
           <input id="valueInput" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Wert in Euro" aria-label="Wert in Euro" />
           <textarea id="noteInput" rows="2" maxlength="90" placeholder="Kurze Info"></textarea>
           <div class="form-actions">
@@ -1597,6 +1597,7 @@
             <h2>${escapeHtml(item.name)}</h2>
             <p>${categoryName(item.category)} · <span class="${rarityClass(item.rarity)}">${item.rarity || "Common"}</span></p>
             <p>Wert: ${formatValue(item.value)}</p>
+            ${item.date ? `<p>Erhalten am: ${escapeHtml(item.date)}</p>` : ""}
             <p>${escapeHtml(item.note || "Keine Info")}</p>
           </div>
           <div class="detail-actions">

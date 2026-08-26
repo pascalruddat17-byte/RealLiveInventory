@@ -261,7 +261,7 @@
 
       .room-empty {
         position: absolute;
-        inset: auto 1rem 6.6rem;
+        inset: auto 1rem 4.5rem;
         display: grid;
         gap: 0.6rem;
         border: 1px dashed rgba(36, 107, 254, 0.28);
@@ -316,43 +316,24 @@
         flex: 1 1 9rem;
       }
 
-      .camera-controls {
+      .touch-hint {
         position: absolute;
-        left: 1rem;
-        right: 1rem;
-        bottom: 1rem;
+        left: 50%;
+        bottom: 1.1rem;
+        translate: -50% 0;
         z-index: 3;
-        display: grid;
-        grid-template-columns: 3rem minmax(0, 1fr) 3rem;
-        gap: 0.45rem;
-        align-items: center;
+        width: max-content;
+        max-width: calc(100% - 2rem);
         border: 1px solid var(--line);
-        border-radius: 1rem;
+        border-radius: 999px;
         background: rgba(255, 255, 255, 0.86);
         box-shadow: var(--shadow);
-        padding: 0.45rem;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 800;
+        padding: 0.45rem 0.75rem;
         backdrop-filter: blur(16px);
-      }
-
-      .camera-controls button {
-        min-height: 2.4rem;
-        border-radius: 0.75rem;
-        padding: 0;
-      }
-
-      .camera-controls input {
-        min-height: 2.4rem;
-        padding: 0;
-      }
-
-      .look-pad {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.45rem;
-      }
-
-      .look-pad button {
-        min-height: 2.4rem;
+        pointer-events: none;
       }
 
       .scan-camera {
@@ -569,15 +550,7 @@
               <strong>Dein Zimmer ist leer.</strong>
               <span class="small">Scanne erst dein Zimmer und danach ein Objekt.</span>
             </div>
-            <div class="camera-controls" aria-label="Zimmer bewegen">
-              <button id="turnLeft" aria-label="Nach links drehen">Links</button>
-              <input id="zoomControl" type="range" min="70" max="170" value="100" aria-label="Zoom" />
-              <button id="turnRight" aria-label="Nach rechts drehen">Rechts</button>
-              <div class="look-pad" style="grid-column: 1 / -1">
-                <button id="lookUp">Hoch</button>
-                <button id="lookDown">Runter</button>
-              </div>
-            </div>
+            <div class="touch-hint">Wischen zum Bewegen, zwei Finger zum Zoomen</div>
           </div>
         </section>
 
@@ -674,6 +647,7 @@
         y: 0
       });
       var dragStart = null;
+      var activeTouches = new Map();
 
       var colors = {
         cube: "#246bfe",
@@ -714,7 +688,6 @@
         $("#roomWorld").style.setProperty("--pitch", roomCamera.pitch + "deg");
         $("#roomWorld").style.setProperty("--zoom", roomCamera.zoom / 100);
         $("#roomWorld").style.setProperty("--cam-y", roomCamera.y + "px");
-        $("#zoomControl").value = roomCamera.zoom;
         save();
       }
 
@@ -728,6 +701,16 @@
         roomCamera.zoom += deltaZoom;
         roomCamera.y += deltaY;
         updateRoomCamera();
+      }
+
+      function distance(first, second) {
+        var dx = first.x - second.x;
+        var dy = first.y - second.y;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      function getTouches() {
+        return Array.from(activeTouches.values());
       }
 
       function show(view) {
@@ -942,40 +925,55 @@
       $("#finishScan").addEventListener("click", finishScan);
       $("#saveItem").addEventListener("click", saveDraft);
       $("#search").addEventListener("input", renderItems);
-      $("#turnLeft").addEventListener("click", function () { moveRoom(-8, 0, 0, 0); });
-      $("#turnRight").addEventListener("click", function () { moveRoom(8, 0, 0, 0); });
-      $("#lookUp").addEventListener("click", function () { moveRoom(0, -6, 0, -8); });
-      $("#lookDown").addEventListener("click", function () { moveRoom(0, 6, 0, 8); });
-      $("#zoomControl").addEventListener("input", function (event) {
-        roomCamera.zoom = Number(event.target.value);
-        updateRoomCamera();
-      });
       $("#room").addEventListener("wheel", function (event) {
         event.preventDefault();
         moveRoom(0, 0, event.deltaY > 0 ? -8 : 8, 0);
       }, { passive: false });
       $("#room").addEventListener("pointerdown", function (event) {
-        if (event.target.closest("button") || event.target.closest("input")) return;
-        dragStart = {
-          x: event.clientX,
-          y: event.clientY,
-          yaw: roomCamera.yaw,
-          pitch: roomCamera.pitch,
-          camY: roomCamera.y
-        };
+        if (event.target.closest("button")) return;
+        activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        var touches = getTouches();
+        if (touches.length === 1) {
+          dragStart = {
+            mode: "pan",
+            x: event.clientX,
+            y: event.clientY,
+            yaw: roomCamera.yaw,
+            pitch: roomCamera.pitch,
+            camY: roomCamera.y
+          };
+        }
+        if (touches.length === 2) {
+          dragStart = {
+            mode: "zoom",
+            distance: distance(touches[0], touches[1]),
+            zoom: roomCamera.zoom
+          };
+        }
         $("#room").setPointerCapture(event.pointerId);
       });
       $("#room").addEventListener("pointermove", function (event) {
+        if (!activeTouches.has(event.pointerId)) return;
+        activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
         if (!dragStart) return;
+        var touches = getTouches();
+        if (dragStart.mode === "zoom" && touches.length >= 2) {
+          roomCamera.zoom = dragStart.zoom + (distance(touches[0], touches[1]) - dragStart.distance) * 0.45;
+          updateRoomCamera();
+          return;
+        }
+        if (dragStart.mode !== "pan") return;
         roomCamera.yaw = dragStart.yaw + (event.clientX - dragStart.x) * 0.18;
         roomCamera.pitch = dragStart.pitch + (event.clientY - dragStart.y) * 0.08;
         roomCamera.y = dragStart.camY + (event.clientY - dragStart.y) * 0.18;
         updateRoomCamera();
       });
-      $("#room").addEventListener("pointerup", function () {
+      $("#room").addEventListener("pointerup", function (event) {
+        activeTouches.delete(event.pointerId);
         dragStart = null;
       });
-      $("#room").addEventListener("pointercancel", function () {
+      $("#room").addEventListener("pointercancel", function (event) {
+        activeTouches.delete(event.pointerId);
         dragStart = null;
       });
       document.addEventListener("click", function (event) {

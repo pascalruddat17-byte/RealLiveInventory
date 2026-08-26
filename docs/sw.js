@@ -1,9 +1,10 @@
-const CACHE_NAME = "reallife-inventory-v2";
+const CACHE_NAME = "reallife-inventory-v11";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./icon.svg"
+  "./icon.svg",
+  "./profile-default.png"
 ];
 
 self.addEventListener("install", (event) => {

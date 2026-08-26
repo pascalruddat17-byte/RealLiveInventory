@@ -4,25 +4,29 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>RealLife Inventory</title>
-    <meta name="theme-color" content="#246bfe" />
-    <meta name="description" content="RealLife Inventory als installierbare Zimmer-Inventar-App." />
+    <meta name="theme-color" content="#1677ff" />
+    <meta
+      name="description"
+      content="Ein spielerisches Inventar fuer echte Sachen, Lieblingsitems und ein eigenes Museum."
+    />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icon.svg" />
     <style>
       :root {
         color-scheme: light;
-        --bg: #eef6ff;
+        --blue: #1267f2;
+        --blue-dark: #073f9e;
+        --cyan: #36a7ff;
+        --gold: #f4b83f;
+        --bg: #eaf3ff;
         --surface: #ffffff;
-        --surface-soft: #f6fbff;
-        --line: #d7e4f5;
-        --ink: #102238;
-        --muted: #60748f;
-        --blue: #246bfe;
-        --blue-2: #37a2ff;
-        --green: #0f8f62;
-        --yellow: #f2bd2f;
-        --red: #ef594c;
-        --shadow: 0 1rem 2.4rem rgba(36, 107, 254, 0.14);
+        --surface-2: #f5fbff;
+        --slot: #f8fcff;
+        --line: #c6d9f1;
+        --ink: #0e2440;
+        --muted: #6f8299;
+        --shadow: 0 14px 28px rgba(18, 103, 242, 0.12);
+        --slot-size: 76px;
       }
 
       * {
@@ -33,8 +37,8 @@
         min-width: 320px;
         margin: 0;
         background:
-          radial-gradient(circle at 16% 0%, rgba(36, 107, 254, 0.18), transparent 26rem),
-          linear-gradient(160deg, #f8fcff 0%, var(--bg) 56%, #ddecff 100%);
+          radial-gradient(circle at top left, rgba(73, 191, 255, 0.28), transparent 18rem),
+          linear-gradient(180deg, #f9fdff 0%, var(--bg) 100%);
         color: var(--ink);
         font-family:
           Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -43,1166 +47,1232 @@
 
       button,
       input,
-      select {
+      select,
+      textarea {
         font: inherit;
       }
 
       button {
-        min-height: 2.75rem;
+        min-height: 44px;
         border: 0;
-        border-radius: 0.95rem;
-        background: #e7f0ff;
+        border-radius: 12px;
+        background: #e9f3ff;
         color: var(--ink);
         cursor: pointer;
-        font-weight: 850;
-        padding: 0 1rem;
-        transition:
-          transform 160ms ease,
-          box-shadow 160ms ease,
-          background 160ms ease;
+        font-weight: 820;
+        touch-action: manipulation;
       }
 
-      button:active {
-        transform: translateY(1px);
+      button:active,
+      .slot:active,
+      .nav-btn:active {
+        transform: translateY(1px) scale(0.99);
       }
 
-      button.primary {
-        background: var(--blue);
+      .primary {
+        background: linear-gradient(135deg, var(--blue), var(--cyan));
         color: white;
-        box-shadow: 0 0.7rem 1.3rem rgba(36, 107, 254, 0.24);
-      }
-
-      button.ink {
-        background: var(--ink);
-        color: white;
-      }
-
-      button.danger {
-        background: rgba(239, 89, 76, 0.12);
-        color: #9f2d25;
-      }
-
-      button:disabled {
-        cursor: not-allowed;
-        opacity: 0.55;
+        box-shadow: 0 12px 24px rgba(22, 119, 255, 0.26);
       }
 
       input,
-      select {
+      select,
+      textarea {
         width: 100%;
-        min-height: 2.75rem;
         border: 1px solid var(--line);
-        border-radius: 0.9rem;
-        background: var(--surface-soft);
+        border-radius: 12px;
+        background: var(--surface-2);
         color: var(--ink);
-        padding: 0 0.85rem;
+        padding: 12px 14px;
+        outline: none;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 4px rgba(22, 119, 255, 0.11);
       }
 
       .app {
-        display: grid;
-        width: min(520px, calc(100% - 1.4rem));
+        width: min(540px, 100%);
         min-height: 100vh;
         margin: 0 auto;
-        padding: 0.9rem 0 5.6rem;
+        padding: 12px 12px 94px;
       }
 
       .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.85rem;
-        border: 1px solid var(--line);
-        border-radius: 1.45rem;
-        background: rgba(255, 255, 255, 0.88);
-        box-shadow: var(--shadow);
-        padding: 0.85rem;
-        backdrop-filter: blur(18px);
-      }
-
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        min-width: 0;
-      }
-
-      .mark {
         display: grid;
-        width: 2.65rem;
-        height: 2.65rem;
-        flex: 0 0 auto;
+        grid-template-columns: auto 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      .avatar {
+        display: grid;
+        width: 48px;
+        height: 48px;
         place-items: center;
-        border-radius: 999px;
-        background: linear-gradient(135deg, var(--blue), var(--blue-2));
-        color: white;
-        font-weight: 950;
+        overflow: hidden;
+        border: 3px solid white;
+        border-radius: 13px;
+        background: rgba(232, 242, 255, 0.9);
+        box-shadow: 0 10px 20px rgba(22, 119, 255, 0.24);
       }
 
-      h1,
-      h2,
-      h3,
-      p {
-        margin-top: 0;
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
 
-      h1 {
-        margin-bottom: 0;
-        font-size: 1.35rem;
-        line-height: 1.05;
+      .brand-title {
+        margin: 0;
+        font-size: 1.58rem;
+        line-height: 1;
+        letter-spacing: 0;
       }
 
-      .sub {
-        margin: 0.1rem 0 0;
+      .brand-sub {
+        margin: 4px 0 0;
         color: var(--muted);
         font-size: 0.86rem;
-        font-weight: 720;
+        font-weight: 750;
       }
 
-      .pill {
-        flex: 0 0 auto;
-        border-radius: 999px;
-        background: #eef5ff;
-        color: var(--muted);
-        font-size: 0.78rem;
-        font-weight: 850;
-        padding: 0.42rem 0.6rem;
-        white-space: nowrap;
+      .coin {
+        display: inline-grid;
+        grid-template-columns: auto auto;
+        gap: 6px;
+        align-items: center;
+        min-height: 38px;
+        padding: 0 12px;
+        border-radius: 12px;
+        background: #0f63df;
+        color: white;
+        font-weight: 950;
       }
 
       .screen {
         display: none;
-        margin-top: 0.8rem;
+        gap: 12px;
+        margin-top: 12px;
       }
 
       .screen.active {
         display: grid;
-        gap: 0.8rem;
       }
 
-      .card,
-      .item {
+      .panel {
         border: 1px solid var(--line);
-        border-radius: 1.15rem;
-        background: rgba(255, 255, 255, 0.94);
+        border-radius: 17px;
+        background: rgba(255, 255, 255, 0.92);
         box-shadow: var(--shadow);
       }
 
-      .card {
-        padding: 0.9rem;
-      }
-
-      .room {
-        position: relative;
-        min-height: 28rem;
-        overflow: hidden;
-        perspective: 820px;
-        border: 1px solid var(--line);
-        border-radius: 1.3rem;
-        background:
-          linear-gradient(180deg, rgba(55, 162, 255, 0.14), transparent 42%),
-          var(--surface-soft);
-        box-shadow: var(--shadow);
-        touch-action: none;
-      }
-
-      .room-world {
-        position: absolute;
-        left: 50%;
-        top: 55%;
-        width: min(78vw, 27rem);
-        height: min(78vw, 27rem);
-        transform:
-          translate(-50%, -50%)
-          translateY(var(--cam-y))
-          rotateX(var(--pitch))
-          rotateY(var(--yaw))
-          scale(var(--zoom));
-        transform-origin: center center;
-        transition: transform 180ms ease;
-        transform-style: preserve-3d;
-      }
-
-      .room-world.moving {
-        transition: none;
-      }
-
-      .wall {
-        position: absolute;
-        border: 1px solid rgba(36, 107, 254, 0.14);
-        background:
-          linear-gradient(rgba(36, 107, 254, 0.06) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(36, 107, 254, 0.06) 1px, transparent 1px),
-          rgba(255, 255, 255, 0.7);
-        background-size: 3rem 3rem;
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.56);
-        transform-style: preserve-3d;
-      }
-
-      .wall.back {
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 58%;
-        transform: translateZ(-12rem) translateY(-8rem) rotateX(90deg);
-        transform-origin: bottom;
-      }
-
-      .wall.left {
-        left: 0;
-        top: 0;
-        width: 58%;
-        height: 100%;
-        transform: translateX(-50%) rotateY(90deg);
-        transform-origin: right center;
-      }
-
-      .wall.right {
-        right: 0;
-        top: 0;
-        width: 58%;
-        height: 100%;
-        transform: translateX(50%) rotateY(-90deg);
-        transform-origin: left center;
-      }
-
-      .floor {
-        position: absolute;
-        inset: 0;
-        border: 1px solid rgba(36, 107, 254, 0.16);
-        background:
-          linear-gradient(rgba(36, 107, 254, 0.08) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(36, 107, 254, 0.08) 1px, transparent 1px),
-          rgba(36, 107, 254, 0.04);
-        background-size: 3rem 3rem;
-        box-shadow: 0 1.5rem 4rem rgba(36, 107, 254, 0.14);
-        transform: rotateX(90deg);
-        transform-origin: center center;
-      }
-
-      #roomObjects {
-        position: absolute;
-        inset: 0;
-        transform: rotateX(90deg) translateZ(0.35rem);
-        transform-style: preserve-3d;
-        pointer-events: none;
-      }
-
-      .room-empty {
-        position: absolute;
-        inset: auto 1rem 4.5rem;
+      .toolbar,
+      .inventory-shell,
+      .museum-stage,
+      .form,
+      .customizer {
         display: grid;
-        gap: 0.6rem;
-        border: 1px dashed rgba(36, 107, 254, 0.28);
-        border-radius: 1rem;
-        background: rgba(255, 255, 255, 0.74);
-        padding: 0.9rem;
+        gap: 10px;
+        padding: 12px;
       }
 
-      .obj {
-        position: absolute;
-        left: var(--x);
-        top: var(--y);
+      .form-head {
         display: grid;
-        width: var(--w);
-        height: var(--h);
-        place-items: center;
-        overflow: visible;
-        border: 1px solid rgba(255, 255, 255, 0.86);
-        border-radius: 0.55rem;
-        background:
-          linear-gradient(135deg, rgba(255, 255, 255, 0.24), transparent 44%),
-          var(--c);
-        transform: translate(-50%, -50%) rotateZ(var(--r)) translateZ(1.2rem);
-        transform-style: preserve-3d;
-        box-shadow:
-          0 1rem 1.6rem rgba(36, 107, 254, 0.22),
-          inset 0 0.45rem 0.75rem rgba(255, 255, 255, 0.18);
-        cursor: grab;
-        pointer-events: auto;
-        touch-action: none;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
       }
 
-      .obj::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        background: rgba(5, 24, 55, 0.16);
-        transform: translateZ(-1.2rem);
+      .form-head strong {
+        font-size: 1.1rem;
       }
 
-      .obj::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        background: rgba(255, 255, 255, 0.18);
-        transform: translate3d(0.9rem, -0.9rem, -1.2rem);
+      .form-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
       }
 
-      .obj.dragging {
-        cursor: grabbing;
-        filter: drop-shadow(0 0.8rem 1rem rgba(36, 107, 254, 0.28));
+      .search-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
       }
 
-      .obj.selected {
-        outline: 3px solid rgba(15, 143, 98, 0.88);
-        outline-offset: 0.35rem;
-        filter: drop-shadow(0 0 1rem rgba(15, 143, 98, 0.32));
-      }
-
-      .obj.sphere {
-        border-radius: 999px;
-        background:
-          radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.72), transparent 18%),
-          radial-gradient(circle at 62% 72%, rgba(5, 24, 55, 0.24), transparent 42%),
-          var(--c);
-      }
-
-      .obj.cylinder {
-        border-radius: 999px;
-        height: calc(var(--h) * 0.55);
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent 28%),
-          var(--c);
-      }
-
-      .room-actions,
-      .row {
+      .toolbar-head {
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.55rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
       }
 
-      .room-actions {
-        position: absolute;
-        left: 1rem;
-        right: 1rem;
-        top: 1rem;
-        z-index: 2;
+      .toolbar-head strong {
+        font-size: 1rem;
       }
 
-      .room-actions button {
-        flex: 1 1 9rem;
-      }
-
-      .object-tools {
-        position: absolute;
-        right: 1rem;
-        bottom: 1rem;
-        z-index: 4;
+      .category-row {
         display: grid;
-        width: min(12rem, calc(100% - 2rem));
-        gap: 0.55rem;
-        pointer-events: none;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(68px, 1fr);
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
       }
 
-      .object-info,
-      .move-pad {
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.9);
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(18px);
+      .category-row::-webkit-scrollbar {
+        display: none;
       }
 
-      .object-info {
-        border-radius: 1rem;
-        padding: 0.72rem;
-      }
-
-      .object-info h2 {
-        margin: 0;
-        font-size: 0.94rem;
-      }
-
-      .object-info p {
-        margin: 0.24rem 0 0;
-      }
-
-      .move-pad {
+      .chip {
         display: grid;
-        grid-template-columns: repeat(3, 2.65rem);
-        grid-template-rows: repeat(3, 2.65rem);
-        place-content: center;
-        gap: 0.32rem;
-        border-radius: 1.05rem;
-        padding: 0.48rem;
-        pointer-events: auto;
-      }
-
-      .move-pad button {
-        min-height: 2.65rem;
-        border-radius: 0.78rem;
-        padding: 0;
-        font-size: 1.15rem;
-      }
-
-      .move-pad .up {
-        grid-column: 2;
-      }
-
-      .move-pad .left {
-        grid-column: 1;
-        grid-row: 2;
-      }
-
-      .move-pad .reset {
-        grid-column: 2;
-        grid-row: 2;
-        font-size: 0.78rem;
-      }
-
-      .move-pad .right {
-        grid-column: 3;
-        grid-row: 2;
-      }
-
-      .move-pad .down {
-        grid-column: 2;
-        grid-row: 3;
-      }
-
-      .touch-hint {
-        position: absolute;
-        left: 1rem;
-        bottom: 1.1rem;
-        z-index: 3;
-        width: max-content;
-        max-width: calc(100% - 14rem);
+        min-height: 56px;
+        place-items: center;
+        gap: 2px;
+        padding: 8px 6px;
         border: 1px solid var(--line);
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.86);
-        box-shadow: var(--shadow);
+        border-radius: 13px;
+        background: var(--surface);
         color: var(--muted);
-        font-size: 0.78rem;
-        font-weight: 800;
-        padding: 0.45rem 0.75rem;
-        backdrop-filter: blur(16px);
-        pointer-events: none;
+        font-size: 0.76rem;
+        font-weight: 850;
       }
 
-      .scan-camera {
+      .chip strong {
+        display: grid;
+        width: 30px;
+        height: 24px;
+        place-items: center;
+        border-radius: 8px;
+        background: #e8f2ff;
+        color: var(--blue-dark);
+        font-size: 0.68rem;
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      .chip.active {
+        border-color: transparent;
+        background: linear-gradient(135deg, var(--blue), var(--cyan));
+        color: white;
+        box-shadow: 0 10px 18px rgba(22, 119, 255, 0.22);
+      }
+
+      .chip.active strong {
+        background: rgba(255, 255, 255, 0.18);
+        color: white;
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .tabs.single {
+        grid-template-columns: 1fr;
+      }
+
+      .tab-pill {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        background: var(--surface-2);
+        color: var(--muted);
+        font-weight: 900;
+      }
+
+      .tab-pill.active {
+        border-color: transparent;
+        background: var(--blue);
+        color: white;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(var(--slot-size), 1fr));
+        gap: 8px;
+      }
+
+      .slot {
         position: relative;
-        min-height: 20rem;
+        display: grid;
+        min-height: var(--slot-size);
+        aspect-ratio: 1;
+        place-items: center;
         overflow: hidden;
         border: 1px solid var(--line);
-        border-radius: 1.2rem;
-        background: #dfeeff;
+        border-radius: 12px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(227, 240, 255, 0.92)),
+          var(--slot);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.82),
+          inset 0 -6px 0 rgba(7, 63, 158, 0.04);
+        transition:
+          transform 150ms ease,
+          box-shadow 150ms ease,
+          border-color 150ms ease;
       }
 
-      video {
-        display: none;
-        width: 100%;
-        height: 20rem;
-        object-fit: cover;
-        background: #dfeeff;
+      .slot.empty {
+        background:
+          linear-gradient(rgba(22, 119, 255, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(22, 119, 255, 0.08) 1px, transparent 1px),
+          rgba(255, 255, 255, 0.62);
+        background-size: 18px 18px;
+        color: #9dc5f6;
+        font-size: 1.15rem;
+        font-weight: 850;
       }
 
-      video.on {
-        display: block;
+      body[data-slot-style="arcade"] .slot {
+        border-width: 2px;
+        border-radius: 12px;
+        box-shadow:
+          inset 0 -5px 0 rgba(14, 36, 64, 0.08),
+          inset 0 0 0 2px white;
       }
 
-      .camera-placeholder,
-      .scan-overlay {
-        position: absolute;
-        inset: 0;
+      body[data-slot-style="clean"] .slot {
+        border-radius: 10px;
+        box-shadow: none;
+      }
+
+      .slot.selected {
+        border-color: var(--gold);
+        box-shadow:
+          0 0 0 3px rgba(255, 200, 61, 0.32),
+          0 12px 24px rgba(22, 119, 255, 0.14);
+      }
+
+      .slot-icon {
         display: grid;
+        width: 58%;
+        aspect-ratio: 1;
         place-items: center;
-        padding: 1rem;
+        border: 1px solid rgba(7, 63, 158, 0.14);
+        border-radius: 13px;
+        background:
+          linear-gradient(145deg, rgba(54, 167, 255, 0.92), rgba(18, 103, 242, 0.98));
+        color: white;
+        font-size: calc(var(--slot-size) * 0.18);
+        font-weight: 950;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        box-shadow: 0 10px 18px rgba(18, 103, 242, 0.22);
+      }
+
+      .slot-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .star {
+        position: absolute;
+        right: 7px;
+        top: 7px;
+        display: grid;
+        min-width: 28px;
+        height: 20px;
+        padding: 0 6px;
+        place-items: center;
+        border-radius: 999px;
+        background: white;
+        color: var(--gold);
+        font-size: 0.62rem;
+        font-weight: 950;
+        box-shadow: 0 6px 12px rgba(14, 36, 64, 0.14);
+      }
+
+      .empty-note {
+        display: grid;
+        gap: 8px;
+        place-items: center;
+        min-height: 220px;
+        padding: 22px;
         text-align: center;
       }
 
-      .camera-placeholder.hidden {
+      .empty-note strong {
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: var(--ink);
+        color: white;
+        font-size: 0.82rem;
+        letter-spacing: 0;
+      }
+
+      .empty-note p {
+        max-width: 18rem;
+        margin: 0;
+        color: var(--muted);
+        font-weight: 750;
+      }
+
+      .detail-card {
+        position: sticky;
+        bottom: 84px;
+        z-index: 4;
         display: none;
-      }
-
-      .scan-frame {
-        width: min(72%, 15rem);
-        aspect-ratio: 1;
-        border: 0.22rem solid var(--blue);
-        border-radius: 1.4rem;
-        box-shadow: 0 0 0 999px rgba(16, 34, 56, 0.12);
-      }
-
-      .scan-overlay {
-        pointer-events: none;
-      }
-
-      .preview {
-        display: grid;
-        grid-template-columns: 5.5rem minmax(0, 1fr);
-        gap: 0.8rem;
+        grid-template-columns: 86px 1fr auto;
+        gap: 12px;
         align-items: center;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 17px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 18px 42px rgba(14, 36, 64, 0.18);
       }
 
-      .preview-shot {
+      .detail-card.show {
         display: grid;
-        width: 5.5rem;
-        height: 5.5rem;
+      }
+
+      .detail-art {
+        display: grid;
+        height: 76px;
         place-items: center;
         overflow: hidden;
-        border-radius: 1rem;
-        background: linear-gradient(135deg, var(--blue), var(--blue-2));
-        color: white;
+        border-radius: 12px;
+        background: var(--surface-2);
+        font-size: 1rem;
         font-weight: 950;
       }
 
-      .preview-shot img {
+      .detail-art img {
         width: 100%;
         height: 100%;
         object-fit: cover;
       }
 
-      .fields {
-        display: grid;
-        gap: 0.55rem;
+      .detail-card h2 {
+        margin: 0;
+        font-size: 1.08rem;
       }
 
-      .two {
+      .detail-card p {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 720;
+      }
+
+      .detail-actions {
+        display: grid;
+        gap: 7px;
+      }
+
+      .icon-btn {
+        display: grid;
+        width: 46px;
+        min-height: 44px;
+        place-items: center;
+        padding: 0;
+        font-size: 0.72rem;
+        font-weight: 950;
+      }
+
+      .showcase {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .pedestal {
+        display: grid;
+        min-height: 150px;
+        place-items: center;
+        padding: 12px;
+        border: 1px solid rgba(255, 200, 61, 0.48);
+        border-radius: 16px;
+        background:
+          radial-gradient(circle at 50% 18%, rgba(255, 200, 61, 0.28), transparent 42%),
+          linear-gradient(180deg, #ffffff 0%, #fff7dc 100%);
+        box-shadow: 0 14px 28px rgba(255, 200, 61, 0.18);
+      }
+
+      .pedestal .slot {
+        width: 88px;
+      }
+
+      .pedestal-name {
+        margin-top: 8px;
+        color: var(--blue-dark);
+        font-size: 0.82rem;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .photo-box {
+        position: relative;
+        display: grid;
+        min-height: 260px;
+        overflow: hidden;
+        place-items: center;
+        border: 2px dashed #a9cffc;
+        border-radius: 16px;
+        background: #f7fbff;
+      }
+
+      .photo-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .photo-box span {
+        display: grid;
+        place-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-weight: 850;
+      }
+
+      .photo-box span strong {
+        display: grid;
+        width: 64px;
+        height: 48px;
+        place-items: center;
+        border-radius: 12px;
+        background: var(--ink);
+        color: white;
+        font-size: 0.82rem;
+        letter-spacing: 0;
+      }
+
+      .two-col {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 0.55rem;
+        gap: 10px;
       }
 
-      .items {
+      .switch-line {
         display: grid;
-        gap: 0.65rem;
-      }
-
-      .item {
-        display: grid;
-        grid-template-columns: 3rem minmax(0, 1fr) auto;
-        gap: 0.65rem;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
         align-items: center;
-        padding: 0.7rem;
+        color: var(--muted);
+        font-weight: 850;
       }
 
-      .thumb {
+      .switch-line input {
+        width: 22px;
+        height: 22px;
+      }
+
+      .swatches {
         display: grid;
-        width: 3rem;
-        height: 3rem;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+
+      .profile-editor {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .profile-preview {
+        display: grid;
+        width: 72px;
+        height: 72px;
         place-items: center;
         overflow: hidden;
-        border-radius: 0.9rem;
-        background: #e7f0ff;
-        color: var(--blue);
-        font-weight: 950;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #eef6ff;
       }
 
-      .thumb img {
+      .profile-preview img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
       }
 
-      .item h3 {
-        margin: 0;
-        font-size: 0.98rem;
+      .swatch {
+        min-height: 46px;
+        border: 3px solid white;
+        border-radius: 12px;
+        box-shadow: 0 8px 14px rgba(14, 36, 64, 0.12);
       }
 
-      .item p {
-        margin: 0.16rem 0 0;
-        color: var(--muted);
-        font-size: 0.84rem;
+      .swatch.active {
+        outline: 3px solid var(--ink);
+      }
+
+      .range-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      input[type="range"] {
+        padding: 0;
       }
 
       .bottom-nav {
         position: fixed;
         right: 0;
-        bottom: 0.75rem;
+        bottom: 0;
         left: 0;
         z-index: 10;
         display: grid;
-        width: min(520px, calc(100% - 1.4rem));
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.35rem;
+        grid-template-columns: 0.82fr 1.32fr 0.82fr;
+        gap: 8px;
+        width: min(540px, 100%);
         margin: 0 auto;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.9);
-        box-shadow: var(--shadow);
-        padding: 0.35rem;
-        backdrop-filter: blur(18px);
+        padding: 8px 10px 10px;
+        border-top: 1px solid rgba(216, 232, 251, 0.9);
+        border-radius: 18px 18px 0 0;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 -14px 30px rgba(14, 36, 64, 0.14);
+        backdrop-filter: blur(16px);
       }
 
-      .bottom-nav button {
-        border-radius: 999px;
+      .nav-btn {
+        display: grid;
+        min-height: 58px;
+        place-items: center;
+        gap: 2px;
+        border-radius: 13px;
         background: transparent;
-        box-shadow: none;
         color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 900;
       }
 
-      .bottom-nav button.active {
-        background: var(--ink);
+      .nav-btn.main-tab {
+        min-height: 70px;
+        transform: translateY(-10px);
+        border: 4px solid white;
+        border-radius: 18px;
+      }
+
+      .nav-btn span {
+        font-size: 0.95rem;
+        font-weight: 950;
+        line-height: 1;
+      }
+
+      .nav-btn.active {
+        background: linear-gradient(135deg, var(--blue), var(--cyan));
         color: white;
+        box-shadow: 0 10px 20px rgba(22, 119, 255, 0.22);
       }
 
-      .small {
-        color: var(--muted);
-        font-size: 0.86rem;
-        line-height: 1.35;
+      .nav-btn.main-tab span {
+        font-size: 1.05rem;
       }
 
       .hidden {
         display: none !important;
       }
+
+      @media (max-width: 390px) {
+        :root {
+          --slot-size: 68px;
+        }
+
+        .brand-title {
+          font-size: 1.5rem;
+        }
+
+        .showcase {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body>
-    <div class="app">
+    <main class="app">
       <header class="topbar">
-        <div class="brand">
-          <div class="mark">RI</div>
-          <div>
-            <h1>RealLife Inventory</h1>
-            <p class="sub" id="headerSub">Zimmer</p>
-          </div>
+        <button class="avatar" id="avatarButton" type="button" title="Profil bearbeiten">
+          <img id="avatarImage" alt="Profilbild" src="./profile-default.png" />
+        </button>
+        <div>
+          <h1 class="brand-title" id="profileNameText">RealLife</h1>
+          <p class="brand-sub" id="playerLine">Level 1 · 0 Sachen</p>
         </div>
-        <span class="pill" id="countPill">0 Items</span>
+        <div class="coin"><span>XP</span><span id="scoreText">0</span></div>
       </header>
 
-      <main>
-        <section class="screen active" id="roomScreen">
-          <div class="room" id="room">
-            <div class="room-world" id="roomWorld">
-              <div class="wall back"></div>
-              <div class="wall left"></div>
-              <div class="wall right"></div>
-              <div class="floor"></div>
-              <div id="roomObjects"></div>
-            </div>
-            <div class="room-actions">
-              <button class="primary" id="addItemFromRoom">Item fotografieren</button>
-            </div>
-            <div class="room-empty" id="roomEmpty">
-              <strong>Dein Zimmer ist leer.</strong>
-              <span class="small">Fotografiere ein Item. Danach kannst du es im Zimmer platzieren.</span>
-            </div>
-            <div class="object-tools hidden" id="objectTools">
-              <div class="object-info" id="objectInfo"></div>
-              <div class="move-pad" aria-label="Gegenstand verschieben">
-                <button class="up" data-move="up" aria-label="Nach vorne">↑</button>
-                <button class="left" data-move="left" aria-label="Nach links">←</button>
-                <button class="reset" data-move="center" aria-label="In die Mitte">Mitte</button>
-                <button class="right" data-move="right" aria-label="Nach rechts">→</button>
-                <button class="down" data-move="down" aria-label="Nach hinten">↓</button>
-              </div>
-            </div>
-            <div class="touch-hint">Wischen zum Bewegen, zwei Finger zum Zoomen</div>
+      <section class="screen active" id="inventoryScreen">
+        <div class="panel toolbar">
+          <div class="toolbar-head">
+            <strong>Sammlung</strong>
+            <button class="icon-btn" id="customizeButton" type="button" title="Anpassen">⚙</button>
           </div>
-        </section>
+          <div class="category-row" id="categoryRow"></div>
+        </div>
 
-        <section class="screen" id="photoScreen">
-          <div class="scan-camera">
-            <video id="camera" playsinline muted></video>
-            <div class="camera-placeholder" id="cameraPlaceholder">
-              <div>
-                <h2>Kamera bereit</h2>
-                <p class="small">Tippe auf Kamera oeffnen und fotografiere dein Item.</p>
-              </div>
-            </div>
-            <div class="scan-overlay">
-              <div class="scan-frame"></div>
+        <div class="panel inventory-shell">
+          <div class="tabs single">
+            <button class="tab-pill active" type="button">
+              <span>INV</span><span>Meine Sachen</span>
+            </button>
+          </div>
+          <div class="grid" id="itemGrid"></div>
+          <div class="empty-note hidden" id="emptyNote">
+            <strong>EMPTY</strong>
+            <p>Noch leer. Fueg dein erstes Item hinzu.</p>
+            <button class="primary" type="button" data-nav="photo">Item anlegen</button>
+          </div>
+        </div>
+
+        <div class="panel museum-stage">
+          <div class="tabs">
+            <button class="tab-pill active" type="button">
+              <span>MUS</span><span>Museum</span>
+            </button>
+            <button class="tab-pill" id="museumStyleButton" type="button">
+              <span>FX</span><span>Style</span>
+            </button>
+          </div>
+          <div class="showcase" id="museumGrid"></div>
+          <div class="empty-note hidden" id="museumEmpty">
+            <strong>FAV</strong>
+            <p>Markiere Lieblingssachen. Dann landen sie hier.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="marketScreen">
+        <div class="panel inventory-shell">
+          <div class="tabs">
+            <button class="tab-pill active" type="button">
+              <span>MKT</span><span>Market</span>
+            </button>
+            <button class="tab-pill" type="button" data-nav="inventory">
+              <span>INV</span><span>Zurueck</span>
+            </button>
+          </div>
+          <div class="empty-note">
+            <strong>MKT</strong>
+            <p>Market kommt spaeter. Hier koennen mal Tausch, Wunschliste oder Preise rein.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="photoScreen">
+        <form class="panel form" id="itemForm">
+          <div class="form-head">
+            <strong id="formTitle">Neues Item</strong>
+            <button class="icon-btn hidden" id="cancelEditButton" type="button" title="Bearbeiten abbrechen">↩</button>
+          </div>
+          <div class="photo-box" id="photoBox">
+            <span><strong>ITEM</strong>Foto oder Datei</span>
+            <img class="hidden" id="previewImage" alt="Item Foto" />
+          </div>
+          <input id="photoInput" type="file" accept="image/*" capture="environment" class="hidden" />
+          <button class="primary" id="photoButton" type="button">Foto waehlen</button>
+
+          <input id="nameInput" required maxlength="28" placeholder="Name vom Item" />
+          <div class="two-col">
+            <select id="categoryInput"></select>
+            <select id="rarityInput" aria-label="Seltenheit">
+              <option value="Normal">Normal</option>
+              <option value="Cool">Cool</option>
+              <option value="Selten">Selten</option>
+              <option value="Ultra">Ultra</option>
+            </select>
+          </div>
+          <input id="dateInput" type="month" aria-label="Seit wann" />
+          <textarea id="noteInput" rows="2" maxlength="90" placeholder="Kurze Info"></textarea>
+          <label class="switch-line">
+            <input id="favoriteInput" type="checkbox" />
+            <span>Ins Museum stellen</span>
+          </label>
+          <div class="form-actions">
+            <button type="button" id="clearFormButton">Leeren</button>
+            <button class="primary" id="submitItemButton" type="submit">Speichern</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="screen" id="customizeScreen">
+        <div class="panel customizer">
+          <div class="tabs">
+            <button class="tab-pill active" type="button">
+              <span>CFG</span><span>Anpassen</span>
+            </button>
+          </div>
+          <div class="profile-editor">
+            <button class="profile-preview" id="profilePhotoButton" type="button" title="Profilbild hochladen">
+              <img id="profilePreviewImage" alt="Profilbild Vorschau" src="./profile-default.png" />
+            </button>
+            <div>
+              <input id="nicknameInput" maxlength="18" placeholder="Profilname" />
+              <button id="resetProfilePhotoButton" type="button" style="margin-top: 8px; width: 100%">Default Bild</button>
             </div>
           </div>
+          <input id="profilePhotoInput" type="file" accept="image/*" class="hidden" />
+          <div class="swatches" id="swatches"></div>
+          <label class="range-row">
+            <strong>Slot Groesse</strong>
+            <input id="slotSizeInput" type="range" min="62" max="96" value="78" />
+          </label>
+          <select id="slotStyleInput" aria-label="Slot Style">
+            <option value="soft">Soft</option>
+            <option value="arcade">Arcade</option>
+            <option value="clean">Clean</option>
+          </select>
+        </div>
+      </section>
 
-          <div class="card">
-            <h2>Item fotografieren</h2>
-            <p class="small" id="photoHint">Mach ein Foto, gib dem Item einen Namen und platziere es danach im Zimmer.</p>
-            <div class="row" style="margin-top: 0.75rem">
-              <button class="primary" id="openCamera">Kamera oeffnen</button>
-              <button id="takePhoto" disabled>Foto machen</button>
-            </div>
-          </div>
+      <article class="detail-card" id="detailCard"></article>
+    </main>
 
-          <div class="card hidden" id="previewCard">
-            <div class="preview">
-              <div class="preview-shot" id="previewShot">3D</div>
-              <div>
-                <h2>Objekt-Preview</h2>
-                <p class="small">Pruefe die Daten und platziere es im Zimmer.</p>
-              </div>
-            </div>
-            <div class="fields" style="margin-top: 0.8rem">
-              <input id="itemName" placeholder="Name" />
-              <div class="two">
-                <input id="itemCategory" placeholder="Kategorie" />
-                <select id="itemModel">
-                  <option value="cube">Quader</option>
-                  <option value="box">Box</option>
-                  <option value="sphere">Kugel</option>
-                  <option value="cylinder">Zylinder</option>
-                </select>
-              </div>
-              <button class="primary" id="saveItem">Im Zimmer platzieren</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="screen" id="itemsScreen">
-          <div class="card">
-            <div class="row">
-              <input id="search" type="search" placeholder="Suchen" />
-              <button class="primary" id="addItemFromItems">Foto</button>
-            </div>
-          </div>
-          <div class="items" id="items"></div>
-        </section>
-      </main>
-
-      <nav class="bottom-nav" aria-label="Navigation">
-        <button class="active" data-view="room">Zimmer</button>
-        <button data-view="photo">Foto</button>
-        <button data-view="items">Inventar</button>
-      </nav>
-    </div>
+    <nav class="bottom-nav" aria-label="Navigation">
+      <button class="nav-btn" type="button" data-nav="market"><span>MKT</span>Market</button>
+      <button class="nav-btn main-tab active" type="button" data-nav="inventory"><span>INV</span>Inventar</button>
+      <button class="nav-btn" type="button" data-nav="photo"><span>ADD</span>Foto</button>
+    </nav>
 
     <script>
-      var storageItemsKey = "ri-ar-simple-items-v1";
-      var items = load(storageItemsKey, []);
-      var activeView = "room";
-      var cameraStream = null;
-      var draft = null;
-      var roomCamera = load("ri-room-camera-v2", {
-        yaw: -12,
-        pitch: -34,
-        zoom: 108,
-        y: 18
-      });
-      var selectedItemId = items[0] ? items[0].id : null;
-      var dragStart = null;
-      var itemDrag = null;
-      var activeTouches = new Map();
-      var lastRoomTap = 0;
+      const STORAGE_KEY = "reallife-game-inventory-v4";
+      const STYLE_KEY = "reallife-game-style-v1";
+      const DEFAULT_PROFILE_IMAGE = "./profile-default.png";
+      const categories = [
+        { id: "all", label: "Alle", icon: "ALL" },
+        { id: "lifestyle", label: "Style", icon: "ST" },
+        { id: "tech", label: "Tech", icon: "GX" },
+        { id: "school", label: "Schule", icon: "SC" },
+        { id: "fun", label: "Freizeit", icon: "FR" },
+        { id: "collect", label: "Sammeln", icon: "TC" },
+        { id: "other", label: "Anderes", icon: "ET" }
+      ];
+      const colors = [
+        { name: "Blau", value: "#1677ff", dark: "#0658d8", cyan: "#49bfff" },
+        { name: "Gruen", value: "#16a86d", dark: "#08764c", cyan: "#65d6a3" },
+        { name: "Orange", value: "#ff8a1f", dark: "#cc6200", cyan: "#ffc24c" },
+        { name: "Rot", value: "#ed4f62", dark: "#b92739", cyan: "#ff8a96" },
+        { name: "Schwarz", value: "#1d2a3a", dark: "#0b1320", cyan: "#6da9ff" }
+      ];
+      let items = loadItems();
+      let selectedId = null;
+      let editingId = null;
+      let activeCategory = "all";
+      let currentPhoto = "";
+      let settings = loadSettings();
 
-      var colors = {
-        cube: "#246bfe",
-        box: "#37a2ff",
-        sphere: "#0f8f62",
-        cylinder: "#102238"
+      const screens = {
+        inventory: document.querySelector("#inventoryScreen"),
+        market: document.querySelector("#marketScreen"),
+        photo: document.querySelector("#photoScreen"),
+        customize: document.querySelector("#customizeScreen")
       };
+      const itemGrid = document.querySelector("#itemGrid");
+      const museumGrid = document.querySelector("#museumGrid");
+      const emptyNote = document.querySelector("#emptyNote");
+      const museumEmpty = document.querySelector("#museumEmpty");
+      const detailCard = document.querySelector("#detailCard");
+      const categoryRow = document.querySelector("#categoryRow");
+      const categoryInput = document.querySelector("#categoryInput");
+      const photoInput = document.querySelector("#photoInput");
+      const previewImage = document.querySelector("#previewImage");
+      const photoBox = document.querySelector("#photoBox");
+      const profilePhotoInput = document.querySelector("#profilePhotoInput");
+      const itemForm = document.querySelector("#itemForm");
+      const formTitle = document.querySelector("#formTitle");
+      const submitItemButton = document.querySelector("#submitItemButton");
+      const cancelEditButton = document.querySelector("#cancelEditButton");
 
-      function $(selector) {
-        return document.querySelector(selector);
+      function itemSeed(name, category, icon, rarity, note, favorite) {
+        return {
+          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+          name,
+          category,
+          icon,
+          rarity,
+          note,
+          favorite,
+          date: "2026-08",
+          photo: ""
+        };
       }
 
-      function $$(selector) {
-        return Array.prototype.slice.call(document.querySelectorAll(selector));
-      }
-
-      function load(key, fallback) {
+      function loadItems() {
         try {
-          var saved = localStorage.getItem(key);
-          return saved ? JSON.parse(saved) : fallback;
-        } catch (error) {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        } catch {
+          return [];
+        }
+      }
+
+      function loadSettings() {
+        const fallback = {
+          nickname: "",
+          profilePhoto: DEFAULT_PROFILE_IMAGE,
+          color: "#1677ff",
+          slotSize: 78,
+          slotStyle: "soft"
+        };
+        try {
+          const saved = { ...fallback, ...(JSON.parse(localStorage.getItem(STYLE_KEY)) || {}) };
+          if (!saved.profilePhoto) saved.profilePhoto = DEFAULT_PROFILE_IMAGE;
+          return saved;
+        } catch {
           return fallback;
         }
       }
 
-      function save() {
-        localStorage.setItem(storageItemsKey, JSON.stringify(items));
-        localStorage.setItem("ri-room-camera-v2", JSON.stringify(roomCamera));
+      function saveItems() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
       }
 
-      function updateRoomCamera(shouldSave) {
-        roomCamera.yaw = normalizeAngle(roomCamera.yaw);
-        roomCamera.pitch = clamp(roomCamera.pitch, -64, -12);
-        roomCamera.zoom = clamp(roomCamera.zoom, 78, 178);
-        roomCamera.y = clamp(roomCamera.y, -36, 44);
-        $("#roomWorld").style.setProperty("--yaw", roomCamera.yaw + "deg");
-        $("#roomWorld").style.setProperty("--pitch", roomCamera.pitch + "deg");
-        $("#roomWorld").style.setProperty("--zoom", roomCamera.zoom / 100);
-        $("#roomWorld").style.setProperty("--cam-y", roomCamera.y + "px");
-        if (shouldSave) save();
+      function saveSettings() {
+        localStorage.setItem(STYLE_KEY, JSON.stringify(settings));
       }
 
-      function clamp(value, min, max) {
-        return Math.min(max, Math.max(min, Number(value) || 0));
+      function applySettings() {
+        const color = colors.find((entry) => entry.value === settings.color) || colors[0];
+        document.documentElement.style.setProperty("--blue", color.value);
+        document.documentElement.style.setProperty("--blue-dark", color.dark);
+        document.documentElement.style.setProperty("--cyan", color.cyan);
+        document.documentElement.style.setProperty("--slot-size", `${settings.slotSize}px`);
+        document.querySelector("#profileNameText").textContent = settings.nickname || "RealLife";
+        document.querySelector("#avatarImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
+        document.querySelector("#profilePreviewImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
+        document.querySelector("#nicknameInput").value = settings.nickname;
+        document.querySelector("#slotSizeInput").value = settings.slotSize;
+        document.querySelector("#slotStyleInput").value = settings.slotStyle;
+        document.body.dataset.slotStyle = settings.slotStyle;
+        renderSwatches();
       }
 
-      function normalizeAngle(value) {
-        var angle = Number(value) || 0;
-        return ((angle % 360) + 360) % 360;
+      function categoryName(id) {
+        return categories.find((category) => category.id === id)?.label || "Anderes";
       }
 
-      function moveRoom(deltaYaw, deltaPitch, deltaZoom, deltaY) {
-        roomCamera.yaw += deltaYaw;
-        roomCamera.pitch += deltaPitch;
-        roomCamera.zoom += deltaZoom;
-        roomCamera.y += deltaY;
-        updateRoomCamera(true);
+      function filteredItems() {
+        return items.filter((item) => {
+          const byCategory = activeCategory === "all" || item.category === activeCategory;
+          return byCategory;
+        });
       }
 
-      function distance(first, second) {
-        var dx = first.x - second.x;
-        var dy = first.y - second.y;
-        return Math.sqrt(dx * dx + dy * dy);
+      function renderCategories() {
+        categoryRow.innerHTML = categories
+          .map((category) => `
+            <button class="chip ${category.id === activeCategory ? "active" : ""}" type="button" data-category="${category.id}">
+              <strong>${category.icon}</strong>
+              <span>${category.label}</span>
+            </button>
+          `)
+          .join("");
+        categoryInput.innerHTML = categories
+          .filter((category) => category.id !== "all")
+          .map((category) => `<option value="${category.id}">${category.label}</option>`)
+          .join("");
       }
 
-      function getTouches() {
-        return Array.from(activeTouches.values());
+      function slotMarkup(item, extraClass = "") {
+        if (!item) return `<button class="slot empty ${extraClass}" type="button" data-nav="photo">+</button>`;
+        const art = item.photo
+          ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
+          : `<span class="slot-icon">${item.icon || "IT"}</span>`;
+        return `
+          <button class="slot ${selectedId === item.id ? "selected" : ""} ${extraClass}" type="button" data-item="${item.id}">
+            ${art}
+            ${item.favorite ? `<span class="star">FAV</span>` : ""}
+          </button>
+        `;
       }
 
-      function updateItemFromPointer(itemId, clientX, clientY) {
-        var stage = $("#roomObjects").getBoundingClientRect();
-        var item = items.find(function (entry) { return entry.id === itemId; });
-        if (!item || !stage.width || !stage.height) return;
-        var offsetX = itemDrag && itemDrag.id === itemId ? itemDrag.offsetX : 0;
-        var offsetY = itemDrag && itemDrag.id === itemId ? itemDrag.offsetY : 0;
-        item.x = clamp(((clientX - stage.left - offsetX) / stage.width) * 100, 8, 92);
-        item.y = clamp(((clientY - stage.top - offsetY) / stage.height) * 100, 10, 90);
-        var element = document.querySelector('[data-id="' + itemId + '"]');
-        if (element) {
-          element.style.setProperty("--x", item.x + "%");
-          element.style.setProperty("--y", item.y + "%");
-        }
+      function renderInventory() {
+        const shown = filteredItems();
+        itemGrid.innerHTML = shown.map((item) => slotMarkup(item)).join("");
+        const emptySlots = Math.max(12 - shown.length, shown.length ? 0 : 8);
+        itemGrid.insertAdjacentHTML("beforeend", Array.from({ length: emptySlots }, () => slotMarkup()).join(""));
+        emptyNote.classList.toggle("hidden", items.length !== 0);
+        document.querySelector("#scoreText").textContent = String(items.filter((item) => item.favorite).length * 100 + items.length * 10);
+        document.querySelector("#playerLine").textContent = `${settings.nickname || "Level 1"} · ${items.length} Sachen`;
       }
 
-      function selectedItem() {
-        return items.find(function (item) { return item.id === selectedItemId; }) || null;
+      function renderMuseum() {
+        const favorites = items.filter((item) => item.favorite);
+        museumGrid.innerHTML = favorites
+          .map((item) => `
+            <button class="pedestal" type="button" data-item="${item.id}">
+              ${slotMarkup(item, "museum-slot")}
+              <div class="pedestal-name">${escapeHtml(item.name)}</div>
+            </button>
+          `)
+          .join("");
+        museumEmpty.classList.toggle("hidden", favorites.length !== 0);
       }
 
-      function moveSelectedItem(direction) {
-        var item = selectedItem();
-        if (!item) return;
-        var step = 4;
-        if (direction === "left") item.x -= step;
-        if (direction === "right") item.x += step;
-        if (direction === "up") item.y -= step;
-        if (direction === "down") item.y += step;
-        if (direction === "center") {
-          item.x = 50;
-          item.y = 56;
-        }
-        item.x = clamp(item.x, 8, 92);
-        item.y = clamp(item.y, 10, 90);
-        save();
-        renderRoom();
-        renderSelectedItem();
+      function renderSwatches() {
+        document.querySelector("#swatches").innerHTML = colors
+          .map((color) => `
+            <button
+              class="swatch ${settings.color === color.value ? "active" : ""}"
+              type="button"
+              data-color="${color.value}"
+              title="${color.name}"
+              style="background: linear-gradient(135deg, ${color.value}, ${color.cyan})"
+            ></button>
+          `)
+          .join("");
       }
 
-      function renderSelectedItem() {
-        var item = selectedItem();
-        $("#objectTools").classList.toggle("hidden", !item);
+      function renderDetail() {
+        const item = items.find((entry) => entry.id === selectedId);
         if (!item) {
-          $("#objectInfo").innerHTML = "";
+          detailCard.classList.remove("show");
+          detailCard.innerHTML = "";
           return;
         }
-        $("#objectInfo").innerHTML =
-          "<h2>" + escapeHtml(item.name) + "</h2>" +
-          '<p class="small">' + escapeHtml(item.category || "Unsortiert") + " · " + modelLabel(item.model) + "</p>";
+        const art = item.photo
+          ? `<img src="${item.photo}" alt="${escapeHtml(item.name)}" />`
+          : `<span class="slot-icon">${item.icon || "IT"}</span>`;
+        detailCard.innerHTML = `
+          <div class="detail-art">${art}</div>
+          <div>
+            <h2>${escapeHtml(item.name)}</h2>
+            <p>${categoryName(item.category)} · ${item.rarity}</p>
+            <p>${escapeHtml(item.note || "Keine Info")}</p>
+          </div>
+          <div class="detail-actions">
+            <button class="icon-btn" type="button" data-action="edit">✎</button>
+            <button class="icon-btn" type="button" data-action="favorite">${item.favorite ? "FAV" : "ADD"}</button>
+            <button class="icon-btn" type="button" data-action="delete">✕</button>
+          </div>
+        `;
+        detailCard.classList.add("show");
       }
 
-      function resetRoomCamera() {
-        roomCamera.yaw = -12;
-        roomCamera.pitch = -34;
-        roomCamera.zoom = 108;
-        roomCamera.y = 18;
-        updateRoomCamera(true);
+      function renderAll() {
+        renderCategories();
+        applySettings();
+        renderInventory();
+        renderMuseum();
+        renderDetail();
       }
 
-      function show(view) {
-        activeView = view;
-        $$(".screen").forEach(function (screen) {
-          screen.classList.toggle("active", screen.id === view + "Screen");
-        });
-        $$(".bottom-nav button").forEach(function (button) {
-          button.classList.toggle("active", button.dataset.view === view);
-        });
-        $("#headerSub").textContent = view === "room" ? "Zimmer" : view === "photo" ? "Foto" : "Inventar";
-        render();
+      function selectItem(id) {
+        selectedId = id;
+        renderAll();
       }
 
-      async function requestCamera() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          alert("Dieser Browser unterstuetzt keine direkte Kameraabfrage.");
-          return false;
-        }
-
-        try {
-          if (!cameraStream) {
-            cameraStream = await navigator.mediaDevices.getUserMedia({
-              video: { facingMode: { ideal: "environment" } },
-              audio: false
-            });
-          }
-          $("#camera").srcObject = cameraStream;
-          await $("#camera").play();
-          $("#camera").classList.add("on");
-          $("#cameraPlaceholder").classList.add("hidden");
-          return true;
-        } catch (error) {
-          alert("Kamera wurde nicht erlaubt oder ist nicht verfuegbar.");
-          return false;
-        }
+      function resetItemForm() {
+        editingId = null;
+        itemForm.reset();
+        document.querySelector("#rarityInput").value = "Normal";
+        currentPhoto = "";
+        previewImage.removeAttribute("src");
+        previewImage.classList.add("hidden");
+        photoBox.querySelector("span").classList.remove("hidden");
+        formTitle.textContent = "Neues Item";
+        submitItemButton.textContent = "Speichern";
+        cancelEditButton.classList.add("hidden");
       }
 
-      async function openCameraForPhoto() {
-        var hasCamera = await requestCamera();
-        if (!hasCamera) return;
-        $("#takePhoto").disabled = false;
-        $("#photoHint").textContent = "Richte das Item im Bild aus und tippe auf Foto machen.";
-      }
-
-      function takeItemPhoto() {
-        makeDraft();
-        $("#photoHint").textContent = "Foto aufgenommen. Pruefe den Namen und platziere das Item im Zimmer.";
-        $("#previewCard").classList.remove("hidden");
-      }
-
-      function makeDraft() {
-        draft = {
-          id: "item_" + Date.now(),
-          name: "Neues Objekt",
-          category: "Unsortiert",
-          model: "cube",
-          x: 50,
-          y: 56,
-          rotation: 0,
-          scale: 84,
-          photo: captureFrame()
-        };
-        $("#itemName").value = draft.name;
-        $("#itemCategory").value = draft.category;
-        $("#itemModel").value = draft.model;
-        if (draft.photo) {
-          $("#previewShot").innerHTML = '<img alt="Objektfoto" src="' + draft.photo + '">';
+      function startEditItem(id) {
+        const item = items.find((entry) => entry.id === id);
+        if (!item) return;
+        editingId = id;
+        selectedId = id;
+        document.querySelector("#nameInput").value = item.name;
+        document.querySelector("#categoryInput").value = item.category;
+        document.querySelector("#dateInput").value = item.date || "";
+        document.querySelector("#rarityInput").value = item.rarity;
+        document.querySelector("#noteInput").value = item.note || "";
+        document.querySelector("#favoriteInput").checked = item.favorite;
+        currentPhoto = item.photo || "";
+        if (currentPhoto) {
+          previewImage.src = currentPhoto;
+          previewImage.classList.remove("hidden");
+          photoBox.querySelector("span").classList.add("hidden");
         } else {
-          $("#previewShot").textContent = "3D";
+          previewImage.removeAttribute("src");
+          previewImage.classList.add("hidden");
+          photoBox.querySelector("span").classList.remove("hidden");
         }
+        formTitle.textContent = "Item bearbeiten";
+        submitItemButton.textContent = "Update";
+        cancelEditButton.classList.remove("hidden");
+        showScreen("photo");
       }
 
-      function captureFrame() {
-        var video = $("#camera");
-        if (!video.videoWidth || !video.videoHeight) return "";
-        var canvas = document.createElement("canvas");
-        canvas.width = 480;
-        canvas.height = 480;
-        var context = canvas.getContext("2d");
-        var side = Math.min(video.videoWidth, video.videoHeight);
-        var sx = (video.videoWidth - side) / 2;
-        var sy = (video.videoHeight - side) / 2;
-        context.drawImage(video, sx, sy, side, side, 0, 0, canvas.width, canvas.height);
-        return canvas.toDataURL("image/jpeg", 0.72);
-      }
-
-      function saveDraft() {
-        if (!draft) return;
-        draft.name = $("#itemName").value.trim() || "Neues Objekt";
-        draft.category = $("#itemCategory").value.trim() || "Unsortiert";
-        draft.model = $("#itemModel").value;
-        draft.x = 46 + Math.round(Math.random() * 12);
-        draft.y = 48 + Math.round(Math.random() * 18);
-        items.unshift(draft);
-        selectedItemId = draft.id;
-        draft = null;
-        save();
-        $("#previewCard").classList.add("hidden");
-        show("room");
-      }
-
-      function showPhotoView() {
-        $("#previewCard").classList.add("hidden");
-        $("#takePhoto").disabled = true;
-        $("#photoHint").textContent = "Mach ein Foto, gib dem Item einen Namen und platziere es danach im Zimmer.";
-        show("photo");
-      }
-
-      function renderRoom() {
-        var room = $("#roomObjects");
-        room.innerHTML = items.map(function (item) {
-          var width = Math.max(44, item.scale * (item.model === "cylinder" ? 0.85 : 0.68));
-          var height = Math.max(32, item.scale * (item.model === "cylinder" ? 0.34 : 0.5));
-          var selected = item.id === selectedItemId ? " selected" : "";
-          return '<button class="obj ' + item.model + selected + '" data-id="' + item.id + '" aria-label="' + escapeHtml(item.name) + ' verschieben" style="--x:' + item.x + '%;--y:' + item.y + '%;--w:' + width + 'px;--h:' + height + 'px;--r:' + item.rotation + 'deg;--c:' + colors[item.model] + '"></button>';
-        }).join("");
-        if (selectedItemId && !selectedItem()) selectedItemId = items[0] ? items[0].id : null;
-        $("#roomEmpty").classList.toggle("hidden", items.length > 0);
-        if (items.length === 0) {
-          $("#roomEmpty").innerHTML = '<strong>Zimmer ist leer.</strong><span class="small">Fotografiere ein Item und platziere es hier.</span>';
-        }
-        renderSelectedItem();
-      }
-
-      function renderItems() {
-        var query = $("#search").value.trim().toLowerCase();
-        var visible = items.filter(function (item) {
-          return !query || (item.name + " " + item.category).toLowerCase().indexOf(query) >= 0;
+      function showScreen(name) {
+        Object.entries(screens).forEach(([key, screen]) => {
+          screen.classList.toggle("active", key === name);
         });
-        $("#items").innerHTML = visible.length
-          ? visible.map(function (item) {
-              var photo = item.photo ? '<img alt="" src="' + item.photo + '">' : escapeHtml(shortName(item.name));
-              return '<article class="item"><div class="thumb">' + photo + '</div><div><h3>' + escapeHtml(item.name) + '</h3><p>' + escapeHtml(item.category) + ' · ' + modelLabel(item.model) + '</p></div><button class="danger" data-delete="' + item.id + '">Weg</button></article>';
-            }).join("")
-          : '<div class="card"><h2>Noch leer</h2><p class="small">Fotografiere ein Item. Danach erscheint es hier.</p></div>';
-      }
-
-      function render() {
-        $("#countPill").textContent = items.length + (items.length === 1 ? " Item" : " Items");
-        updateRoomCamera();
-        renderRoom();
-        renderItems();
-      }
-
-      function shortName(name) {
-        return name.split(/\s+/)[0] || "Objekt";
-      }
-
-      function modelLabel(model) {
-        return { cube: "Quader", box: "Box", sphere: "Kugel", cylinder: "Zylinder" }[model] || "Quader";
+        document.querySelectorAll(".nav-btn").forEach((button) => {
+          button.classList.toggle("active", button.dataset.nav === name);
+        });
+        if (name === "photo" && !editingId) {
+          resetItemForm();
+        }
+        if (name !== "inventory" && !editingId) {
+          selectedId = null;
+          renderDetail();
+        }
       }
 
       function escapeHtml(value) {
         return String(value)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;");
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
       }
 
-      $$(".bottom-nav button").forEach(function (button) {
-        button.addEventListener("click", function () {
-          show(button.dataset.view);
-        });
-      });
-      $("#addItemFromRoom").addEventListener("click", showPhotoView);
-      $("#addItemFromItems").addEventListener("click", showPhotoView);
-      $("#openCamera").addEventListener("click", openCameraForPhoto);
-      $("#takePhoto").addEventListener("click", takeItemPhoto);
-      $("#saveItem").addEventListener("click", saveDraft);
-      $("#search").addEventListener("input", renderItems);
-      $$(".move-pad button").forEach(function (button) {
-        button.addEventListener("click", function () {
-          moveSelectedItem(button.dataset.move);
-        });
-      });
-      $("#room").addEventListener("wheel", function (event) {
-        event.preventDefault();
-        moveRoom(0, 0, event.deltaY > 0 ? -8 : 8, 0);
-      }, { passive: false });
-      $("#roomObjects").addEventListener("pointerdown", function (event) {
-        var objectButton = event.target.closest(".obj");
-        if (!objectButton) return;
-        event.preventDefault();
-        event.stopPropagation();
-        var stage = $("#roomObjects").getBoundingClientRect();
-        var item = items.find(function (entry) { return entry.id === objectButton.dataset.id; });
-        selectedItemId = objectButton.dataset.id;
-        document.querySelectorAll(".obj").forEach(function (element) {
-          element.classList.toggle("selected", element.dataset.id === selectedItemId);
-        });
-        renderSelectedItem();
-        itemDrag = {
-          id: objectButton.dataset.id,
-          offsetX: item ? event.clientX - stage.left - (item.x / 100) * stage.width : 0,
-          offsetY: item ? event.clientY - stage.top - (item.y / 100) * stage.height : 0
-        };
-        objectButton.classList.add("dragging");
-        objectButton.setPointerCapture(event.pointerId);
-        updateItemFromPointer(itemDrag.id, event.clientX, event.clientY);
-      });
-      $("#roomObjects").addEventListener("pointermove", function (event) {
-        if (!itemDrag) return;
-        event.preventDefault();
-        event.stopPropagation();
-        updateItemFromPointer(itemDrag.id, event.clientX, event.clientY);
-      });
-      $("#roomObjects").addEventListener("pointerup", function (event) {
-        if (!itemDrag) return;
-        event.preventDefault();
-        event.stopPropagation();
-        document.querySelectorAll(".obj.dragging").forEach(function (element) {
-          element.classList.remove("dragging");
-        });
-        itemDrag = null;
-        save();
-        renderRoom();
-        renderItems();
-      });
-      $("#roomObjects").addEventListener("pointercancel", function () {
-        document.querySelectorAll(".obj.dragging").forEach(function (element) {
-          element.classList.remove("dragging");
-        });
-        itemDrag = null;
-        save();
-      });
-      $("#room").addEventListener("pointerdown", function (event) {
-        if (event.target.closest(".object-tools button")) return;
-        if (event.target.closest("button") || itemDrag) return;
-        var now = Date.now();
-        if (activeTouches.size === 0 && now - lastRoomTap < 280) {
-          resetRoomCamera();
-          lastRoomTap = 0;
+      document.addEventListener("click", (event) => {
+        const nav = event.target.closest("[data-nav]");
+        if (nav) {
+          if (nav.dataset.nav === "photo") resetItemForm();
+          showScreen(nav.dataset.nav);
           return;
         }
-        lastRoomTap = now;
-        activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-        var touches = getTouches();
-        if (touches.length === 1) {
-          dragStart = {
-            mode: "pan",
-            x: event.clientX,
-            y: event.clientY,
-            yaw: roomCamera.yaw,
-            pitch: roomCamera.pitch,
-            camY: roomCamera.y
-          };
-          $("#roomWorld").classList.add("moving");
-        }
-        if (touches.length === 2) {
-          dragStart = {
-            mode: "zoom",
-            distance: distance(touches[0], touches[1]),
-            zoom: roomCamera.zoom
-          };
-          $("#roomWorld").classList.add("moving");
-        }
-        $("#room").setPointerCapture(event.pointerId);
-      });
-      $("#room").addEventListener("pointermove", function (event) {
-        if (!activeTouches.has(event.pointerId)) return;
-        activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-        if (!dragStart) return;
-        var touches = getTouches();
-        if (dragStart.mode === "zoom" && touches.length >= 2) {
-          roomCamera.zoom = dragStart.zoom + (distance(touches[0], touches[1]) - dragStart.distance) * 0.32;
-          updateRoomCamera();
+
+        const category = event.target.closest("[data-category]");
+        if (category) {
+          activeCategory = category.dataset.category;
+          renderAll();
           return;
         }
-        if (dragStart.mode !== "pan") return;
-        roomCamera.yaw = dragStart.yaw + (event.clientX - dragStart.x) * 0.32;
-        roomCamera.pitch = dragStart.pitch + (event.clientY - dragStart.y) * 0.06;
-        roomCamera.y = dragStart.camY + (event.clientY - dragStart.y) * 0.12;
-        updateRoomCamera();
-      });
-      $("#room").addEventListener("pointerup", function (event) {
-        activeTouches.delete(event.pointerId);
-        dragStart = null;
-        $("#roomWorld").classList.remove("moving");
-        save();
-      });
-      $("#room").addEventListener("pointercancel", function (event) {
-        activeTouches.delete(event.pointerId);
-        dragStart = null;
-        $("#roomWorld").classList.remove("moving");
-        save();
-      });
-      document.addEventListener("click", function (event) {
-        var deleteButton = event.target.closest("[data-delete]");
-        if (deleteButton) {
-          items = items.filter(function (item) { return item.id !== deleteButton.dataset.delete; });
-          if (selectedItemId === deleteButton.dataset.delete) selectedItemId = items[0] ? items[0].id : null;
-          save();
-          render();
+
+        const action = event.target.closest("[data-action]");
+        if (action && selectedId) {
+          if (action.dataset.action === "edit") {
+            startEditItem(selectedId);
+            return;
+          }
+          if (action.dataset.action === "favorite") {
+            items = items.map((item) => item.id === selectedId ? { ...item, favorite: !item.favorite } : item);
+          }
+          if (action.dataset.action === "delete") {
+            items = items.filter((item) => item.id !== selectedId);
+            selectedId = null;
+          }
+          saveItems();
+          renderAll();
+          return;
+        }
+
+        const itemButton = event.target.closest("[data-item]");
+        if (itemButton) {
+          selectItem(itemButton.dataset.item);
+          return;
+        }
+
+        const color = event.target.closest("[data-color]");
+        if (color) {
+          settings.color = color.dataset.color;
+          saveSettings();
+          applySettings();
         }
       });
 
-      updateRoomCamera();
-      show("room");
+      document.querySelector("#customizeButton").addEventListener("click", () => showScreen("customize"));
+      document.querySelector("#museumStyleButton").addEventListener("click", () => showScreen("customize"));
+      document.querySelector("#photoButton").addEventListener("click", () => photoInput.click());
+      document.querySelector("#avatarButton").addEventListener("click", () => showScreen("customize"));
+      document.querySelector("#profilePhotoButton").addEventListener("click", () => profilePhotoInput.click());
+      document.querySelector("#resetProfilePhotoButton").addEventListener("click", () => {
+        settings.profilePhoto = DEFAULT_PROFILE_IMAGE;
+        saveSettings();
+        applySettings();
+      });
+      cancelEditButton.addEventListener("click", () => {
+        resetItemForm();
+        showScreen("inventory");
+      });
+      document.querySelector("#clearFormButton").addEventListener("click", resetItemForm);
+
+      document.querySelector("#nicknameInput").addEventListener("input", (event) => {
+        settings.nickname = event.target.value.trim();
+        saveSettings();
+        renderAll();
+      });
+      document.querySelector("#slotSizeInput").addEventListener("input", (event) => {
+        settings.slotSize = Number(event.target.value);
+        saveSettings();
+        applySettings();
+      });
+      document.querySelector("#slotStyleInput").addEventListener("change", (event) => {
+        settings.slotStyle = event.target.value;
+        saveSettings();
+        applySettings();
+      });
+
+      photoInput.addEventListener("change", () => {
+        const file = photoInput.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          currentPhoto = String(reader.result);
+          previewImage.src = currentPhoto;
+          previewImage.classList.remove("hidden");
+          photoBox.querySelector("span").classList.add("hidden");
+        };
+        reader.readAsDataURL(file);
+      });
+
+      profilePhotoInput.addEventListener("change", () => {
+        const file = profilePhotoInput.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          settings.profilePhoto = String(reader.result);
+          saveSettings();
+          applySettings();
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.querySelector("#itemForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const original = items.find((item) => item.id === editingId);
+        const formItem = {
+          ...(original || {}),
+          id: editingId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
+          name: document.querySelector("#nameInput").value.trim(),
+          category: document.querySelector("#categoryInput").value,
+          date: document.querySelector("#dateInput").value || "",
+          rarity: document.querySelector("#rarityInput").value,
+          note: document.querySelector("#noteInput").value.trim(),
+          favorite: document.querySelector("#favoriteInput").checked,
+          photo: currentPhoto,
+          icon: original?.icon || "IT"
+        };
+        items = editingId
+          ? items.map((item) => item.id === editingId ? formItem : item)
+          : [formItem, ...items];
+        saveItems();
+        selectedId = formItem.id;
+        resetItemForm();
+        selectedId = formItem.id;
+        renderAll();
+        showScreen("inventory");
+      });
 
       if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("./sw.js");
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => {});
+        });
       }
+
+      renderAll();
     </script>
   </body>
 </html>

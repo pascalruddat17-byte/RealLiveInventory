@@ -833,6 +833,55 @@
         background: var(--surface);
       }
 
+      .photo-edit-button {
+        width: 100%;
+      }
+
+      .photo-editor {
+        width: min(520px, calc(100% - 24px));
+        max-height: calc(100vh - 32px);
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--surface);
+        color: var(--ink);
+      }
+
+      .photo-editor::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+      }
+
+      .photo-editor-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .photo-editor-canvas-wrap {
+        display: grid;
+        min-height: 260px;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 12px;
+        background: repeating-conic-gradient(#eeeeee 0 25%, #ffffff 0 50%) 50% / 18px 18px;
+      }
+
+      #photoEditorCanvas {
+        display: block;
+        width: 100%;
+        max-height: 58vh;
+        object-fit: contain;
+        touch-action: none;
+      }
+
+      .photo-editor-tools {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
       .photo-box {
         position: relative;
         display: grid;
@@ -1165,6 +1214,7 @@
           </div>
           <input id="photoInput" type="file" accept="image/*" capture="environment" class="hidden" />
           <button class="primary photo-add-button" id="photoButton" type="button"><img src="./add-icon.png" alt="" /> Foto aufnehmen</button>
+          <button class="photo-edit-button hidden" id="editPhotoButton" type="button">Foto bearbeiten</button>
           <label class="photo-background-row">
             <span>Hintergrundfarbe</span>
             <input id="photoBackgroundInput" type="color" value="#eeeeee" aria-label="Hintergrundfarbe des Items" />
@@ -1199,6 +1249,20 @@
           <button class="icon-btn" id="closeMuseumPickerButton" type="button" title="Schliessen">×</button>
         </div>
         <div class="museum-picker-list" id="museumPickerList"></div>
+      </dialog>
+
+      <dialog class="photo-editor" id="photoEditor">
+        <div class="photo-editor-head">
+          <strong>Foto bearbeiten</strong>
+          <button class="icon-btn" id="closePhotoEditorButton" type="button" title="Schliessen">×</button>
+        </div>
+        <div class="photo-editor-canvas-wrap"><canvas id="photoEditorCanvas"></canvas></div>
+        <div class="photo-editor-tools">
+          <button type="button" id="autoRemoveBackgroundButton">Automatisch löschen</button>
+          <button type="button" id="manualRemoveBackgroundButton">Manuell markieren</button>
+          <button type="button" id="resetPhotoEditButton">Zurücksetzen</button>
+          <button class="primary" type="button" id="applyPhotoEditButton">Übernehmen</button>
+        </div>
       </dialog>
 
       <dialog class="category-manager" id="categoryManager">
@@ -1290,11 +1354,15 @@
       let rarityFilter = "all";
       let museumSlots = loadMuseumSlots();
       let currentPhoto = "";
+      let originalPhoto = "";
       let photoJob = 0;
       let categoryImageId = null;
       let draggedMuseumSlot = null;
       let pointerMuseumDrag = null;
       let suppressMuseumClickUntil = 0;
+      let editorImage = null;
+      let editorPath = [];
+      let manualEditMode = false;
       let settings = loadSettings();
       const defaultUserName = `User ${getUserNumber()}`;
 
@@ -1323,6 +1391,10 @@
       const cancelEditButton = document.querySelector("#cancelEditButton");
       const photoBackgroundInput = document.querySelector("#photoBackgroundInput");
       const valueInput = document.querySelector("#valueInput");
+      const editPhotoButton = document.querySelector("#editPhotoButton");
+      const photoEditor = document.querySelector("#photoEditor");
+      const photoEditorCanvas = document.querySelector("#photoEditorCanvas");
+      const photoEditorContext = photoEditorCanvas.getContext("2d");
       const museumPicker = document.querySelector("#museumPicker");
       const museumPickerList = document.querySelector("#museumPickerList");
       const categoryImageInput = document.querySelector("#categoryImageInput");
@@ -1629,6 +1701,7 @@
         document.querySelector("#rarityInput").value = "Common";
         photoBackgroundInput.value = "#eeeeee";
         currentPhoto = "";
+        originalPhoto = "";
         photoJob += 1;
         photoBox.style.backgroundColor = "#eeeeee";
         previewImage.removeAttribute("src");
@@ -1637,6 +1710,7 @@
         formTitle.textContent = "Neues Item";
         submitItemButton.textContent = "Speichern";
         cancelEditButton.classList.add("hidden");
+        editPhotoButton.classList.add("hidden");
       }
 
       function startEditItem(id) {
@@ -1652,6 +1726,8 @@
         valueInput.value = item.value || "";
         photoBackgroundInput.value = item.backgroundColor || "#eeeeee";
         currentPhoto = item.photo || "";
+        originalPhoto = currentPhoto;
+        editPhotoButton.classList.toggle("hidden", !currentPhoto);
         photoBox.style.backgroundColor = item.backgroundColor || "#eeeeee";
         if (currentPhoto) {
           previewImage.src = currentPhoto;
@@ -1757,6 +1833,61 @@
           image.onerror = () => resolve(dataUrl);
           image.src = dataUrl;
         });
+      }
+
+      function drawPhotoEditor() {
+        if (!editorImage) return;
+        photoEditorContext.clearRect(0, 0, photoEditorCanvas.width, photoEditorCanvas.height);
+        photoEditorContext.drawImage(editorImage, 0, 0, photoEditorCanvas.width, photoEditorCanvas.height);
+        if (!manualEditMode || editorPath.length < 1) return;
+        photoEditorContext.save();
+        photoEditorContext.strokeStyle = "#f39a2b";
+        photoEditorContext.lineWidth = Math.max(3, photoEditorCanvas.width / 120);
+        photoEditorContext.setLineDash([8, 6]);
+        photoEditorContext.beginPath();
+        editorPath.forEach(([x, y], index) => index ? photoEditorContext.lineTo(x, y) : photoEditorContext.moveTo(x, y));
+        photoEditorContext.stroke();
+        photoEditorContext.restore();
+      }
+
+      function openPhotoEditor() {
+        if (!originalPhoto) return;
+        editorImage = new Image();
+        editorImage.onload = () => {
+          const scale = Math.min(1, 720 / Math.max(editorImage.naturalWidth, editorImage.naturalHeight));
+          photoEditorCanvas.width = Math.max(1, Math.round(editorImage.naturalWidth * scale));
+          photoEditorCanvas.height = Math.max(1, Math.round(editorImage.naturalHeight * scale));
+          editorPath = [];
+          manualEditMode = false;
+          drawPhotoEditor();
+          photoEditor.showModal();
+        };
+        editorImage.src = originalPhoto;
+      }
+
+      function editorPoint(event) {
+        const bounds = photoEditorCanvas.getBoundingClientRect();
+        return [
+          (event.clientX - bounds.left) * photoEditorCanvas.width / bounds.width,
+          (event.clientY - bounds.top) * photoEditorCanvas.height / bounds.height
+        ];
+      }
+
+      function applyManualPhotoMask() {
+        if (!editorImage || editorPath.length < 3) return;
+        const output = document.createElement("canvas");
+        output.width = photoEditorCanvas.width;
+        output.height = photoEditorCanvas.height;
+        const context = output.getContext("2d");
+        context.drawImage(editorImage, 0, 0, output.width, output.height);
+        context.globalCompositeOperation = "destination-in";
+        context.beginPath();
+        editorPath.forEach(([x, y], index) => index ? context.lineTo(x, y) : context.moveTo(x, y));
+        context.closePath();
+        context.fill();
+        currentPhoto = output.toDataURL("image/png");
+        previewImage.src = currentPhoto;
+        photoEditor.close();
       }
 
       document.addEventListener("click", (event) => {
@@ -1974,6 +2105,39 @@
         renderCategoryManager();
       });
       document.querySelector("#photoButton").addEventListener("click", () => photoInput.click());
+      editPhotoButton.addEventListener("click", openPhotoEditor);
+      document.querySelector("#closePhotoEditorButton").addEventListener("click", () => photoEditor.close());
+      document.querySelector("#autoRemoveBackgroundButton").addEventListener("click", async () => {
+        if (!originalPhoto) return;
+        currentPhoto = await removePhotoBackground(originalPhoto);
+        previewImage.src = currentPhoto;
+        photoEditor.close();
+      });
+      document.querySelector("#manualRemoveBackgroundButton").addEventListener("click", () => {
+        manualEditMode = true;
+        editorPath = [];
+        drawPhotoEditor();
+      });
+      document.querySelector("#resetPhotoEditButton").addEventListener("click", () => {
+        currentPhoto = originalPhoto;
+        editorPath = [];
+        manualEditMode = false;
+        drawPhotoEditor();
+      });
+      document.querySelector("#applyPhotoEditButton").addEventListener("click", applyManualPhotoMask);
+      photoEditorCanvas.addEventListener("pointerdown", (event) => {
+        if (!manualEditMode) return;
+        event.preventDefault();
+        editorPath = [editorPoint(event)];
+        photoEditorCanvas.setPointerCapture(event.pointerId);
+        drawPhotoEditor();
+      });
+      photoEditorCanvas.addEventListener("pointermove", (event) => {
+        if (!manualEditMode || !photoEditorCanvas.hasPointerCapture(event.pointerId)) return;
+        event.preventDefault();
+        editorPath.push(editorPoint(event));
+        drawPhotoEditor();
+      });
       document.querySelector("#avatarButton").addEventListener("click", () => showScreen("customize"));
       document.querySelector("#profilePhotoButton").addEventListener("click", () => profilePhotoInput.click());
       document.querySelector("#resetProfilePhotoButton").addEventListener("click", () => {
@@ -2027,11 +2191,13 @@
         reader.onload = () => {
           const rawPhoto = String(reader.result);
           const job = ++photoJob;
+          originalPhoto = rawPhoto;
           currentPhoto = rawPhoto;
           previewImage.src = rawPhoto;
           photoBox.style.backgroundColor = photoBackgroundInput.value;
           previewImage.classList.remove("hidden");
           photoBox.querySelector("span").classList.add("hidden");
+          editPhotoButton.classList.remove("hidden");
           window.setTimeout(async () => {
             const processedPhoto = await removePhotoBackground(rawPhoto);
             if (job !== photoJob) return;

@@ -825,6 +825,7 @@
           </div>
           <input id="profilePhotoInput" type="file" accept="image/*" class="hidden" />
           <div class="palette-grid" id="paletteGrid"></div>
+          <button type="button" id="resetPaletteButton" style="width: 100%; margin-top: 10px">Farben zuruecksetzen</button>
         </div>
       </section>
 
@@ -1193,6 +1194,12 @@
         if (!input) return;
         settings.palette[input.dataset.palette] = input.value;
         saveSettings();
+        applySettings();
+      });
+      document.querySelector("#resetPaletteButton").addEventListener("click", () => {
+        settings.palette = { ...DEFAULT_PALETTE };
+        saveSettings();
+        renderPalette();
         applySettings();
       });
 

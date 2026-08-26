@@ -119,14 +119,17 @@
         width: 48px;
         height: 48px;
         place-items: center;
+        overflow: hidden;
         border: 3px solid white;
         border-radius: 13px;
-        background: linear-gradient(135deg, var(--blue), var(--cyan));
+        background: rgba(232, 242, 255, 0.9);
         box-shadow: 0 10px 20px rgba(22, 119, 255, 0.24);
-        color: white;
-        font-size: 0.95rem;
-        letter-spacing: 0;
-        text-transform: uppercase;
+      }
+
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
 
       .brand-title {
@@ -589,6 +592,30 @@
         gap: 8px;
       }
 
+      .profile-editor {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .profile-preview {
+        display: grid;
+        width: 72px;
+        height: 72px;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #eef6ff;
+      }
+
+      .profile-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
       .swatch {
         min-height: 46px;
         border: 3px solid white;
@@ -685,9 +712,11 @@
   <body>
     <main class="app">
       <header class="topbar">
-        <button class="avatar" id="avatarButton" type="button" title="Avatar wechseln">RL</button>
+        <button class="avatar" id="avatarButton" type="button" title="Profil bearbeiten">
+          <img id="avatarImage" alt="Profilbild" src="./profile-default.png" />
+        </button>
         <div>
-          <h1 class="brand-title">RealLife</h1>
+          <h1 class="brand-title" id="profileNameText">RealLife</h1>
           <p class="brand-sub" id="playerLine">Level 1 · 0 Sachen</p>
         </div>
         <div class="coin"><span>XP</span><span id="scoreText">0</span></div>
@@ -799,14 +828,16 @@
               <span>SET</span><span>Demo</span>
             </button>
           </div>
-          <input id="nicknameInput" maxlength="18" placeholder="Name" />
-          <select id="avatarInput" aria-label="Avatar">
-            <option value="RL">RealLife</option>
-            <option value="XP">XP</option>
-            <option value="01">01</option>
-            <option value="VIP">VIP</option>
-            <option value="MAX">MAX</option>
-          </select>
+          <div class="profile-editor">
+            <button class="profile-preview" id="profilePhotoButton" type="button" title="Profilbild hochladen">
+              <img id="profilePreviewImage" alt="Profilbild Vorschau" src="./profile-default.png" />
+            </button>
+            <div>
+              <input id="nicknameInput" maxlength="18" placeholder="Profilname" />
+              <button id="resetProfilePhotoButton" type="button" style="margin-top: 8px; width: 100%">Default Bild</button>
+            </div>
+          </div>
+          <input id="profilePhotoInput" type="file" accept="image/*" class="hidden" />
           <div class="swatches" id="swatches"></div>
           <label class="range-row">
             <strong>Slot Groesse</strong>
@@ -832,6 +863,7 @@
     <script>
       const STORAGE_KEY = "reallife-game-inventory-v3";
       const STYLE_KEY = "reallife-game-style-v1";
+      const DEFAULT_PROFILE_IMAGE = "./profile-default.png";
       const categories = [
         { id: "all", label: "Alle", icon: "ALL" },
         { id: "lifestyle", label: "Style", icon: "ST" },
@@ -880,6 +912,7 @@
       const photoInput = document.querySelector("#photoInput");
       const previewImage = document.querySelector("#previewImage");
       const photoBox = document.querySelector("#photoBox");
+      const profilePhotoInput = document.querySelector("#profilePhotoInput");
       const itemForm = document.querySelector("#itemForm");
       const formTitle = document.querySelector("#formTitle");
       const submitItemButton = document.querySelector("#submitItemButton");
@@ -911,14 +944,14 @@
       function loadSettings() {
         const fallback = {
           nickname: "",
-          avatar: "RL",
+          profilePhoto: DEFAULT_PROFILE_IMAGE,
           color: "#1677ff",
           slotSize: 78,
           slotStyle: "soft"
         };
         try {
           const saved = { ...fallback, ...(JSON.parse(localStorage.getItem(STYLE_KEY)) || {}) };
-          if (!["RL", "XP", "01", "VIP", "MAX"].includes(saved.avatar)) saved.avatar = "RL";
+          if (!saved.profilePhoto) saved.profilePhoto = DEFAULT_PROFILE_IMAGE;
           return saved;
         } catch {
           return fallback;
@@ -939,9 +972,10 @@
         document.documentElement.style.setProperty("--blue-dark", color.dark);
         document.documentElement.style.setProperty("--cyan", color.cyan);
         document.documentElement.style.setProperty("--slot-size", `${settings.slotSize}px`);
-        document.querySelector("#avatarButton").textContent = settings.avatar;
+        document.querySelector("#profileNameText").textContent = settings.nickname || "RealLife";
+        document.querySelector("#avatarImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
+        document.querySelector("#profilePreviewImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
         document.querySelector("#nicknameInput").value = settings.nickname;
-        document.querySelector("#avatarInput").value = settings.avatar;
         document.querySelector("#slotSizeInput").value = settings.slotSize;
         document.querySelector("#slotStyleInput").value = settings.slotStyle;
         document.body.dataset.slotStyle = settings.slotStyle;
@@ -1182,6 +1216,12 @@
       document.querySelector("#museumStyleButton").addEventListener("click", () => showScreen("customize"));
       document.querySelector("#photoButton").addEventListener("click", () => photoInput.click());
       document.querySelector("#avatarButton").addEventListener("click", () => showScreen("customize"));
+      document.querySelector("#profilePhotoButton").addEventListener("click", () => profilePhotoInput.click());
+      document.querySelector("#resetProfilePhotoButton").addEventListener("click", () => {
+        settings.profilePhoto = DEFAULT_PROFILE_IMAGE;
+        saveSettings();
+        applySettings();
+      });
       cancelEditButton.addEventListener("click", () => {
         resetItemForm();
         showScreen("inventory");
@@ -1192,11 +1232,6 @@
         settings.nickname = event.target.value.trim();
         saveSettings();
         renderAll();
-      });
-      document.querySelector("#avatarInput").addEventListener("change", (event) => {
-        settings.avatar = event.target.value;
-        saveSettings();
-        applySettings();
       });
       document.querySelector("#slotSizeInput").addEventListener("input", (event) => {
         settings.slotSize = Number(event.target.value);
@@ -1218,6 +1253,18 @@
           previewImage.src = currentPhoto;
           previewImage.classList.remove("hidden");
           photoBox.querySelector("span").classList.add("hidden");
+        };
+        reader.readAsDataURL(file);
+      });
+
+      profilePhotoInput.addEventListener("change", () => {
+        const file = profilePhotoInput.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          settings.profilePhoto = String(reader.result);
+          saveSettings();
+          applySettings();
         };
         reader.readAsDataURL(file);
       });

@@ -914,6 +914,33 @@
         object-fit: contain;
       }
 
+      .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .profile-stat {
+        display: grid;
+        gap: 3px;
+        padding: 10px 8px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface-2);
+        text-align: center;
+      }
+
+      .profile-stat span {
+        color: var(--muted);
+        font-size: 0.64rem;
+        font-weight: 850;
+      }
+
+      .profile-stat strong {
+        color: var(--ink);
+        font-size: 0.9rem;
+      }
+
       .palette-control {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -1177,6 +1204,11 @@
               <button id="resetProfilePhotoButton" type="button" style="margin-top: 8px; width: 100%">Default Bild</button>
             </div>
           </div>
+          <div class="profile-stats">
+            <div class="profile-stat"><span>User</span><strong id="profileNumberText">1</strong></div>
+            <div class="profile-stat"><span>Items</span><strong id="profileItemCountText">0</strong></div>
+            <div class="profile-stat"><span>Museum</span><strong id="profileMuseumCountText">0/4</strong></div>
+          </div>
           <input id="profilePhotoInput" type="file" accept="image/*" class="hidden" />
           <div class="palette-grid" id="paletteGrid"></div>
           <button type="button" id="resetPaletteButton" style="width: 100%; margin-top: 10px">Farben zuruecksetzen</button>
@@ -1374,6 +1406,7 @@
         document.querySelector("#avatarImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
         document.querySelector("#profilePreviewImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
         document.querySelector("#nicknameInput").value = settings.nickname;
+        document.querySelector("#profileNumberText").textContent = defaultUserName.replace("User ", "#");
       }
 
       function categoryName(id) {
@@ -1467,6 +1500,8 @@
         const totalValue = items.reduce((total, item) => total + (Number(item.value) || 0), 0);
         document.querySelector("#scoreText").textContent = formatValue(totalValue);
         document.querySelector("#playerLine").textContent = `${settings.nickname || defaultUserName} · ${items.length} Sachen`;
+        document.querySelector("#profileItemCountText").textContent = String(items.length);
+        document.querySelector("#profileMuseumCountText").textContent = `${museumSlots.filter(Boolean).length}/4`;
       }
 
       function renderSearch() {

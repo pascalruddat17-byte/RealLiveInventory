@@ -824,9 +824,13 @@
           </div>
           <div class="category-row" id="categoryRow"></div>
           <button class="secondary" id="addCategoryButton" type="button">+ Kategorie</button>
+          <div class="tabs inventory-tabs" id="inventoryViewTabs">
+            <button class="tab-pill active" type="button" data-inventory-view="inventory"><span>INV</span><span>Inventar</span></button>
+            <button class="tab-pill" type="button" data-inventory-view="museum"><span>MUS</span><span>Museum</span></button>
+          </div>
         </div>
 
-        <div class="panel inventory-shell">
+        <div class="panel inventory-shell subview-panel" id="inventoryPanel">
           <div class="tabs single">
             <button class="tab-pill active" type="button">
               <span>INV</span><span>Meine Sachen</span>
@@ -840,13 +844,10 @@
           </div>
         </div>
 
-        <div class="panel museum-stage">
+        <div class="panel museum-stage subview-panel hidden" id="museumPanel">
           <div class="tabs">
             <button class="tab-pill active" type="button">
               <span>MUS</span><span>Museum</span>
-            </button>
-            <button class="tab-pill" id="museumStyleButton" type="button">
-              <span>+</span><span>Platzieren</span>
             </button>
           </div>
           <div class="showcase" id="museumGrid"></div>
@@ -984,6 +985,7 @@
       let editingId = null;
       let activeCategory = "all";
       let searchTerm = "";
+      let inventoryView = "inventory";
       let museumSlots = loadMuseumSlots();
       let currentPhoto = "";
       let photoJob = 0;
@@ -1280,6 +1282,16 @@
           selectedId = null;
           renderDetail();
         }
+        if (name === "inventory") setInventoryView(inventoryView);
+      }
+
+      function setInventoryView(view) {
+        inventoryView = view;
+        document.querySelector("#inventoryPanel").classList.toggle("hidden", view !== "inventory");
+        document.querySelector("#museumPanel").classList.toggle("hidden", view !== "museum");
+        document.querySelectorAll("[data-inventory-view]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.inventoryView === view);
+        });
       }
 
       function escapeHtml(value) {
@@ -1355,6 +1367,12 @@
           return;
         }
 
+        const inventoryViewButton = event.target.closest("[data-inventory-view]");
+        if (inventoryViewButton) {
+          setInventoryView(inventoryViewButton.dataset.inventoryView);
+          return;
+        }
+
         const museumSlot = event.target.closest("[data-museum-slot]");
         if (museumSlot) {
           openMuseumPicker(Number(museumSlot.dataset.museumSlot));
@@ -1417,7 +1435,6 @@
       });
 
       document.querySelector("#customizeButton").addEventListener("click", () => showScreen("customize"));
-      document.querySelector("#museumStyleButton").addEventListener("click", () => openMuseumPicker(0));
       document.querySelector("#closeMuseumPickerButton").addEventListener("click", () => museumPicker.close());
       document.querySelector("#searchToggleButton").addEventListener("click", () => {
         const row = document.querySelector("#searchRow");

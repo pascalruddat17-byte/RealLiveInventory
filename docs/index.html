@@ -276,6 +276,10 @@
         gap: 8px;
       }
 
+      .tabs.single {
+        grid-template-columns: 1fr;
+      }
+
       .tab-pill {
         display: grid;
         grid-template-columns: auto 1fr;
@@ -699,12 +703,9 @@
         </div>
 
         <div class="panel inventory-shell">
-          <div class="tabs">
-            <button class="tab-pill active" type="button" data-filter="all">
+          <div class="tabs single">
+            <button class="tab-pill active" type="button">
               <span>INV</span><span>Meine Sachen</span>
-            </button>
-            <button class="tab-pill" type="button" data-filter="favorite">
-              <span>FAV</span><span>Liebling</span>
             </button>
           </div>
           <div class="grid" id="itemGrid"></div>
@@ -860,7 +861,6 @@
       let selectedId = null;
       let editingId = null;
       let activeCategory = "all";
-      let activeFilter = "all";
       let currentPhoto = "";
       let settings = loadSettings();
 
@@ -955,8 +955,7 @@
       function filteredItems() {
         return items.filter((item) => {
           const byCategory = activeCategory === "all" || item.category === activeCategory;
-          const byFilter = activeFilter === "all" || item.favorite;
-          return byCategory && byFilter;
+          return byCategory;
         });
       }
 
@@ -1144,16 +1143,6 @@
         if (category) {
           activeCategory = category.dataset.category;
           renderAll();
-          return;
-        }
-
-        const filter = event.target.closest("[data-filter]");
-        if (filter) {
-          activeFilter = filter.dataset.filter;
-          document.querySelectorAll("[data-filter]").forEach((button) => {
-            button.classList.toggle("active", button === filter);
-          });
-          renderInventory();
           return;
         }
 

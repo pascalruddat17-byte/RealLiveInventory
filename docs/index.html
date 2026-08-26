@@ -528,51 +528,6 @@
         pointer-events: none;
       }
 
-      .scan-progress {
-        height: 0.7rem;
-        overflow: hidden;
-        border-radius: 999px;
-        background: #dbe8fb;
-      }
-
-      .scan-progress span {
-        display: block;
-        width: var(--progress);
-        height: 100%;
-        border-radius: inherit;
-        background: var(--blue);
-        transition: width 260ms ease;
-      }
-
-      .ar-panel {
-        display: grid;
-        gap: 0.55rem;
-        margin-top: 0.75rem;
-        padding-top: 0.75rem;
-        border-top: 1px solid var(--line);
-      }
-
-      .ar-status {
-        min-height: 2.4rem;
-        border-radius: 0.9rem;
-        background: #e7f0ff;
-        color: var(--blue);
-        font-size: 0.82rem;
-        font-weight: 850;
-        padding: 0.65rem 0.75rem;
-      }
-
-      .ar-canvas {
-        position: fixed;
-        inset: 0;
-        z-index: 30;
-        display: none;
-      }
-
-      .ar-canvas.on {
-        display: block;
-      }
-
       .preview {
         display: grid;
         grid-template-columns: 5.5rem minmax(0, 1fr);
@@ -717,12 +672,11 @@
               <div id="roomObjects"></div>
             </div>
             <div class="room-actions">
-              <button class="primary" id="scanRoomFromRoom">Zimmer scannen</button>
-              <button id="scanObjectFromRoom">Objekt scannen</button>
+              <button class="primary" id="addItemFromRoom">Item fotografieren</button>
             </div>
             <div class="room-empty" id="roomEmpty">
               <strong>Dein Zimmer ist leer.</strong>
-              <span class="small">Scanne erst dein Zimmer und danach ein Objekt.</span>
+              <span class="small">Fotografiere ein Item. Danach kannst du es im Zimmer platzieren.</span>
             </div>
             <div class="object-tools hidden" id="objectTools">
               <div class="object-info" id="objectInfo"></div>
@@ -738,20 +692,13 @@
           </div>
         </section>
 
-        <section class="screen" id="scanScreen">
-          <div class="card">
-            <div class="row">
-              <button class="ink" id="modeRoom">Zimmer</button>
-              <button id="modeObject">Objekt</button>
-            </div>
-          </div>
-
+        <section class="screen" id="photoScreen">
           <div class="scan-camera">
             <video id="camera" playsinline muted></video>
             <div class="camera-placeholder" id="cameraPlaceholder">
               <div>
                 <h2>Kamera bereit</h2>
-                <p class="small">Tippe auf Scan starten. Dann fragt der Browser nach Kamerazugriff.</p>
+                <p class="small">Tippe auf Kamera oeffnen und fotografiere dein Item.</p>
               </div>
             </div>
             <div class="scan-overlay">
@@ -760,18 +707,11 @@
           </div>
 
           <div class="card">
-            <h2 id="scanTitle">Zimmer scannen</h2>
-            <p class="small" id="scanHint">Bewege dich langsam im Zimmer und halte die Kamera ruhig.</p>
-            <div class="scan-progress" aria-label="Scan-Fortschritt">
-              <span id="progressBar" style="--progress: 0%"></span>
-            </div>
+            <h2>Item fotografieren</h2>
+            <p class="small" id="photoHint">Mach ein Foto, gib dem Item einen Namen und platziere es danach im Zimmer.</p>
             <div class="row" style="margin-top: 0.75rem">
-              <button class="primary" id="startScan">Scan starten</button>
-              <button id="finishScan" disabled>Fertig</button>
-            </div>
-            <div class="ar-panel" id="arPanel">
-              <button class="primary" id="startArScan">Echten AR-Scan starten</button>
-              <div class="ar-status" id="arStatus">Pruefe, ob dieses Handy WebXR AR kann.</div>
+              <button class="primary" id="openCamera">Kamera oeffnen</button>
+              <button id="takePhoto" disabled>Foto machen</button>
             </div>
           </div>
 
@@ -803,36 +743,26 @@
           <div class="card">
             <div class="row">
               <input id="search" type="search" placeholder="Suchen" />
-              <button class="primary" id="scanObjectFromItems">Scan</button>
+              <button class="primary" id="addItemFromItems">Foto</button>
             </div>
           </div>
           <div class="items" id="items"></div>
         </section>
       </main>
 
-      <canvas class="ar-canvas" id="arCanvas"></canvas>
-
       <nav class="bottom-nav" aria-label="Navigation">
         <button class="active" data-view="room">Zimmer</button>
-        <button data-view="scan">Scan</button>
+        <button data-view="photo">Foto</button>
         <button data-view="items">Inventar</button>
       </nav>
     </div>
 
     <script>
       var storageItemsKey = "ri-ar-simple-items-v1";
-      var storageRoomKey = "ri-ar-simple-room-v1";
       var items = load(storageItemsKey, []);
-      var roomScanned = load(storageRoomKey, false);
       var activeView = "room";
-      var scanMode = "room";
-      var scanTimer = null;
-      var scanProgress = 0;
       var cameraStream = null;
       var draft = null;
-      var xrSession = null;
-      var xrHitTestSource = null;
-      var xrSurfaceSeen = false;
       var roomCamera = load("ri-room-camera-v2", {
         yaw: -12,
         pitch: -34,
@@ -871,7 +801,6 @@
 
       function save() {
         localStorage.setItem(storageItemsKey, JSON.stringify(items));
-        localStorage.setItem(storageRoomKey, JSON.stringify(roomScanned));
         localStorage.setItem("ri-room-camera-v2", JSON.stringify(roomCamera));
       }
 
@@ -980,7 +909,7 @@
         $$(".bottom-nav button").forEach(function (button) {
           button.classList.toggle("active", button.dataset.view === view);
         });
-        $("#headerSub").textContent = view === "room" ? "Zimmer" : view === "scan" ? "Scan" : "Inventar";
+        $("#headerSub").textContent = view === "room" ? "Zimmer" : view === "photo" ? "Foto" : "Inventar";
         render();
       }
 
@@ -1008,125 +937,16 @@
         }
       }
 
-      async function checkArSupport() {
-        var arButton = $("#startArScan");
-        if (!navigator.xr || !navigator.xr.isSessionSupported) {
-          arButton.disabled = true;
-          $("#arStatus").textContent = "WebXR AR ist in diesem Browser nicht verfuegbar. Versuch Chrome auf Android.";
-          return;
-        }
-        try {
-          var supported = await navigator.xr.isSessionSupported("immersive-ar");
-          arButton.disabled = !supported;
-          $("#arStatus").textContent = supported
-            ? "Echter AR-Scan ist bereit. Halte das Handy auf den Boden und starte AR."
-            : "Dieses Handy oder dieser Browser erlaubt keinen WebXR-AR-Scan.";
-        } catch (error) {
-          arButton.disabled = true;
-          $("#arStatus").textContent = "WebXR AR konnte auf diesem Handy nicht gestartet werden.";
-        }
-      }
-
-      async function startArScan() {
-        if (!navigator.xr) {
-          $("#arStatus").textContent = "WebXR AR fehlt. Nutze Chrome auf Android mit Google Play Services for AR.";
-          return;
-        }
-
-        try {
-          xrSurfaceSeen = false;
-          $("#arStatus").textContent = "AR startet. Suche langsam Boden oder Wand.";
-          xrSession = await navigator.xr.requestSession("immersive-ar", {
-            requiredFeatures: ["hit-test"],
-            optionalFeatures: ["dom-overlay"],
-            domOverlay: { root: document.body }
-          });
-
-          var canvas = $("#arCanvas");
-          var gl = canvas.getContext("webgl", { alpha: true, antialias: true, xrCompatible: true });
-          if (!gl) throw new Error("WebGL fehlt");
-          await gl.makeXRCompatible();
-          xrSession.updateRenderState({ baseLayer: new XRWebGLLayer(xrSession, gl) });
-          canvas.classList.add("on");
-
-          var viewerSpace = await xrSession.requestReferenceSpace("viewer");
-          var localSpace = await xrSession.requestReferenceSpace("local");
-          xrHitTestSource = await xrSession.requestHitTestSource({ space: viewerSpace });
-
-          xrSession.addEventListener("end", function () {
-            canvas.classList.remove("on");
-            xrSession = null;
-            xrHitTestSource = null;
-            $("#arStatus").textContent = xrSurfaceSeen
-              ? "AR-Scan fertig. Eine echte Flaeche wurde erkannt."
-              : "AR beendet, aber noch keine Flaeche erkannt.";
-          });
-
-          xrSession.requestAnimationFrame(function onFrame(time, frame) {
-            var session = frame.session;
-            var pose = frame.getViewerPose(localSpace);
-            gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer);
-            gl.clearColor(0, 0, 0, 0);
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-            if (pose && xrHitTestSource) {
-              var hits = frame.getHitTestResults(xrHitTestSource);
-              if (hits.length > 0 && !xrSurfaceSeen) {
-                xrSurfaceSeen = true;
-                roomScanned = true;
-                save();
-                $("#finishScan").disabled = false;
-                $("#progressBar").style.setProperty("--progress", "100%");
-                $("#scanHint").textContent = "Echte Flaeche erkannt. Du kannst das Zimmer jetzt benutzen.";
-                $("#arStatus").textContent = "Flaeche erkannt. Tippe in der AR-Ansicht auf Zurueck, wenn du fertig bist.";
-              }
-            }
-
-            session.requestAnimationFrame(onFrame);
-          });
-        } catch (error) {
-          $("#arStatus").textContent = "AR konnte nicht starten. Pruefe Chrome, HTTPS und AR-Dienste auf dem Handy.";
-          if (xrSession) {
-            xrSession.end();
-          }
-        }
-      }
-
-      async function startScan() {
+      async function openCameraForPhoto() {
         var hasCamera = await requestCamera();
         if (!hasCamera) return;
-
-        scanProgress = 0;
-        $("#finishScan").disabled = true;
-        $("#startScan").disabled = true;
-        $("#scanHint").textContent =
-          scanMode === "room"
-            ? "Langsam umsehen. Boden und Waende werden markiert."
-            : "Einmal um das Objekt herumgehen. Halte es im Rahmen.";
-
-        clearInterval(scanTimer);
-        scanTimer = setInterval(function () {
-          scanProgress += scanMode === "room" ? 12 : 9;
-          if (scanProgress >= 100) {
-            scanProgress = 100;
-            clearInterval(scanTimer);
-            $("#finishScan").disabled = false;
-            $("#startScan").disabled = false;
-            $("#scanHint").textContent = scanMode === "room" ? "Zimmer erkannt." : "Objekt erkannt.";
-            if (scanMode === "object") makeDraft();
-          }
-          $("#progressBar").style.setProperty("--progress", scanProgress + "%");
-        }, 320);
+        $("#takePhoto").disabled = false;
+        $("#photoHint").textContent = "Richte das Item im Bild aus und tippe auf Foto machen.";
       }
 
-      function finishScan() {
-        if (scanMode === "room") {
-          roomScanned = true;
-          save();
-          show("room");
-          return;
-        }
-        if (!draft) makeDraft();
+      function takeItemPhoto() {
+        makeDraft();
+        $("#photoHint").textContent = "Foto aufgenommen. Pruefe den Namen und platziere das Item im Zimmer.";
         $("#previewCard").classList.remove("hidden");
       }
 
@@ -1181,19 +1001,11 @@
         show("room");
       }
 
-      function setMode(mode) {
-        scanMode = mode;
-        scanProgress = 0;
-        $("#progressBar").style.setProperty("--progress", "0%");
-        $("#finishScan").disabled = true;
-        $("#modeRoom").classList.toggle("ink", mode === "room");
-        $("#modeObject").classList.toggle("ink", mode === "object");
-        $("#scanTitle").textContent = mode === "room" ? "Zimmer scannen" : "Objekt scannen";
-        $("#scanHint").textContent =
-          mode === "room"
-            ? "Bewege dich langsam im Zimmer und halte die Kamera ruhig."
-            : "Gehe einmal um das Objekt herum.";
-        $("#arPanel").classList.toggle("hidden", mode !== "room");
+      function showPhotoView() {
+        $("#previewCard").classList.add("hidden");
+        $("#takePhoto").disabled = true;
+        $("#photoHint").textContent = "Mach ein Foto, gib dem Item einen Namen und platziere es danach im Zimmer.";
+        show("photo");
       }
 
       function renderRoom() {
@@ -1205,11 +1017,9 @@
           return '<button class="obj ' + item.model + selected + '" data-id="' + item.id + '" aria-label="' + escapeHtml(item.name) + ' verschieben" style="--x:' + item.x + '%;--y:' + item.y + '%;--w:' + width + 'px;--h:' + height + 'px;--r:' + item.rotation + 'deg;--c:' + colors[item.model] + '"></button>';
         }).join("");
         if (selectedItemId && !selectedItem()) selectedItemId = items[0] ? items[0].id : null;
-        $("#roomEmpty").classList.toggle("hidden", roomScanned && items.length > 0);
-        if (!roomScanned && items.length === 0) {
-          $("#roomEmpty").innerHTML = '<strong>Zimmer noch nicht gescannt.</strong><span class="small">Tippe auf Zimmer scannen. Danach kannst du Objekte scannen und platzieren.</span>';
-        } else if (items.length === 0) {
-          $("#roomEmpty").innerHTML = '<strong>Zimmer ist bereit.</strong><span class="small">Scanne ein Objekt und platziere es hier.</span>';
+        $("#roomEmpty").classList.toggle("hidden", items.length > 0);
+        if (items.length === 0) {
+          $("#roomEmpty").innerHTML = '<strong>Zimmer ist leer.</strong><span class="small">Fotografiere ein Item und platziere es hier.</span>';
         }
         renderSelectedItem();
       }
@@ -1224,7 +1034,7 @@
               var photo = item.photo ? '<img alt="" src="' + item.photo + '">' : escapeHtml(shortName(item.name));
               return '<article class="item"><div class="thumb">' + photo + '</div><div><h3>' + escapeHtml(item.name) + '</h3><p>' + escapeHtml(item.category) + ' · ' + modelLabel(item.model) + '</p></div><button class="danger" data-delete="' + item.id + '">Weg</button></article>';
             }).join("")
-          : '<div class="card"><h2>Noch leer</h2><p class="small">Scanne ein Objekt. Danach erscheint es hier.</p></div>';
+          : '<div class="card"><h2>Noch leer</h2><p class="small">Fotografiere ein Item. Danach erscheint es hier.</p></div>';
       }
 
       function render() {
@@ -1255,23 +1065,10 @@
           show(button.dataset.view);
         });
       });
-      $("#scanRoomFromRoom").addEventListener("click", function () {
-        setMode("room");
-        show("scan");
-      });
-      $("#scanObjectFromRoom").addEventListener("click", function () {
-        setMode("object");
-        show("scan");
-      });
-      $("#scanObjectFromItems").addEventListener("click", function () {
-        setMode("object");
-        show("scan");
-      });
-      $("#modeRoom").addEventListener("click", function () { setMode("room"); });
-      $("#modeObject").addEventListener("click", function () { setMode("object"); });
-      $("#startScan").addEventListener("click", startScan);
-      $("#startArScan").addEventListener("click", startArScan);
-      $("#finishScan").addEventListener("click", finishScan);
+      $("#addItemFromRoom").addEventListener("click", showPhotoView);
+      $("#addItemFromItems").addEventListener("click", showPhotoView);
+      $("#openCamera").addEventListener("click", openCameraForPhoto);
+      $("#takePhoto").addEventListener("click", takeItemPhoto);
       $("#saveItem").addEventListener("click", saveDraft);
       $("#search").addEventListener("input", renderItems);
       $$(".move-pad button").forEach(function (button) {
@@ -1401,8 +1198,6 @@
       });
 
       updateRoomCamera();
-      setMode("room");
-      checkArSupport();
       show("room");
 
       if ("serviceWorker" in navigator) {

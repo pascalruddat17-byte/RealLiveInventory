@@ -606,6 +606,18 @@
           radial-gradient(circle at 50% 18%, rgba(255, 200, 61, 0.28), transparent 42%),
           linear-gradient(180deg, #ffffff 0%, #fff7dc 100%);
         box-shadow: 0 14px 28px rgba(255, 200, 61, 0.18);
+        cursor: grab;
+      }
+
+      .pedestal:active {
+        cursor: grabbing;
+      }
+
+      .pedestal.drag-over,
+      .museum-add.drag-over {
+        border-color: var(--gold);
+        outline: 3px dashed var(--gold);
+        outline-offset: 2px;
       }
 
       .pedestal .slot {
@@ -630,6 +642,7 @@
         background: var(--surface-2);
         color: var(--muted);
         font-weight: 850;
+        cursor: pointer;
       }
 
       .museum-add strong {
@@ -1159,6 +1172,7 @@
       let currentPhoto = "";
       let photoJob = 0;
       let categoryImageId = null;
+      let draggedMuseumSlot = null;
       let settings = loadSettings();
       const defaultUserName = `User ${getUserNumber()}`;
 
@@ -1393,7 +1407,7 @@
           const art = item.photo
             ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
             : `<span class="slot-icon">${item.icon || "IT"}</span>`;
-          return `<button class="pedestal" type="button" data-item="${item.id}" data-museum-slot="${index}"><span class="slot museum-slot">${art}</span><div class="pedestal-name">${escapeHtml(item.name)}</div></button>`;
+          return `<div class="pedestal" role="button" tabindex="0" draggable="true" data-item="${item.id}" data-museum-slot="${index}"><span class="slot museum-slot">${art}</span><div class="pedestal-name">${escapeHtml(item.name)}</div></div>`;
         }).join("");
         museumEmpty.classList.add("hidden");
       }
@@ -1697,6 +1711,37 @@
 
       document.querySelector("#customizeButton").addEventListener("click", () => showScreen("customize"));
       document.querySelector("#closeMuseumPickerButton").addEventListener("click", () => museumPicker.close());
+      museumGrid.addEventListener("dragstart", (event) => {
+        const source = event.target.closest("[data-museum-slot]");
+        if (!source || museumSlots[Number(source.dataset.museumSlot)] === null) return;
+        draggedMuseumSlot = Number(source.dataset.museumSlot);
+        source.classList.add("dragging");
+        event.dataTransfer?.setData("text/plain", String(draggedMuseumSlot));
+        if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+      });
+      museumGrid.addEventListener("dragover", (event) => {
+        const target = event.target.closest("[data-museum-slot]");
+        if (!target || draggedMuseumSlot === null) return;
+        event.preventDefault();
+        target.classList.add("drag-over");
+      });
+      museumGrid.addEventListener("dragleave", (event) => {
+        event.target.closest("[data-museum-slot]")?.classList.remove("drag-over");
+      });
+      museumGrid.addEventListener("drop", (event) => {
+        const target = event.target.closest("[data-museum-slot]");
+        if (!target || draggedMuseumSlot === null) return;
+        event.preventDefault();
+        const targetIndex = Number(target.dataset.museumSlot);
+        [museumSlots[draggedMuseumSlot], museumSlots[targetIndex]] = [museumSlots[targetIndex], museumSlots[draggedMuseumSlot]];
+        saveMuseumSlots();
+        draggedMuseumSlot = null;
+        renderMuseum();
+      });
+      museumGrid.addEventListener("dragend", () => {
+        draggedMuseumSlot = null;
+        museumGrid.querySelectorAll(".drag-over, .dragging").forEach((element) => element.classList.remove("drag-over", "dragging"));
+      });
       document.querySelector("#searchInput").addEventListener("input", (event) => {
         searchTerm = event.target.value.trim().toLocaleLowerCase();
         renderSearch();

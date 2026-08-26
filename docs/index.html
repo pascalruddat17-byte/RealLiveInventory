@@ -345,6 +345,12 @@
         filter: drop-shadow(0 0.8rem 1rem rgba(36, 107, 254, 0.28));
       }
 
+      .obj.selected {
+        outline: 3px solid rgba(15, 143, 98, 0.88);
+        outline-offset: 0.35rem;
+        filter: drop-shadow(0 0 1rem rgba(15, 143, 98, 0.32));
+      }
+
       .obj.sphere {
         border-radius: 999px;
         background:
@@ -380,14 +386,89 @@
         flex: 1 1 9rem;
       }
 
+      .object-tools {
+        position: absolute;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 4;
+        display: grid;
+        width: min(12rem, calc(100% - 2rem));
+        gap: 0.55rem;
+        pointer-events: none;
+      }
+
+      .object-info,
+      .move-pad {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .object-info {
+        border-radius: 1rem;
+        padding: 0.72rem;
+      }
+
+      .object-info h2 {
+        margin: 0;
+        font-size: 0.94rem;
+      }
+
+      .object-info p {
+        margin: 0.24rem 0 0;
+      }
+
+      .move-pad {
+        display: grid;
+        grid-template-columns: repeat(3, 2.65rem);
+        grid-template-rows: repeat(3, 2.65rem);
+        place-content: center;
+        gap: 0.32rem;
+        border-radius: 1.05rem;
+        padding: 0.48rem;
+        pointer-events: auto;
+      }
+
+      .move-pad button {
+        min-height: 2.65rem;
+        border-radius: 0.78rem;
+        padding: 0;
+        font-size: 1.15rem;
+      }
+
+      .move-pad .up {
+        grid-column: 2;
+      }
+
+      .move-pad .left {
+        grid-column: 1;
+        grid-row: 2;
+      }
+
+      .move-pad .reset {
+        grid-column: 2;
+        grid-row: 2;
+        font-size: 0.78rem;
+      }
+
+      .move-pad .right {
+        grid-column: 3;
+        grid-row: 2;
+      }
+
+      .move-pad .down {
+        grid-column: 2;
+        grid-row: 3;
+      }
+
       .touch-hint {
         position: absolute;
-        left: 50%;
+        left: 1rem;
         bottom: 1.1rem;
-        translate: -50% 0;
         z-index: 3;
         width: max-content;
-        max-width: calc(100% - 2rem);
+        max-width: calc(100% - 14rem);
         border: 1px solid var(--line);
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.86);
@@ -643,6 +724,16 @@
               <strong>Dein Zimmer ist leer.</strong>
               <span class="small">Scanne erst dein Zimmer und danach ein Objekt.</span>
             </div>
+            <div class="object-tools hidden" id="objectTools">
+              <div class="object-info" id="objectInfo"></div>
+              <div class="move-pad" aria-label="Gegenstand verschieben">
+                <button class="up" data-move="up" aria-label="Nach vorne">↑</button>
+                <button class="left" data-move="left" aria-label="Nach links">←</button>
+                <button class="reset" data-move="center" aria-label="In die Mitte">Mitte</button>
+                <button class="right" data-move="right" aria-label="Nach rechts">→</button>
+                <button class="down" data-move="down" aria-label="Nach hinten">↓</button>
+              </div>
+            </div>
             <div class="touch-hint">Wischen zum Bewegen, zwei Finger zum Zoomen</div>
           </div>
         </section>
@@ -748,6 +839,7 @@
         zoom: 108,
         y: 18
       });
+      var selectedItemId = items[0] ? items[0].id : null;
       var dragStart = null;
       var itemDrag = null;
       var activeTouches = new Map();
@@ -835,6 +927,41 @@
           element.style.setProperty("--x", item.x + "%");
           element.style.setProperty("--y", item.y + "%");
         }
+      }
+
+      function selectedItem() {
+        return items.find(function (item) { return item.id === selectedItemId; }) || null;
+      }
+
+      function moveSelectedItem(direction) {
+        var item = selectedItem();
+        if (!item) return;
+        var step = 4;
+        if (direction === "left") item.x -= step;
+        if (direction === "right") item.x += step;
+        if (direction === "up") item.y -= step;
+        if (direction === "down") item.y += step;
+        if (direction === "center") {
+          item.x = 50;
+          item.y = 56;
+        }
+        item.x = clamp(item.x, 8, 92);
+        item.y = clamp(item.y, 10, 90);
+        save();
+        renderRoom();
+        renderSelectedItem();
+      }
+
+      function renderSelectedItem() {
+        var item = selectedItem();
+        $("#objectTools").classList.toggle("hidden", !item);
+        if (!item) {
+          $("#objectInfo").innerHTML = "";
+          return;
+        }
+        $("#objectInfo").innerHTML =
+          "<h2>" + escapeHtml(item.name) + "</h2>" +
+          '<p class="small">' + escapeHtml(item.category || "Unsortiert") + " · " + modelLabel(item.model) + "</p>";
       }
 
       function resetRoomCamera() {
@@ -1047,6 +1174,7 @@
         draft.x = 46 + Math.round(Math.random() * 12);
         draft.y = 48 + Math.round(Math.random() * 18);
         items.unshift(draft);
+        selectedItemId = draft.id;
         draft = null;
         save();
         $("#previewCard").classList.add("hidden");
@@ -1073,14 +1201,17 @@
         room.innerHTML = items.map(function (item) {
           var width = Math.max(44, item.scale * (item.model === "cylinder" ? 0.85 : 0.68));
           var height = Math.max(32, item.scale * (item.model === "cylinder" ? 0.34 : 0.5));
-          return '<button class="obj ' + item.model + '" data-id="' + item.id + '" aria-label="' + escapeHtml(item.name) + ' verschieben" style="--x:' + item.x + '%;--y:' + item.y + '%;--w:' + width + 'px;--h:' + height + 'px;--r:' + item.rotation + 'deg;--c:' + colors[item.model] + '"></button>';
+          var selected = item.id === selectedItemId ? " selected" : "";
+          return '<button class="obj ' + item.model + selected + '" data-id="' + item.id + '" aria-label="' + escapeHtml(item.name) + ' verschieben" style="--x:' + item.x + '%;--y:' + item.y + '%;--w:' + width + 'px;--h:' + height + 'px;--r:' + item.rotation + 'deg;--c:' + colors[item.model] + '"></button>';
         }).join("");
+        if (selectedItemId && !selectedItem()) selectedItemId = items[0] ? items[0].id : null;
         $("#roomEmpty").classList.toggle("hidden", roomScanned && items.length > 0);
         if (!roomScanned && items.length === 0) {
           $("#roomEmpty").innerHTML = '<strong>Zimmer noch nicht gescannt.</strong><span class="small">Tippe auf Zimmer scannen. Danach kannst du Objekte scannen und platzieren.</span>';
         } else if (items.length === 0) {
           $("#roomEmpty").innerHTML = '<strong>Zimmer ist bereit.</strong><span class="small">Scanne ein Objekt und platziere es hier.</span>';
         }
+        renderSelectedItem();
       }
 
       function renderItems() {
@@ -1143,6 +1274,11 @@
       $("#finishScan").addEventListener("click", finishScan);
       $("#saveItem").addEventListener("click", saveDraft);
       $("#search").addEventListener("input", renderItems);
+      $$(".move-pad button").forEach(function (button) {
+        button.addEventListener("click", function () {
+          moveSelectedItem(button.dataset.move);
+        });
+      });
       $("#room").addEventListener("wheel", function (event) {
         event.preventDefault();
         moveRoom(0, 0, event.deltaY > 0 ? -8 : 8, 0);
@@ -1154,6 +1290,11 @@
         event.stopPropagation();
         var stage = $("#roomObjects").getBoundingClientRect();
         var item = items.find(function (entry) { return entry.id === objectButton.dataset.id; });
+        selectedItemId = objectButton.dataset.id;
+        document.querySelectorAll(".obj").forEach(function (element) {
+          element.classList.toggle("selected", element.dataset.id === selectedItemId);
+        });
+        renderSelectedItem();
         itemDrag = {
           id: objectButton.dataset.id,
           offsetX: item ? event.clientX - stage.left - (item.x / 100) * stage.width : 0,
@@ -1178,6 +1319,7 @@
         });
         itemDrag = null;
         save();
+        renderRoom();
         renderItems();
       });
       $("#roomObjects").addEventListener("pointercancel", function () {
@@ -1188,6 +1330,7 @@
         save();
       });
       $("#room").addEventListener("pointerdown", function (event) {
+        if (event.target.closest(".object-tools button")) return;
         if (event.target.closest("button") || itemDrag) return;
         var now = Date.now();
         if (activeTouches.size === 0 && now - lastRoomTap < 280) {
@@ -1251,6 +1394,7 @@
         var deleteButton = event.target.closest("[data-delete]");
         if (deleteButton) {
           items = items.filter(function (item) { return item.id !== deleteButton.dataset.delete; });
+          if (selectedItemId === deleteButton.dataset.delete) selectedItemId = items[0] ? items[0].id : null;
           save();
           render();
         }

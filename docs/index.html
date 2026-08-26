@@ -28,7 +28,7 @@
         --muted: #646464;
         --pack: #d6ad91;
         --shadow: 0 14px 28px rgba(0, 0, 0, 0.1);
-        --slot-size: 76px;
+        --slot-size: 62px;
       }
 
       * {
@@ -341,19 +341,6 @@
         font-weight: 850;
       }
 
-      body[data-slot-style="arcade"] .slot {
-        border-width: 2px;
-        border-radius: 12px;
-        box-shadow:
-          inset 0 -5px 0 rgba(14, 36, 64, 0.08),
-          inset 0 0 0 2px white;
-      }
-
-      body[data-slot-style="clean"] .slot {
-        border-radius: 10px;
-        box-shadow: none;
-      }
-
       .slot.selected {
         border-color: var(--gold);
         box-shadow:
@@ -577,9 +564,9 @@
         height: 22px;
       }
 
-      .swatches {
+      .palette-grid {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
       }
 
@@ -607,20 +594,27 @@
         object-fit: contain;
       }
 
-      .swatch {
-        min-height: 46px;
-        border: 3px solid white;
-        border-radius: 12px;
-        box-shadow: 0 8px 14px rgba(14, 36, 64, 0.12);
-      }
-
-      .swatch.active {
-        outline: 3px solid var(--ink);
-      }
-
-      .range-row {
+      .palette-control {
         display: grid;
-        gap: 8px;
+        grid-template-columns: 1fr auto;
+        gap: 6px;
+        align-items: center;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface-2);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .palette-control input[type="color"] {
+        width: 34px;
+        height: 28px;
+        padding: 2px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--surface);
       }
 
       input[type="range"] {
@@ -830,16 +824,7 @@
             </div>
           </div>
           <input id="profilePhotoInput" type="file" accept="image/*" class="hidden" />
-          <div class="swatches" id="swatches"></div>
-          <label class="range-row">
-            <strong>Slot Groesse</strong>
-            <input id="slotSizeInput" type="range" min="62" max="96" value="78" />
-          </label>
-          <select id="slotStyleInput" aria-label="Slot Style">
-            <option value="soft">Soft</option>
-            <option value="arcade">Arcade</option>
-            <option value="clean">Clean</option>
-          </select>
+          <div class="palette-grid" id="paletteGrid"></div>
         </div>
       </section>
 
@@ -857,7 +842,7 @@
 
     <script>
       const STORAGE_KEY = "reallife-game-inventory-v4";
-      const STYLE_KEY = "reallife-game-style-v1";
+      const STYLE_KEY = "reallife-game-style-v2";
       const DEFAULT_PROFILE_IMAGE = "./profile-default.png";
       const categories = [
         { id: "all", label: "Alle", icon: "ALL" },
@@ -868,13 +853,11 @@
         { id: "collect", label: "Sammeln", icon: "TC" },
         { id: "other", label: "Anderes", icon: "ET" }
       ];
-      const colors = [
-        { name: "Graphit", value: "#303030", dark: "#111111", cyan: "#8f8f8f" },
-        { name: "Schwarz", value: "#111111", dark: "#000000", cyan: "#666666" },
-        { name: "Rucksack", value: "#9f755f", dark: "#5b4035", cyan: "#d6ad91" },
-        { name: "Silber", value: "#777777", dark: "#333333", cyan: "#cfcfcf" },
-        { name: "Hell", value: "#f4f4f4", dark: "#303030", cyan: "#ffffff" }
-      ];
+      const DEFAULT_PALETTE = {
+        blue: "#303030", blueDark: "#111111", cyan: "#8f8f8f", gold: "#f39a2b",
+        bg: "#eeeeee", surface: "#ffffff", surface2: "#f6f6f6", slot: "#fafafa",
+        line: "#d2d2d2", ink: "#111111", muted: "#646464", pack: "#d6ad91"
+      };
       let items = loadItems();
       let selectedId = null;
       let editingId = null;
@@ -930,12 +913,11 @@
         const fallback = {
           nickname: "",
           profilePhoto: DEFAULT_PROFILE_IMAGE,
-          color: "#303030",
-          slotSize: 78,
-          slotStyle: "soft"
+          palette: { ...DEFAULT_PALETTE }
         };
         try {
-          const saved = { ...fallback, ...(JSON.parse(localStorage.getItem(STYLE_KEY)) || {}) };
+          const raw = JSON.parse(localStorage.getItem(STYLE_KEY)) || {};
+          const saved = { ...fallback, ...raw, palette: { ...DEFAULT_PALETTE, ...(raw.palette || {}) } };
           if (!saved.profilePhoto) saved.profilePhoto = DEFAULT_PROFILE_IMAGE;
           return saved;
         } catch {
@@ -952,19 +934,20 @@
       }
 
       function applySettings() {
-        const color = colors.find((entry) => entry.value === settings.color) || colors[0];
-        document.documentElement.style.setProperty("--blue", color.value);
-        document.documentElement.style.setProperty("--blue-dark", color.dark);
-        document.documentElement.style.setProperty("--cyan", color.cyan);
-        document.documentElement.style.setProperty("--slot-size", `${settings.slotSize}px`);
+        const cssVariables = {
+          blue: "--blue", blueDark: "--blue-dark", cyan: "--cyan", gold: "--gold", bg: "--bg",
+          surface: "--surface", surface2: "--surface-2", slot: "--slot", line: "--line",
+          ink: "--ink", muted: "--muted", pack: "--pack"
+        };
+        Object.entries(cssVariables).forEach(([key, variable]) => {
+          document.documentElement.style.setProperty(variable, settings.palette[key]);
+        });
+        document.documentElement.style.setProperty("--slot-size", "62px");
         document.querySelector("#profileNameText").textContent = settings.nickname || "RealLife";
         document.querySelector("#avatarImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
         document.querySelector("#profilePreviewImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
         document.querySelector("#nicknameInput").value = settings.nickname;
-        document.querySelector("#slotSizeInput").value = settings.slotSize;
-        document.querySelector("#slotStyleInput").value = settings.slotStyle;
-        document.body.dataset.slotStyle = settings.slotStyle;
-        renderSwatches();
+        renderPalette();
       }
 
       function categoryName(id) {
@@ -1029,17 +1012,14 @@
         museumEmpty.classList.toggle("hidden", favorites.length !== 0);
       }
 
-      function renderSwatches() {
-        document.querySelector("#swatches").innerHTML = colors
-          .map((color) => `
-            <button
-              class="swatch ${settings.color === color.value ? "active" : ""}"
-              type="button"
-              data-color="${color.value}"
-              title="${color.name}"
-              style="background: linear-gradient(135deg, ${color.value}, ${color.cyan})"
-            ></button>
-          `)
+      function renderPalette() {
+        const labels = {
+          blue: "Hauptfarbe", blueDark: "Dunkel", cyan: "Akzent", gold: "Highlight",
+          bg: "Hintergrund", surface: "Panel", surface2: "Felder", slot: "Slots",
+          line: "Linien", ink: "Text", muted: "Neben-Text", pack: "Item-Akzent"
+        };
+        document.querySelector("#paletteGrid").innerHTML = Object.entries(labels)
+          .map(([key, label]) => `<label class="palette-control"><span>${label}</span><input type="color" value="${settings.palette[key]}" data-palette="${key}" aria-label="${label}" /></label>`)
           .join("");
       }
 
@@ -1186,12 +1166,6 @@
           return;
         }
 
-        const color = event.target.closest("[data-color]");
-        if (color) {
-          settings.color = color.dataset.color;
-          saveSettings();
-          applySettings();
-        }
       });
 
       document.querySelector("#customizeButton").addEventListener("click", () => showScreen("customize"));
@@ -1215,13 +1189,10 @@
         saveSettings();
         renderAll();
       });
-      document.querySelector("#slotSizeInput").addEventListener("input", (event) => {
-        settings.slotSize = Number(event.target.value);
-        saveSettings();
-        applySettings();
-      });
-      document.querySelector("#slotStyleInput").addEventListener("change", (event) => {
-        settings.slotStyle = event.target.value;
+      document.querySelector("#paletteGrid").addEventListener("input", (event) => {
+        const input = event.target.closest("[data-palette]");
+        if (!input) return;
+        settings.palette[input.dataset.palette] = input.value;
         saveSettings();
         applySettings();
       });

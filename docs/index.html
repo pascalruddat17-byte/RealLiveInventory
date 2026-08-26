@@ -811,9 +811,6 @@
             <button class="tab-pill active" type="button">
               <span>CFG</span><span>Anpassen</span>
             </button>
-            <button class="tab-pill" id="addDemoButton" type="button">
-              <span>SET</span><span>Demo</span>
-            </button>
           </div>
           <div class="profile-editor">
             <button class="profile-preview" id="profilePhotoButton" type="button" title="Profilbild hochladen">
@@ -848,7 +845,7 @@
     </nav>
 
     <script>
-      const STORAGE_KEY = "reallife-game-inventory-v3";
+      const STORAGE_KEY = "reallife-game-inventory-v4";
       const STYLE_KEY = "reallife-game-style-v1";
       const DEFAULT_PROFILE_IMAGE = "./profile-default.png";
       const categories = [
@@ -867,15 +864,6 @@
         { name: "Rot", value: "#ed4f62", dark: "#b92739", cyan: "#ff8a96" },
         { name: "Schwarz", value: "#1d2a3a", dark: "#0b1320", cyan: "#6da9ff" }
       ];
-      const demoItems = [
-        itemSeed("Skateboard", "fun", "SK", "Selten", "Mein Board fuer draussen.", true),
-        itemSeed("Controller", "tech", "CT", "Cool", "Lieblingscontroller.", false),
-        itemSeed("Hoodie", "lifestyle", "HD", "Normal", "Blauer Hoodie.", true),
-        itemSeed("Trading Card", "collect", "TC", "Ultra", "Glitzerkarte.", true),
-        itemSeed("Notizbuch", "school", "NB", "Normal", "Schule und Ideen.", false),
-        itemSeed("Sneaker", "lifestyle", "SN", "Cool", "Saubere Schuhe.", false)
-      ];
-
       let items = loadItems();
       let selectedId = null;
       let editingId = null;
@@ -1274,17 +1262,6 @@
         selectedId = formItem.id;
         resetItemForm();
         selectedId = formItem.id;
-        renderAll();
-        showScreen("inventory");
-      });
-
-      document.querySelector("#addDemoButton").addEventListener("click", () => {
-        items = demoItems.map((item) => ({
-          ...item,
-          id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())
-        }));
-        saveItems();
-        selectedId = items[0]?.id || null;
         renderAll();
         showScreen("inventory");
       });

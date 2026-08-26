@@ -339,6 +339,20 @@
         grid-template-columns: 1fr;
       }
 
+      .inventory-tabs {
+        position: fixed;
+        right: 50%;
+        bottom: 78px;
+        z-index: 9;
+        width: min(360px, calc(100% - 24px));
+        padding: 5px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+        transform: translateX(50%);
+      }
+
       .tab-pill {
         display: grid;
         grid-template-columns: auto 1fr;
@@ -1020,7 +1034,7 @@
         }
 
         .showcase {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
     </style>
@@ -1041,13 +1055,12 @@
       <section class="screen active" id="inventoryScreen">
         <div class="panel toolbar">
           <div class="toolbar-head">
-            <strong>Sammlung</strong>
+            <strong>Inventar</strong>
             <div>
-              <button class="icon-btn" id="customizeButton" type="button" title="Anpassen">⚙</button>
+              <button class="icon-btn" id="customizeButton" type="button" title="Kategorien bearbeiten">⚙</button>
             </div>
           </div>
           <div class="category-row" id="categoryRow"></div>
-          <button class="secondary" id="addCategoryButton" type="button">+ Kategorie</button>
           <button class="secondary" id="manageCategoriesButton" type="button">Kategorien bearbeiten</button>
           <input id="categoryImageInput" type="file" accept="image/*" class="hidden" />
           <div class="tabs inventory-tabs" id="inventoryViewTabs">
@@ -1057,11 +1070,6 @@
         </div>
 
         <div class="panel inventory-shell subview-panel" id="inventoryPanel">
-          <div class="tabs single">
-            <button class="tab-pill active" type="button">
-              <span>INV</span><span>Meine Sachen</span>
-            </button>
-          </div>
           <div class="grid" id="itemGrid"></div>
           <div class="empty-note hidden" id="emptyNote">
             <strong>EMPTY</strong>
@@ -1071,11 +1079,6 @@
         </div>
 
         <div class="panel museum-stage subview-panel hidden" id="museumPanel">
-          <div class="tabs">
-            <button class="tab-pill active" type="button">
-              <span>MUS</span><span>Museum</span>
-            </button>
-          </div>
           <div class="showcase" id="museumGrid"></div>
           <div class="empty-note hidden" id="museumEmpty">
             <strong>MUSEUM</strong>
@@ -1151,7 +1154,10 @@
       <dialog class="category-manager" id="categoryManager">
         <div class="category-manager-head">
           <strong>Kategorien</strong>
-          <button class="icon-btn" id="closeCategoryManagerButton" type="button" title="Schliessen">×</button>
+          <div>
+            <button class="secondary" id="addCategoryButton" type="button">+ Kategorie</button>
+            <button class="icon-btn" id="closeCategoryManagerButton" type="button" title="Schliessen">×</button>
+          </div>
         </div>
         <div class="category-manager-list" id="categoryManagerList"></div>
       </dialog>
@@ -1782,7 +1788,10 @@
 
       });
 
-      document.querySelector("#customizeButton").addEventListener("click", () => showScreen("customize"));
+      document.querySelector("#customizeButton").addEventListener("click", () => {
+        renderCategoryManager();
+        categoryManager.showModal();
+      });
       document.querySelector("#closeMuseumPickerButton").addEventListener("click", () => museumPicker.close());
       museumGrid.addEventListener("dragstart", (event) => {
         const source = event.target.closest("[data-museum-slot]");
@@ -1872,11 +1881,8 @@
         categories.push(custom);
         saveCustomCategories();
         renderCategories();
+        if (categoryManager.open) renderCategoryManager();
         categoryInput.value = id;
-      });
-      document.querySelector("#manageCategoriesButton").addEventListener("click", () => {
-        renderCategoryManager();
-        categoryManager.showModal();
       });
       document.querySelector("#closeCategoryManagerButton").addEventListener("click", () => categoryManager.close());
       categoryManagerList.addEventListener("change", (event) => {

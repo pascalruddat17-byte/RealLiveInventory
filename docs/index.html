@@ -218,6 +218,10 @@
         transform-style: preserve-3d;
       }
 
+      .room-world.moving {
+        transition: none;
+      }
+
       .wall {
         position: absolute;
         border: 1px solid rgba(36, 107, 254, 0.14);
@@ -743,6 +747,7 @@
       var dragStart = null;
       var itemDrag = null;
       var activeTouches = new Map();
+      var lastRoomTap = 0;
 
       var colors = {
         cube: "#246bfe",
@@ -774,16 +779,16 @@
         localStorage.setItem("ri-room-camera-v2", JSON.stringify(roomCamera));
       }
 
-      function updateRoomCamera() {
+      function updateRoomCamera(shouldSave) {
         roomCamera.yaw = clamp(roomCamera.yaw, -58, 58);
-        roomCamera.pitch = clamp(roomCamera.pitch, -58, 24);
-        roomCamera.zoom = clamp(roomCamera.zoom, 70, 170);
-        roomCamera.y = clamp(roomCamera.y, -48, 48);
+        roomCamera.pitch = clamp(roomCamera.pitch, -64, -12);
+        roomCamera.zoom = clamp(roomCamera.zoom, 78, 178);
+        roomCamera.y = clamp(roomCamera.y, -36, 44);
         $("#roomWorld").style.setProperty("--yaw", roomCamera.yaw + "deg");
         $("#roomWorld").style.setProperty("--pitch", roomCamera.pitch + "deg");
         $("#roomWorld").style.setProperty("--zoom", roomCamera.zoom / 100);
         $("#roomWorld").style.setProperty("--cam-y", roomCamera.y + "px");
-        save();
+        if (shouldSave) save();
       }
 
       function clamp(value, min, max) {
@@ -795,7 +800,7 @@
         roomCamera.pitch += deltaPitch;
         roomCamera.zoom += deltaZoom;
         roomCamera.y += deltaY;
-        updateRoomCamera();
+        updateRoomCamera(true);
       }
 
       function distance(first, second) {
@@ -812,13 +817,23 @@
         var stage = $("#roomObjects").getBoundingClientRect();
         var item = items.find(function (entry) { return entry.id === itemId; });
         if (!item || !stage.width || !stage.height) return;
-        item.x = clamp(((clientX - stage.left) / stage.width) * 100, 8, 92);
-        item.y = clamp(((clientY - stage.top) / stage.height) * 100, 10, 90);
+        var offsetX = itemDrag && itemDrag.id === itemId ? itemDrag.offsetX : 0;
+        var offsetY = itemDrag && itemDrag.id === itemId ? itemDrag.offsetY : 0;
+        item.x = clamp(((clientX - stage.left - offsetX) / stage.width) * 100, 8, 92);
+        item.y = clamp(((clientY - stage.top - offsetY) / stage.height) * 100, 10, 90);
         var element = document.querySelector('[data-id="' + itemId + '"]');
         if (element) {
           element.style.setProperty("--x", item.x + "%");
           element.style.setProperty("--y", item.y + "%");
         }
+      }
+
+      function resetRoomCamera() {
+        roomCamera.yaw = -12;
+        roomCamera.pitch = -34;
+        roomCamera.zoom = 108;
+        roomCamera.y = 18;
+        updateRoomCamera(true);
       }
 
       function show(view) {
@@ -1128,16 +1143,22 @@
         if (!objectButton) return;
         event.preventDefault();
         event.stopPropagation();
-        itemDrag = objectButton.dataset.id;
+        var stage = $("#roomObjects").getBoundingClientRect();
+        var item = items.find(function (entry) { return entry.id === objectButton.dataset.id; });
+        itemDrag = {
+          id: objectButton.dataset.id,
+          offsetX: item ? event.clientX - stage.left - (item.x / 100) * stage.width : 0,
+          offsetY: item ? event.clientY - stage.top - (item.y / 100) * stage.height : 0
+        };
         objectButton.classList.add("dragging");
         objectButton.setPointerCapture(event.pointerId);
-        updateItemFromPointer(itemDrag, event.clientX, event.clientY);
+        updateItemFromPointer(itemDrag.id, event.clientX, event.clientY);
       });
       $("#roomObjects").addEventListener("pointermove", function (event) {
         if (!itemDrag) return;
         event.preventDefault();
         event.stopPropagation();
-        updateItemFromPointer(itemDrag, event.clientX, event.clientY);
+        updateItemFromPointer(itemDrag.id, event.clientX, event.clientY);
       });
       $("#roomObjects").addEventListener("pointerup", function (event) {
         if (!itemDrag) return;
@@ -1159,6 +1180,13 @@
       });
       $("#room").addEventListener("pointerdown", function (event) {
         if (event.target.closest("button") || itemDrag) return;
+        var now = Date.now();
+        if (activeTouches.size === 0 && now - lastRoomTap < 280) {
+          resetRoomCamera();
+          lastRoomTap = 0;
+          return;
+        }
+        lastRoomTap = now;
         activeTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
         var touches = getTouches();
         if (touches.length === 1) {
@@ -1170,6 +1198,7 @@
             pitch: roomCamera.pitch,
             camY: roomCamera.y
           };
+          $("#roomWorld").classList.add("moving");
         }
         if (touches.length === 2) {
           dragStart = {
@@ -1177,6 +1206,7 @@
             distance: distance(touches[0], touches[1]),
             zoom: roomCamera.zoom
           };
+          $("#roomWorld").classList.add("moving");
         }
         $("#room").setPointerCapture(event.pointerId);
       });
@@ -1186,23 +1216,27 @@
         if (!dragStart) return;
         var touches = getTouches();
         if (dragStart.mode === "zoom" && touches.length >= 2) {
-          roomCamera.zoom = dragStart.zoom + (distance(touches[0], touches[1]) - dragStart.distance) * 0.45;
+          roomCamera.zoom = dragStart.zoom + (distance(touches[0], touches[1]) - dragStart.distance) * 0.32;
           updateRoomCamera();
           return;
         }
         if (dragStart.mode !== "pan") return;
-        roomCamera.yaw = dragStart.yaw + (event.clientX - dragStart.x) * 0.18;
-        roomCamera.pitch = dragStart.pitch + (event.clientY - dragStart.y) * 0.08;
-        roomCamera.y = dragStart.camY + (event.clientY - dragStart.y) * 0.18;
+        roomCamera.yaw = dragStart.yaw + (event.clientX - dragStart.x) * 0.14;
+        roomCamera.pitch = dragStart.pitch + (event.clientY - dragStart.y) * 0.06;
+        roomCamera.y = dragStart.camY + (event.clientY - dragStart.y) * 0.12;
         updateRoomCamera();
       });
       $("#room").addEventListener("pointerup", function (event) {
         activeTouches.delete(event.pointerId);
         dragStart = null;
+        $("#roomWorld").classList.remove("moving");
+        save();
       });
       $("#room").addEventListener("pointercancel", function (event) {
         activeTouches.delete(event.pointerId);
         dragStart = null;
+        $("#roomWorld").classList.remove("moving");
+        save();
       });
       document.addEventListener("click", function (event) {
         var deleteButton = event.target.closest("[data-delete]");

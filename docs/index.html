@@ -168,6 +168,18 @@
 
       .screen.active {
         display: grid;
+        animation: screen-in 180ms ease-out both;
+      }
+
+      @keyframes screen-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .panel {
@@ -364,7 +376,24 @@
         color: var(--ink);
         text-align: left;
         transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+        animation: card-in 180ms ease-out both;
       }
+
+      @keyframes card-in {
+        from {
+          opacity: 0;
+          transform: translateY(5px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .item-card:nth-child(2) { animation-delay: 20ms; }
+      .item-card:nth-child(3) { animation-delay: 40ms; }
+      .item-card:nth-child(4) { animation-delay: 60ms; }
+      .item-card:nth-child(5) { animation-delay: 80ms; }
 
       .item-card:hover,
       .item-card.selected {
@@ -953,6 +982,17 @@
 
       .hidden {
         display: none !important;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 1ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 1ms !important;
+        }
       }
 
       @media (max-width: 390px) {

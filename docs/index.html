@@ -432,6 +432,35 @@
         transition: width 260ms ease;
       }
 
+      .ar-panel {
+        display: grid;
+        gap: 0.55rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--line);
+      }
+
+      .ar-status {
+        min-height: 2.4rem;
+        border-radius: 0.9rem;
+        background: #e7f0ff;
+        color: var(--blue);
+        font-size: 0.82rem;
+        font-weight: 850;
+        padding: 0.65rem 0.75rem;
+      }
+
+      .ar-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        display: none;
+      }
+
+      .ar-canvas.on {
+        display: block;
+      }
+
       .preview {
         display: grid;
         grid-template-columns: 5.5rem minmax(0, 1fr);
@@ -618,6 +647,10 @@
               <button class="primary" id="startScan">Scan starten</button>
               <button id="finishScan" disabled>Fertig</button>
             </div>
+            <div class="ar-panel" id="arPanel">
+              <button class="primary" id="startArScan">Echten AR-Scan starten</button>
+              <div class="ar-status" id="arStatus">Pruefe, ob dieses Handy WebXR AR kann.</div>
+            </div>
           </div>
 
           <div class="card hidden" id="previewCard">
@@ -655,6 +688,8 @@
         </section>
       </main>
 
+      <canvas class="ar-canvas" id="arCanvas"></canvas>
+
       <nav class="bottom-nav" aria-label="Navigation">
         <button class="active" data-view="room">Zimmer</button>
         <button data-view="scan">Scan</button>
@@ -673,6 +708,9 @@
       var scanProgress = 0;
       var cameraStream = null;
       var draft = null;
+      var xrSession = null;
+      var xrHitTestSource = null;
+      var xrSurfaceSeen = false;
       var roomCamera = load("ri-room-camera-v2", {
         yaw: -12,
         pitch: -34,
@@ -782,6 +820,90 @@
         }
       }
 
+      async function checkArSupport() {
+        var arButton = $("#startArScan");
+        if (!navigator.xr || !navigator.xr.isSessionSupported) {
+          arButton.disabled = true;
+          $("#arStatus").textContent = "WebXR AR ist in diesem Browser nicht verfuegbar. Versuch Chrome auf Android.";
+          return;
+        }
+        try {
+          var supported = await navigator.xr.isSessionSupported("immersive-ar");
+          arButton.disabled = !supported;
+          $("#arStatus").textContent = supported
+            ? "Echter AR-Scan ist bereit. Halte das Handy auf den Boden und starte AR."
+            : "Dieses Handy oder dieser Browser erlaubt keinen WebXR-AR-Scan.";
+        } catch (error) {
+          arButton.disabled = true;
+          $("#arStatus").textContent = "WebXR AR konnte auf diesem Handy nicht gestartet werden.";
+        }
+      }
+
+      async function startArScan() {
+        if (!navigator.xr) {
+          $("#arStatus").textContent = "WebXR AR fehlt. Nutze Chrome auf Android mit Google Play Services for AR.";
+          return;
+        }
+
+        try {
+          xrSurfaceSeen = false;
+          $("#arStatus").textContent = "AR startet. Suche langsam Boden oder Wand.";
+          xrSession = await navigator.xr.requestSession("immersive-ar", {
+            requiredFeatures: ["hit-test"],
+            optionalFeatures: ["dom-overlay"],
+            domOverlay: { root: document.body }
+          });
+
+          var canvas = $("#arCanvas");
+          var gl = canvas.getContext("webgl", { alpha: true, antialias: true, xrCompatible: true });
+          if (!gl) throw new Error("WebGL fehlt");
+          await gl.makeXRCompatible();
+          xrSession.updateRenderState({ baseLayer: new XRWebGLLayer(xrSession, gl) });
+          canvas.classList.add("on");
+
+          var viewerSpace = await xrSession.requestReferenceSpace("viewer");
+          var localSpace = await xrSession.requestReferenceSpace("local");
+          xrHitTestSource = await xrSession.requestHitTestSource({ space: viewerSpace });
+
+          xrSession.addEventListener("end", function () {
+            canvas.classList.remove("on");
+            xrSession = null;
+            xrHitTestSource = null;
+            $("#arStatus").textContent = xrSurfaceSeen
+              ? "AR-Scan fertig. Eine echte Flaeche wurde erkannt."
+              : "AR beendet, aber noch keine Flaeche erkannt.";
+          });
+
+          xrSession.requestAnimationFrame(function onFrame(time, frame) {
+            var session = frame.session;
+            var pose = frame.getViewerPose(localSpace);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer);
+            gl.clearColor(0, 0, 0, 0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            if (pose && xrHitTestSource) {
+              var hits = frame.getHitTestResults(xrHitTestSource);
+              if (hits.length > 0 && !xrSurfaceSeen) {
+                xrSurfaceSeen = true;
+                roomScanned = true;
+                save();
+                $("#finishScan").disabled = false;
+                $("#progressBar").style.setProperty("--progress", "100%");
+                $("#scanHint").textContent = "Echte Flaeche erkannt. Du kannst das Zimmer jetzt benutzen.";
+                $("#arStatus").textContent = "Flaeche erkannt. Tippe in der AR-Ansicht auf Zurueck, wenn du fertig bist.";
+              }
+            }
+
+            session.requestAnimationFrame(onFrame);
+          });
+        } catch (error) {
+          $("#arStatus").textContent = "AR konnte nicht starten. Pruefe Chrome, HTTPS und AR-Dienste auf dem Handy.";
+          if (xrSession) {
+            xrSession.end();
+          }
+        }
+      }
+
       async function startScan() {
         var hasCamera = await requestCamera();
         if (!hasCamera) return;
@@ -882,6 +1004,7 @@
           mode === "room"
             ? "Bewege dich langsam im Zimmer und halte die Kamera ruhig."
             : "Gehe einmal um das Objekt herum.";
+        $("#arPanel").classList.toggle("hidden", mode !== "room");
       }
 
       function renderRoom() {
@@ -955,6 +1078,7 @@
       $("#modeRoom").addEventListener("click", function () { setMode("room"); });
       $("#modeObject").addEventListener("click", function () { setMode("object"); });
       $("#startScan").addEventListener("click", startScan);
+      $("#startArScan").addEventListener("click", startArScan);
       $("#finishScan").addEventListener("click", finishScan);
       $("#saveItem").addEventListener("click", saveDraft);
       $("#search").addEventListener("input", renderItems);
@@ -1020,6 +1144,7 @@
 
       updateRoomCamera();
       setMode("room");
+      checkArSupport();
       show("room");
     </script>
   </body>

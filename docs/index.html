@@ -784,7 +784,7 @@
       }
 
       function updateRoomCamera(shouldSave) {
-        roomCamera.yaw = clamp(roomCamera.yaw, -58, 58);
+        roomCamera.yaw = normalizeAngle(roomCamera.yaw);
         roomCamera.pitch = clamp(roomCamera.pitch, -64, -12);
         roomCamera.zoom = clamp(roomCamera.zoom, 78, 178);
         roomCamera.y = clamp(roomCamera.y, -36, 44);
@@ -797,6 +797,11 @@
 
       function clamp(value, min, max) {
         return Math.min(max, Math.max(min, Number(value) || 0));
+      }
+
+      function normalizeAngle(value) {
+        var angle = Number(value) || 0;
+        return ((angle % 360) + 360) % 360;
       }
 
       function moveRoom(deltaYaw, deltaPitch, deltaZoom, deltaY) {
@@ -1225,7 +1230,7 @@
           return;
         }
         if (dragStart.mode !== "pan") return;
-        roomCamera.yaw = dragStart.yaw + (event.clientX - dragStart.x) * 0.14;
+        roomCamera.yaw = dragStart.yaw + (event.clientX - dragStart.x) * 0.32;
         roomCamera.pitch = dragStart.pitch + (event.clientY - dragStart.y) * 0.06;
         roomCamera.y = dragStart.camY + (event.clientY - dragStart.y) * 0.12;
         updateRoomCamera();

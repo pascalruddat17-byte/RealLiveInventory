@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>RealLife Inventory</title>
+    <meta name="theme-color" content="#246bfe" />
+    <meta name="description" content="RealLife Inventory als installierbare Zimmer-Inventar-App." />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icon.svg" />
     <style>
       :root {
         color-scheme: light;
@@ -1251,6 +1255,10 @@
       setMode("room");
       checkArSupport();
       show("room");
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js");
+      }
     </script>
   </body>
 </html>

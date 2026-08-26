@@ -1,0 +1,20 @@
+{
+  "name": "RealLife Inventory",
+  "short_name": "Inventory",
+  "description": "Scanne dein Zimmer und verwalte echte Gegenstaende als digitales Inventar.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef6ff",
+  "theme_color": "#246bfe",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

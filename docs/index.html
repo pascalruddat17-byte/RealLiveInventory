@@ -304,6 +304,12 @@
         object-fit: contain;
       }
 
+      .inventory-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
       .chip strong {
         display: grid;
         width: 30px;
@@ -1089,6 +1095,24 @@
           </div>
           <div class="category-row" id="categoryRow"></div>
           <input id="categoryImageInput" type="file" accept="image/*" class="hidden" />
+          <div class="inventory-controls">
+            <select id="sortInput" aria-label="Sortieren">
+              <option value="name">Name A-Z</option>
+              <option value="value">Wert</option>
+              <option value="rarity">Seltenheit</option>
+              <option value="date">Datum</option>
+            </select>
+            <select id="rarityFilterInput" aria-label="Seltenheit filtern">
+              <option value="all">Alle Seltenheiten</option>
+              <option value="Common">Common</option>
+              <option value="Uncommon">Uncommon</option>
+              <option value="Rare">Rare</option>
+              <option value="Epic">Epic</option>
+              <option value="Legendary">Legendary</option>
+              <option value="Mythic">Mythic</option>
+              <option value="Secret">Secret</option>
+            </select>
+          </div>
           <div class="tabs inventory-tabs" id="inventoryViewTabs">
             <button class="tab-pill active" type="button" data-inventory-view="inventory"><span>INV</span><span>Inventar</span></button>
             <button class="tab-pill" type="button" data-inventory-view="museum"><span>MUS</span><span>Museum</span></button>
@@ -1262,6 +1286,8 @@
       let activeCategory = "all";
       let searchTerm = "";
       let inventoryView = "inventory";
+      let sortMode = "name";
+      let rarityFilter = "all";
       let museumSlots = loadMuseumSlots();
       let currentPhoto = "";
       let photoJob = 0;
@@ -1422,10 +1448,18 @@
       }
 
       function filteredItems() {
-        return items.filter((item) => {
+        const rarityOrder = { Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5, Mythic: 6, Secret: 7 };
+        const filtered = items.filter((item) => {
           const byCategory = activeCategory === "all" || item.category === activeCategory;
-          return byCategory;
-        }).sort((a, b) => a.name.localeCompare(b.name, "de", { sensitivity: "base" }));
+          const byRarity = rarityFilter === "all" || item.rarity === rarityFilter;
+          return byCategory && byRarity;
+        });
+        return filtered.sort((a, b) => {
+          if (sortMode === "value") return (Number(b.value) || 0) - (Number(a.value) || 0);
+          if (sortMode === "rarity") return (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0);
+          if (sortMode === "date") return String(b.date || "").localeCompare(String(a.date || ""));
+          return a.name.localeCompare(b.name, "de", { sensitivity: "base" });
+        });
       }
 
       function searchItems() {
@@ -1904,6 +1938,14 @@
         document.querySelector("#searchInput").value = "";
         renderSearch();
         document.querySelector("#searchInput").focus();
+      });
+      document.querySelector("#sortInput").addEventListener("change", (event) => {
+        sortMode = event.target.value;
+        renderInventory();
+      });
+      document.querySelector("#rarityFilterInput").addEventListener("change", (event) => {
+        rarityFilter = event.target.value;
+        renderInventory();
       });
       document.querySelector("#addCategoryButton").addEventListener("click", () => {
         const label = window.prompt("Name der neuen Kategorie");

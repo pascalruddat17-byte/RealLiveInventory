@@ -1,0 +1,20 @@
+{
+  "name": "RealLife Inventory",
+  "short_name": "Inventory",
+  "description": "Ein spielerisches Inventar fuer echte Sachen, Lieblingsitems und ein eigenes Museum.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#303030",
+  "theme_color": "#303030",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "./app-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

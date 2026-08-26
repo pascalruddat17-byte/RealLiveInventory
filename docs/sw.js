@@ -1,4 +1,4 @@
-const CACHE_NAME = "reallife-inventory-v14";
+const CACHE_NAME = "reallife-inventory-v15";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const APP_SHELL = [
   "./backpack-icon.png",
   "./add-icon.png",
   "./category-default.png",
+  "./search-icon.png",
   "./profile-default.png"
 ];
 

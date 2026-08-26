@@ -257,6 +257,41 @@
         font-weight: 850;
       }
 
+      .category-entry {
+        display: grid;
+        grid-template-columns: 1fr 28px;
+        gap: 3px;
+        min-width: 96px;
+      }
+
+      .category-entry .chip {
+        min-width: 0;
+      }
+
+      .category-icon {
+        width: 25px;
+        height: 25px;
+        object-fit: contain;
+        image-rendering: pixelated;
+      }
+
+      .category-image-button {
+        display: grid;
+        width: 28px;
+        min-height: 56px;
+        place-items: center;
+        padding: 2px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface-2);
+      }
+
+      .category-image-button img {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+      }
+
       .chip strong {
         display: grid;
         width: 30px;
@@ -824,6 +859,7 @@
           </div>
           <div class="category-row" id="categoryRow"></div>
           <button class="secondary" id="addCategoryButton" type="button">+ Kategorie</button>
+          <input id="categoryImageInput" type="file" accept="image/*" class="hidden" />
           <div class="tabs inventory-tabs" id="inventoryViewTabs">
             <button class="tab-pill active" type="button" data-inventory-view="inventory"><span>INV</span><span>Inventar</span></button>
             <button class="tab-pill" type="button" data-inventory-view="museum"><span>MUS</span><span>Museum</span></button>
@@ -965,6 +1001,7 @@
       const CATEGORY_KEY = "reallife-game-categories-v1";
       const MUSEUM_KEY = "reallife-game-museum-v1";
       const DEFAULT_PROFILE_IMAGE = "./profile-default.png";
+      const DEFAULT_CATEGORY_IMAGE = "./category-default.png";
       const defaultCategories = [
         { id: "all", label: "Alle", icon: "ALL" },
         { id: "lifestyle", label: "Style", icon: "ST" },
@@ -989,6 +1026,7 @@
       let museumSlots = loadMuseumSlots();
       let currentPhoto = "";
       let photoJob = 0;
+      let categoryImageId = null;
       let settings = loadSettings();
 
       const screens = {
@@ -1015,6 +1053,7 @@
       const photoBackgroundInput = document.querySelector("#photoBackgroundInput");
       const museumPicker = document.querySelector("#museumPicker");
       const museumPickerList = document.querySelector("#museumPickerList");
+      const categoryImageInput = document.querySelector("#categoryImageInput");
 
       function itemSeed(name, category, icon, rarity, note, favorite) {
         return {
@@ -1040,10 +1079,18 @@
 
       function loadCategories() {
         try {
-          return [...defaultCategories, ...(JSON.parse(localStorage.getItem(CATEGORY_KEY)) || [])];
+          const custom = JSON.parse(localStorage.getItem(CATEGORY_KEY)) || [];
+          return [
+            ...defaultCategories.map((base) => ({ ...base, ...(custom.find((entry) => entry.id === base.id) || {}) })),
+            ...custom.filter((entry) => !defaultCategories.some((base) => base.id === entry.id))
+          ];
         } catch {
           return [...defaultCategories];
         }
+      }
+
+      function saveCustomCategories() {
+        localStorage.setItem(CATEGORY_KEY, JSON.stringify(categories));
       }
 
       function loadMuseumSlots() {
@@ -1114,10 +1161,15 @@
       function renderCategories() {
         categoryRow.innerHTML = categories
           .map((category) => `
-            <button class="chip ${category.id === activeCategory ? "active" : ""}" type="button" data-category="${category.id}">
-              <strong>${category.icon}</strong>
-              <span>${category.label}</span>
-            </button>
+            <div class="category-entry">
+              <button class="chip ${category.id === activeCategory ? "active" : ""}" type="button" data-category="${category.id}">
+                <img class="category-icon" src="${category.image || DEFAULT_CATEGORY_IMAGE}" alt="" />
+                <span>${escapeHtml(category.label)}</span>
+              </button>
+              <button class="category-image-button" type="button" data-category-image="${category.id}" title="Bild fuer Kategorie aendern">
+                <img src="${category.image || DEFAULT_CATEGORY_IMAGE}" alt="" />
+              </button>
+            </div>
           `)
           .join("");
         categoryInput.innerHTML = categories
@@ -1373,6 +1425,13 @@
           return;
         }
 
+        const categoryImageButton = event.target.closest("[data-category-image]");
+        if (categoryImageButton) {
+          categoryImageId = categoryImageButton.dataset.categoryImage;
+          categoryImageInput.click();
+          return;
+        }
+
         const museumSlot = event.target.closest("[data-museum-slot]");
         if (museumSlot) {
           openMuseumPicker(Number(museumSlot.dataset.museumSlot));
@@ -1458,7 +1517,7 @@
         if (categories.some((category) => category.id === id)) return;
         const custom = { id, label: cleanLabel, icon: "++" };
         categories.push(custom);
-        localStorage.setItem(CATEGORY_KEY, JSON.stringify(categories.filter((category) => !defaultCategories.some((base) => base.id === category.id))));
+        saveCustomCategories();
         renderCategories();
         categoryInput.value = id;
       });
@@ -1493,6 +1552,19 @@
         saveSettings();
         renderPalette();
         applySettings();
+      });
+
+      categoryImageInput.addEventListener("change", () => {
+        const file = categoryImageInput.files?.[0];
+        const category = categories.find((entry) => entry.id === categoryImageId);
+        if (!file || !category) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          category.image = String(reader.result);
+          saveCustomCategories();
+          renderCategories();
+        };
+        reader.readAsDataURL(file);
       });
 
       photoInput.addEventListener("change", () => {

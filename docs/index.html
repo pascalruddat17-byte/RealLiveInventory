@@ -947,7 +947,6 @@
         document.querySelector("#avatarImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
         document.querySelector("#profilePreviewImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
         document.querySelector("#nicknameInput").value = settings.nickname;
-        renderPalette();
       }
 
       function categoryName(id) {
@@ -1254,6 +1253,7 @@
         });
       }
 
+      renderPalette();
       renderAll();
     </script>
   </body>

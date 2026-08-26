@@ -1356,7 +1356,24 @@
             </select>
           </div>
           <input id="dateInput" type="date" aria-label="Erhalten am" />
-          <input id="valueInput" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Wert in Euro" aria-label="Wert in Euro" />
+          <input id="valueInput" type="number" min="0" step="0.01" inputmode="decimal" list="valueOptions" placeholder="Wert in Euro" aria-label="Wert in Euro" />
+          <datalist id="valueOptions">
+            <option value="0"></option>
+            <option value="1"></option>
+            <option value="2"></option>
+            <option value="5"></option>
+            <option value="10"></option>
+            <option value="15"></option>
+            <option value="20"></option>
+            <option value="25"></option>
+            <option value="50"></option>
+            <option value="75"></option>
+            <option value="100"></option>
+            <option value="150"></option>
+            <option value="200"></option>
+            <option value="500"></option>
+            <option value="1000"></option>
+          </datalist>
           <textarea id="noteInput" rows="2" maxlength="90" placeholder="Kurze Info"></textarea>
           <div class="form-actions">
             <button type="button" id="clearFormButton">Leeren</button>

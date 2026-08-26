@@ -449,6 +449,21 @@
 
       .rarity-badge {
         color: var(--gold);
+        font-weight: 950;
+      }
+
+      .rarity-common { color: #6b7280; }
+      .rarity-uncommon { color: #249653; }
+      .rarity-rare { color: #287ed1; }
+      .rarity-epic { color: #8b55c7; }
+      .rarity-legendary { color: #d98b20; }
+      .rarity-mythic { color: #e45757; }
+      .rarity-secret { color: #111111; text-shadow: 0 0 8px rgba(17, 17, 17, 0.22); }
+
+      .item-value {
+        color: var(--muted);
+        font-size: 0.68rem;
+        font-weight: 850;
       }
 
       .slot {
@@ -1020,7 +1035,7 @@
           <h1 class="brand-title" id="profileNameText">RealLife</h1>
           <p class="brand-sub" id="playerLine">Level 1 · 0 Sachen</p>
         </div>
-        <div class="coin"><span>XP</span><span id="scoreText">0</span></div>
+        <div class="coin"><span>WERT</span><span id="scoreText">0,00 €</span></div>
       </header>
 
       <section class="screen active" id="inventoryScreen">
@@ -1116,6 +1131,7 @@
             </select>
           </div>
           <input id="dateInput" type="month" aria-label="Seit wann" />
+          <input id="valueInput" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Wert in Euro" aria-label="Wert in Euro" />
           <textarea id="noteInput" rows="2" maxlength="90" placeholder="Kurze Info"></textarea>
           <div class="form-actions">
             <button type="button" id="clearFormButton">Leeren</button>
@@ -1243,6 +1259,7 @@
       const submitItemButton = document.querySelector("#submitItemButton");
       const cancelEditButton = document.querySelector("#cancelEditButton");
       const photoBackgroundInput = document.querySelector("#photoBackgroundInput");
+      const valueInput = document.querySelector("#valueInput");
       const museumPicker = document.querySelector("#museumPicker");
       const museumPickerList = document.querySelector("#museumPickerList");
       const categoryImageInput = document.querySelector("#categoryImageInput");
@@ -1358,6 +1375,14 @@
         return categories.find((category) => category.id === id)?.label || "Anderes";
       }
 
+      function formatValue(value) {
+        return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(Number(value) || 0);
+      }
+
+      function rarityClass(rarity) {
+        return `rarity-${String(rarity || "Common").toLocaleLowerCase().replace(/[^a-z]+/g, "-")}`;
+      }
+
       function filteredItems() {
         return items.filter((item) => {
           const byCategory = activeCategory === "all" || item.category === activeCategory;
@@ -1422,7 +1447,8 @@
           <button class="item-card ${selectedId === item.id ? "selected" : ""}" type="button" data-item="${item.id}">
             <span class="item-card-art" style="background-color: ${item.backgroundColor || "var(--slot)"}">${art}</span>
             <strong class="item-card-name">${escapeHtml(item.name)}</strong>
-            <span class="item-card-meta"><span>${escapeHtml(categoryName(item.category))}</span><span class="rarity-badge">${escapeHtml(item.rarity || "Common")}</span></span>
+            <span class="item-card-meta"><span>${escapeHtml(categoryName(item.category))}</span><span class="rarity-badge ${rarityClass(item.rarity)}">${escapeHtml(item.rarity || "Common")}</span></span>
+            <span class="item-value">${formatValue(item.value)}</span>
           </button>
         `;
       }
@@ -1433,7 +1459,8 @@
         const emptySlots = Math.max(12 - shown.length, shown.length ? 0 : 8);
         itemGrid.insertAdjacentHTML("beforeend", Array.from({ length: emptySlots }, () => slotMarkup()).join(""));
         emptyNote.classList.toggle("hidden", items.length !== 0);
-        document.querySelector("#scoreText").textContent = String(items.length * 10);
+        const totalValue = items.reduce((total, item) => total + (Number(item.value) || 0), 0);
+        document.querySelector("#scoreText").textContent = formatValue(totalValue);
         document.querySelector("#playerLine").textContent = `${settings.nickname || defaultUserName} · ${items.length} Sachen`;
       }
 
@@ -1494,7 +1521,8 @@
           <div class="detail-art">${art}</div>
           <div>
             <h2>${escapeHtml(item.name)}</h2>
-            <p>${categoryName(item.category)} · ${item.rarity}</p>
+            <p>${categoryName(item.category)} · <span class="${rarityClass(item.rarity)}">${item.rarity || "Common"}</span></p>
+            <p>Wert: ${formatValue(item.value)}</p>
             <p>${escapeHtml(item.note || "Keine Info")}</p>
           </div>
           <div class="detail-actions">
@@ -1546,6 +1574,7 @@
         document.querySelector("#dateInput").value = item.date || "";
         document.querySelector("#rarityInput").value = item.rarity;
         document.querySelector("#noteInput").value = item.note || "";
+        valueInput.value = item.value || "";
         photoBackgroundInput.value = item.backgroundColor || "#eeeeee";
         currentPhoto = item.photo || "";
         photoBox.style.backgroundColor = item.backgroundColor || "#eeeeee";
@@ -1955,6 +1984,7 @@
           category: document.querySelector("#categoryInput").value,
           date: document.querySelector("#dateInput").value || "",
           rarity: document.querySelector("#rarityInput").value,
+          value: Number(valueInput.value) || 0,
           note: document.querySelector("#noteInput").value.trim(),
           photo: currentPhoto,
           backgroundColor: photoBackgroundInput.value,

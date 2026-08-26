@@ -1,7 +1,7 @@
 {
   "name": "RealLife Inventory",
   "short_name": "Inventory",
-  "description": "Fotografiere deine Gegenstaende und verwalte sie in deinem digitalen Zimmer.",
+  "description": "Ein spielerisches Inventar fuer echte Sachen, Lieblingsitems und ein eigenes Museum.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

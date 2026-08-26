@@ -348,8 +348,78 @@
 
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(var(--slot-size), 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
         gap: 8px;
+      }
+
+      .item-card {
+        display: grid;
+        grid-template-rows: auto auto auto;
+        gap: 6px;
+        min-width: 0;
+        padding: 7px;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        background: var(--surface);
+        color: var(--ink);
+        text-align: left;
+        transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+      }
+
+      .item-card:hover,
+      .item-card.selected {
+        transform: translateY(-2px);
+        border-color: var(--gold);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+      }
+
+      .item-card-art {
+        display: grid;
+        width: 100%;
+        aspect-ratio: 1;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: var(--slot);
+      }
+
+      .item-card-art .slot-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .item-card-art .slot-icon {
+        width: 58%;
+      }
+
+      .item-card-name {
+        overflow: hidden;
+        font-size: 0.82rem;
+        font-weight: 950;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .item-card-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 5px;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 0.65rem;
+        font-weight: 850;
+      }
+
+      .item-card-meta span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .rarity-badge {
+        color: var(--gold);
       }
 
       .slot {
@@ -1287,9 +1357,22 @@
         `;
       }
 
+      function itemCardMarkup(item) {
+        const art = item.photo
+          ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
+          : `<span class="slot-icon">${item.icon || "IT"}</span>`;
+        return `
+          <button class="item-card ${selectedId === item.id ? "selected" : ""}" type="button" data-item="${item.id}">
+            <span class="item-card-art" style="background-color: ${item.backgroundColor || "var(--slot)"}">${art}</span>
+            <strong class="item-card-name">${escapeHtml(item.name)}</strong>
+            <span class="item-card-meta"><span>${escapeHtml(categoryName(item.category))}</span><span class="rarity-badge">${escapeHtml(item.rarity || "Common")}</span></span>
+          </button>
+        `;
+      }
+
       function renderInventory() {
         const shown = filteredItems();
-        itemGrid.innerHTML = shown.map((item) => slotMarkup(item)).join("");
+        itemGrid.innerHTML = shown.map(itemCardMarkup).join("");
         const emptySlots = Math.max(12 - shown.length, shown.length ? 0 : 8);
         itemGrid.insertAdjacentHTML("beforeend", Array.from({ length: emptySlots }, () => slotMarkup()).join(""));
         emptyNote.classList.toggle("hidden", items.length !== 0);
@@ -1299,7 +1382,7 @@
 
       function renderSearch() {
         const shown = searchItems();
-        searchGrid.innerHTML = shown.map((item) => slotMarkup(item)).join("");
+        searchGrid.innerHTML = shown.map(itemCardMarkup).join("");
         searchEmpty.classList.toggle("hidden", shown.length !== 0 || !searchTerm);
       }
 

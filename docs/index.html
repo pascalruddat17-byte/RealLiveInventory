@@ -770,6 +770,13 @@
         font-size: 1.05rem;
       }
 
+      .photo-add-button img {
+        width: 22px;
+        height: 22px;
+        vertical-align: middle;
+        image-rendering: pixelated;
+      }
+
       .hidden {
         display: none !important;
       }
@@ -878,7 +885,7 @@
             <img class="hidden" id="previewImage" alt="Item Foto" />
           </div>
           <input id="photoInput" type="file" accept="image/*" capture="environment" class="hidden" />
-          <button class="primary" id="photoButton" type="button">Foto waehlen</button>
+          <button class="primary photo-add-button" id="photoButton" type="button"><img src="./add-icon.png" alt="" /> Foto aufnehmen</button>
           <label class="photo-background-row">
             <span>Hintergrundfarbe</span>
             <input id="photoBackgroundInput" type="color" value="#eeeeee" aria-label="Hintergrundfarbe des Items" />
@@ -945,7 +952,10 @@
         <img src="./backpack-icon.png" alt="" />
         Inventar
       </button>
-      <button class="nav-btn" type="button" data-nav="photo"><span>ADD</span>Foto</button>
+      <button class="nav-btn" type="button" data-nav="photo">
+        <img src="./add-icon.png" alt="" />
+        Foto
+      </button>
     </nav>
 
     <script>

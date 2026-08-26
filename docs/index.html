@@ -210,6 +210,14 @@
         gap: 10px;
       }
 
+      .search-row.hidden {
+        display: none;
+      }
+
+      .search-toggle {
+        font-size: 1.2rem;
+      }
+
       .toolbar-head {
         display: flex;
         align-items: center;
@@ -507,6 +515,86 @@
         text-align: center;
       }
 
+      .museum-add {
+        display: grid;
+        min-height: 150px;
+        place-items: center;
+        gap: 4px;
+        border: 1px dashed var(--line);
+        border-radius: 16px;
+        background: var(--surface-2);
+        color: var(--muted);
+        font-weight: 850;
+      }
+
+      .museum-add strong {
+        font-size: 1.6rem;
+      }
+
+      .museum-picker {
+        width: min(430px, calc(100% - 24px));
+        max-height: min(620px, calc(100vh - 48px));
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--surface);
+        color: var(--ink);
+      }
+
+      .museum-picker::backdrop {
+        background: rgba(0, 0, 0, 0.52);
+      }
+
+      .museum-picker-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .museum-picker-list {
+        display: grid;
+        gap: 8px;
+        overflow-y: auto;
+      }
+
+      .museum-choice {
+        display: grid;
+        grid-template-columns: 52px 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface-2);
+        color: var(--ink);
+        text-align: left;
+      }
+
+      .museum-choice img {
+        width: 52px;
+        height: 52px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: var(--slot);
+      }
+
+      .photo-background-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .photo-background-row input[type="color"] {
+        width: 44px;
+        height: 36px;
+        padding: 2px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
       .photo-box {
         position: relative;
         display: grid;
@@ -718,9 +806,17 @@
         <div class="panel toolbar">
           <div class="toolbar-head">
             <strong>Sammlung</strong>
-            <button class="icon-btn" id="customizeButton" type="button" title="Anpassen">⚙</button>
+            <div>
+              <button class="icon-btn search-toggle" id="searchToggleButton" type="button" title="Inventar durchsuchen">⌕</button>
+              <button class="icon-btn" id="customizeButton" type="button" title="Anpassen">⚙</button>
+            </div>
+          </div>
+          <div class="search-row hidden" id="searchRow">
+            <input id="searchInput" type="search" placeholder="Item suchen" />
+            <button class="icon-btn" id="clearSearchButton" type="button" title="Suche leeren">×</button>
           </div>
           <div class="category-row" id="categoryRow"></div>
+          <button class="secondary" id="addCategoryButton" type="button">+ Kategorie</button>
         </div>
 
         <div class="panel inventory-shell">
@@ -743,13 +839,13 @@
               <span>MUS</span><span>Museum</span>
             </button>
             <button class="tab-pill" id="museumStyleButton" type="button">
-              <span>FX</span><span>Style</span>
+              <span>+</span><span>Platzieren</span>
             </button>
           </div>
           <div class="showcase" id="museumGrid"></div>
           <div class="empty-note hidden" id="museumEmpty">
-            <strong>FAV</strong>
-            <p>Markiere Lieblingssachen. Dann landen sie hier.</p>
+            <strong>MUSEUM</strong>
+            <p>Waehle einen Platz und stelle ein Item aus deinem Inventar hinein.</p>
           </div>
         </div>
       </section>
@@ -783,29 +879,40 @@
           </div>
           <input id="photoInput" type="file" accept="image/*" capture="environment" class="hidden" />
           <button class="primary" id="photoButton" type="button">Foto waehlen</button>
+          <label class="photo-background-row">
+            <span>Hintergrundfarbe</span>
+            <input id="photoBackgroundInput" type="color" value="#eeeeee" aria-label="Hintergrundfarbe des Items" />
+          </label>
 
           <input id="nameInput" required maxlength="28" placeholder="Name vom Item" />
           <div class="two-col">
             <select id="categoryInput"></select>
             <select id="rarityInput" aria-label="Seltenheit">
-              <option value="Normal">Normal</option>
-              <option value="Cool">Cool</option>
-              <option value="Selten">Selten</option>
-              <option value="Ultra">Ultra</option>
+              <option value="Common">Common</option>
+              <option value="Uncommon">Uncommon</option>
+              <option value="Rare">Rare</option>
+              <option value="Epic">Epic</option>
+              <option value="Legendary">Legendary</option>
+              <option value="Mythic">Mythic</option>
+              <option value="Secret">Secret</option>
             </select>
           </div>
           <input id="dateInput" type="month" aria-label="Seit wann" />
           <textarea id="noteInput" rows="2" maxlength="90" placeholder="Kurze Info"></textarea>
-          <label class="switch-line">
-            <input id="favoriteInput" type="checkbox" />
-            <span>Ins Museum stellen</span>
-          </label>
           <div class="form-actions">
             <button type="button" id="clearFormButton">Leeren</button>
             <button class="primary" id="submitItemButton" type="submit">Speichern</button>
           </div>
         </form>
       </section>
+
+      <dialog class="museum-picker" id="museumPicker">
+        <div class="museum-picker-head">
+          <strong>Item ins Museum</strong>
+          <button class="icon-btn" id="closeMuseumPickerButton" type="button" title="Schliessen">×</button>
+        </div>
+        <div class="museum-picker-list" id="museumPickerList"></div>
+      </dialog>
 
       <section class="screen" id="customizeScreen">
         <div class="panel customizer">
@@ -844,8 +951,10 @@
     <script>
       const STORAGE_KEY = "reallife-game-inventory-v4";
       const STYLE_KEY = "reallife-game-style-v2";
+      const CATEGORY_KEY = "reallife-game-categories-v1";
+      const MUSEUM_KEY = "reallife-game-museum-v1";
       const DEFAULT_PROFILE_IMAGE = "./profile-default.png";
-      const categories = [
+      const defaultCategories = [
         { id: "all", label: "Alle", icon: "ALL" },
         { id: "lifestyle", label: "Style", icon: "ST" },
         { id: "tech", label: "Tech", icon: "GX" },
@@ -854,6 +963,7 @@
         { id: "collect", label: "Sammeln", icon: "TC" },
         { id: "other", label: "Anderes", icon: "ET" }
       ];
+      let categories = loadCategories();
       const DEFAULT_PALETTE = {
         blue: "#303030", blueDark: "#111111", cyan: "#8f8f8f", gold: "#f39a2b",
         bg: "#eeeeee", surface: "#ffffff", surface2: "#f6f6f6", slot: "#fafafa",
@@ -863,6 +973,8 @@
       let selectedId = null;
       let editingId = null;
       let activeCategory = "all";
+      let searchTerm = "";
+      let museumSlots = loadMuseumSlots();
       let currentPhoto = "";
       let settings = loadSettings();
 
@@ -887,6 +999,9 @@
       const formTitle = document.querySelector("#formTitle");
       const submitItemButton = document.querySelector("#submitItemButton");
       const cancelEditButton = document.querySelector("#cancelEditButton");
+      const photoBackgroundInput = document.querySelector("#photoBackgroundInput");
+      const museumPicker = document.querySelector("#museumPicker");
+      const museumPickerList = document.querySelector("#museumPickerList");
 
       function itemSeed(name, category, icon, rarity, note, favorite) {
         return {
@@ -908,6 +1023,27 @@
         } catch {
           return [];
         }
+      }
+
+      function loadCategories() {
+        try {
+          return [...defaultCategories, ...(JSON.parse(localStorage.getItem(CATEGORY_KEY)) || [])];
+        } catch {
+          return [...defaultCategories];
+        }
+      }
+
+      function loadMuseumSlots() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(MUSEUM_KEY));
+          return Array.isArray(saved) ? [...saved.slice(0, 4), ...Array(4).fill(null)].slice(0, 4) : [null, null, null, null];
+        } catch {
+          return [null, null, null, null];
+        }
+      }
+
+      function saveMuseumSlots() {
+        localStorage.setItem(MUSEUM_KEY, JSON.stringify(museumSlots));
       }
 
       function loadSettings() {
@@ -957,8 +1093,9 @@
       function filteredItems() {
         return items.filter((item) => {
           const byCategory = activeCategory === "all" || item.category === activeCategory;
-          return byCategory;
-        });
+          const byName = !searchTerm || item.name.toLocaleLowerCase().includes(searchTerm);
+          return byCategory && byName;
+        }).sort((a, b) => a.name.localeCompare(b.name, "de", { sensitivity: "base" }));
       }
 
       function renderCategories() {
@@ -982,9 +1119,8 @@
           ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
           : `<span class="slot-icon">${item.icon || "IT"}</span>`;
         return `
-          <button class="slot ${selectedId === item.id ? "selected" : ""} ${extraClass}" type="button" data-item="${item.id}">
+          <button class="slot ${selectedId === item.id ? "selected" : ""} ${extraClass}" type="button" data-item="${item.id}" style="background-color: ${item.backgroundColor || "var(--slot)"}">
             ${art}
-            ${item.favorite ? `<span class="star">FAV</span>` : ""}
           </button>
         `;
       }
@@ -995,21 +1131,34 @@
         const emptySlots = Math.max(12 - shown.length, shown.length ? 0 : 8);
         itemGrid.insertAdjacentHTML("beforeend", Array.from({ length: emptySlots }, () => slotMarkup()).join(""));
         emptyNote.classList.toggle("hidden", items.length !== 0);
-        document.querySelector("#scoreText").textContent = String(items.filter((item) => item.favorite).length * 100 + items.length * 10);
+        document.querySelector("#scoreText").textContent = String(items.length * 10);
         document.querySelector("#playerLine").textContent = `${settings.nickname || "Level 1"} · ${items.length} Sachen`;
       }
 
       function renderMuseum() {
-        const favorites = items.filter((item) => item.favorite);
-        museumGrid.innerHTML = favorites
-          .map((item) => `
-            <button class="pedestal" type="button" data-item="${item.id}">
-              ${slotMarkup(item, "museum-slot")}
-              <div class="pedestal-name">${escapeHtml(item.name)}</div>
-            </button>
-          `)
-          .join("");
-        museumEmpty.classList.toggle("hidden", favorites.length !== 0);
+        museumGrid.innerHTML = museumSlots.map((itemId, index) => {
+          const item = items.find((entry) => entry.id === itemId);
+          if (!item) return `<button class="museum-add" type="button" data-museum-slot="${index}"><strong>+</strong><span>Hinzufuegen</span></button>`;
+          const art = item.photo
+            ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
+            : `<span class="slot-icon">${item.icon || "IT"}</span>`;
+          return `<button class="pedestal" type="button" data-item="${item.id}" data-museum-slot="${index}"><span class="slot museum-slot">${art}</span><div class="pedestal-name">${escapeHtml(item.name)}</div></button>`;
+        }).join("");
+        museumEmpty.classList.add("hidden");
+      }
+
+      function renderMuseumPicker() {
+        const choices = [...items].sort((a, b) => a.name.localeCompare(b.name, "de", { sensitivity: "base" }));
+        museumPickerList.innerHTML = choices.length ? choices.map((item) => {
+          const art = item.photo ? `<img src="${item.photo}" alt="" />` : `<span class="slot-icon">${item.icon || "IT"}</span>`;
+          return `<button class="museum-choice" type="button" data-choice-item="${item.id}">${art}<strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.rarity)}</span></button>`;
+        }).join("") : `<p class="empty-note">Dein Inventar ist noch leer.</p>`;
+      }
+
+      function openMuseumPicker(slotIndex) {
+        museumPicker.dataset.slotIndex = String(slotIndex);
+        renderMuseumPicker();
+        museumPicker.showModal();
       }
 
       function renderPalette() {
@@ -1042,7 +1191,7 @@
           </div>
           <div class="detail-actions">
             <button class="icon-btn" type="button" data-action="edit">✎</button>
-            <button class="icon-btn" type="button" data-action="favorite">${item.favorite ? "FAV" : "ADD"}</button>
+            <button class="icon-btn" type="button" data-action="museum">MUS</button>
             <button class="icon-btn" type="button" data-action="delete">✕</button>
           </div>
         `;
@@ -1065,8 +1214,10 @@
       function resetItemForm() {
         editingId = null;
         itemForm.reset();
-        document.querySelector("#rarityInput").value = "Normal";
+        document.querySelector("#rarityInput").value = "Common";
+        photoBackgroundInput.value = "#eeeeee";
         currentPhoto = "";
+        photoBox.style.backgroundColor = "#eeeeee";
         previewImage.removeAttribute("src");
         previewImage.classList.add("hidden");
         photoBox.querySelector("span").classList.remove("hidden");
@@ -1085,8 +1236,9 @@
         document.querySelector("#dateInput").value = item.date || "";
         document.querySelector("#rarityInput").value = item.rarity;
         document.querySelector("#noteInput").value = item.note || "";
-        document.querySelector("#favoriteInput").checked = item.favorite;
+        photoBackgroundInput.value = item.backgroundColor || "#eeeeee";
         currentPhoto = item.photo || "";
+        photoBox.style.backgroundColor = item.backgroundColor || "#eeeeee";
         if (currentPhoto) {
           previewImage.src = currentPhoto;
           previewImage.classList.remove("hidden");
@@ -1127,11 +1279,54 @@
           .replace(/'/g, "&#039;");
       }
 
+      function removePhotoBackground(dataUrl) {
+        return new Promise((resolve) => {
+          const image = new Image();
+          image.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = image.naturalWidth;
+            canvas.height = image.naturalHeight;
+            const context = canvas.getContext("2d", { willReadFrequently: true });
+            context.drawImage(image, 0, 0);
+            const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+            const { data, width, height } = pixels;
+            const samplePoints = [[0, 0], [width - 1, 0], [0, height - 1], [width - 1, height - 1]];
+            const background = samplePoints.reduce((total, [x, y]) => {
+              const index = (y * width + x) * 4;
+              return [total[0] + data[index], total[1] + data[index + 1], total[2] + data[index + 2]];
+            }, [0, 0, 0]).map((value) => value / samplePoints.length);
+            for (let index = 0; index < data.length; index += 4) {
+              const distance = Math.hypot(data[index] - background[0], data[index + 1] - background[1], data[index + 2] - background[2]);
+              if (distance < 46) data[index + 3] = 0;
+            }
+            context.putImageData(pixels, 0, 0);
+            resolve(canvas.toDataURL("image/png"));
+          };
+          image.onerror = () => resolve(dataUrl);
+          image.src = dataUrl;
+        });
+      }
+
       document.addEventListener("click", (event) => {
         const nav = event.target.closest("[data-nav]");
         if (nav) {
           if (nav.dataset.nav === "photo") resetItemForm();
           showScreen(nav.dataset.nav);
+          return;
+        }
+
+        const museumSlot = event.target.closest("[data-museum-slot]");
+        if (museumSlot) {
+          openMuseumPicker(Number(museumSlot.dataset.museumSlot));
+          return;
+        }
+
+        const museumChoice = event.target.closest("[data-choice-item]");
+        if (museumChoice) {
+          museumSlots[Number(museumPicker.dataset.slotIndex)] = museumChoice.dataset.choiceItem;
+          saveMuseumSlots();
+          museumPicker.close();
+          renderMuseum();
           return;
         }
 
@@ -1148,11 +1343,24 @@
             startEditItem(selectedId);
             return;
           }
-          if (action.dataset.action === "favorite") {
-            items = items.map((item) => item.id === selectedId ? { ...item, favorite: !item.favorite } : item);
+          if (action.dataset.action === "museum") {
+            const existingIndex = museumSlots.indexOf(selectedId);
+            if (existingIndex >= 0) {
+              museumSlots[existingIndex] = null;
+            } else {
+              const emptyIndex = museumSlots.indexOf(null);
+              if (emptyIndex < 0) {
+                window.alert("Das Museum hat nur vier Plaetze.");
+                return;
+              }
+              museumSlots[emptyIndex] = selectedId;
+            }
+            saveMuseumSlots();
           }
           if (action.dataset.action === "delete") {
             items = items.filter((item) => item.id !== selectedId);
+            museumSlots = museumSlots.map((itemId) => itemId === selectedId ? null : itemId);
+            saveMuseumSlots();
             selectedId = null;
           }
           saveItems();
@@ -1169,7 +1377,34 @@
       });
 
       document.querySelector("#customizeButton").addEventListener("click", () => showScreen("customize"));
-      document.querySelector("#museumStyleButton").addEventListener("click", () => showScreen("customize"));
+      document.querySelector("#museumStyleButton").addEventListener("click", () => openMuseumPicker(0));
+      document.querySelector("#closeMuseumPickerButton").addEventListener("click", () => museumPicker.close());
+      document.querySelector("#searchToggleButton").addEventListener("click", () => {
+        const row = document.querySelector("#searchRow");
+        row.classList.toggle("hidden");
+        if (!row.classList.contains("hidden")) document.querySelector("#searchInput").focus();
+      });
+      document.querySelector("#searchInput").addEventListener("input", (event) => {
+        searchTerm = event.target.value.trim().toLocaleLowerCase();
+        renderInventory();
+      });
+      document.querySelector("#clearSearchButton").addEventListener("click", () => {
+        searchTerm = "";
+        document.querySelector("#searchInput").value = "";
+        renderInventory();
+      });
+      document.querySelector("#addCategoryButton").addEventListener("click", () => {
+        const label = window.prompt("Name der neuen Kategorie");
+        const cleanLabel = label?.trim();
+        if (!cleanLabel) return;
+        const id = cleanLabel.toLocaleLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `category-${Date.now()}`;
+        if (categories.some((category) => category.id === id)) return;
+        const custom = { id, label: cleanLabel, icon: "++" };
+        categories.push(custom);
+        localStorage.setItem(CATEGORY_KEY, JSON.stringify(categories.filter((category) => !defaultCategories.some((base) => base.id === category.id))));
+        renderCategories();
+        categoryInput.value = id;
+      });
       document.querySelector("#photoButton").addEventListener("click", () => photoInput.click());
       document.querySelector("#avatarButton").addEventListener("click", () => showScreen("customize"));
       document.querySelector("#profilePhotoButton").addEventListener("click", () => profilePhotoInput.click());
@@ -1207,13 +1442,17 @@
         const file = photoInput.files?.[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = () => {
-          currentPhoto = String(reader.result);
+        reader.onload = async () => {
+          currentPhoto = await removePhotoBackground(String(reader.result));
           previewImage.src = currentPhoto;
+          photoBox.style.backgroundColor = photoBackgroundInput.value;
           previewImage.classList.remove("hidden");
           photoBox.querySelector("span").classList.add("hidden");
         };
         reader.readAsDataURL(file);
+      });
+      photoBackgroundInput.addEventListener("input", () => {
+        photoBox.style.backgroundColor = photoBackgroundInput.value;
       });
 
       profilePhotoInput.addEventListener("change", () => {
@@ -1239,8 +1478,8 @@
           date: document.querySelector("#dateInput").value || "",
           rarity: document.querySelector("#rarityInput").value,
           note: document.querySelector("#noteInput").value.trim(),
-          favorite: document.querySelector("#favoriteInput").checked,
           photo: currentPhoto,
+          backgroundColor: photoBackgroundInput.value,
           icon: original?.icon || "IT"
         };
         items = editingId

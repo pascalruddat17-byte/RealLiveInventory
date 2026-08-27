@@ -1106,26 +1106,12 @@
         accent-color: var(--ink);
       }
 
-      .photo-editor-status,
-      .photo-processing {
+      .photo-editor-status {
         min-height: 20px;
         color: var(--muted);
         font-size: 0.78rem;
         font-weight: 800;
         text-align: center;
-      }
-
-      .photo-processing {
-        position: absolute;
-        right: 10px;
-        bottom: 10px;
-        z-index: 2;
-        min-height: 0;
-        padding: 7px 10px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.94);
-        color: #111111;
       }
 
       .photo-box {
@@ -1506,10 +1492,9 @@
           <div class="photo-box" id="photoBox">
             <span><strong>ITEM</strong>Foto oder Datei</span>
             <img class="hidden" id="previewImage" alt="Item Foto" />
-            <div class="photo-processing hidden" id="photoProcessing" role="status">Hintergrund wird entfernt...</div>
           </div>
           <button class="primary photo-add-button" id="photoButton" type="button"><img src="./add-icon.png" alt="" /> Foto aufnehmen</button>
-          <button class="photo-edit-button hidden" id="editPhotoButton" type="button">Foto bearbeiten</button>
+          <button class="photo-edit-button hidden" id="editPhotoButton" type="button">Item ausschneiden</button>
           <label class="photo-background-row">
             <span>Hintergrundfarbe</span>
             <input id="photoBackgroundInput" type="color" value="#eeeeee" aria-label="Hintergrundfarbe des Items" />
@@ -1579,18 +1564,16 @@
 
       <dialog class="photo-editor" id="photoEditor">
         <div class="photo-editor-head">
-          <strong>Foto bearbeiten</strong>
+          <strong>Item ausschneiden</strong>
           <button class="icon-btn" id="closePhotoEditorButton" type="button" title="Schliessen">×</button>
         </div>
         <div class="photo-editor-canvas-wrap"><canvas id="photoEditorCanvas"></canvas></div>
-        <div class="photo-editor-status" id="photoEditorStatus">Werkzeug auswählen und direkt im Bild bearbeiten.</div>
+        <div class="photo-editor-status" id="photoEditorStatus">Ziehe einmal um das Item.</div>
         <div class="photo-editor-controls">
-          <label class="photo-editor-control"><span>Mehr löschen</span><input id="backgroundStrengthInput" type="range" min="20" max="90" value="56" /></label>
           <label class="photo-editor-control"><span>Pinselgröße</span><input id="photoBrushSizeInput" type="range" min="12" max="110" value="44" /></label>
         </div>
         <div class="photo-editor-tools">
-          <button type="button" id="autoRemoveBackgroundButton">Automatisch</button>
-          <button type="button" id="outlinePhotoButton">Item umranden</button>
+          <button type="button" id="outlinePhotoButton">Item markieren</button>
           <button type="button" id="erasePhotoButton">Radieren</button>
           <button type="button" id="restorePhotoButton">Zurückholen</button>
           <button type="button" id="undoPhotoEditButton">Rückgängig</button>
@@ -1691,7 +1674,6 @@
       let museumSlots = loadMuseumSlots();
       let currentPhoto = "";
       let originalPhoto = "";
-      let photoJob = 0;
       let cameraStream = null;
       let categoryImageId = null;
       let draggedMuseumSlot = null;
@@ -1706,7 +1688,6 @@
       let editorTool = "outline";
       let editorLastPoint = null;
       let editorHistory = [];
-      let editorProcessing = false;
       let settings = loadSettings();
       const defaultUserName = `User ${getUserNumber()}`;
 
@@ -1742,9 +1723,7 @@
       const photoEditor = document.querySelector("#photoEditor");
       const photoEditorCanvas = document.querySelector("#photoEditorCanvas");
       const photoEditorContext = photoEditorCanvas.getContext("2d");
-      const photoProcessing = document.querySelector("#photoProcessing");
       const photoEditorStatus = document.querySelector("#photoEditorStatus");
-      const backgroundStrengthInput = document.querySelector("#backgroundStrengthInput");
       const photoBrushSizeInput = document.querySelector("#photoBrushSizeInput");
       const museumPicker = document.querySelector("#museumPicker");
       const museumPickerList = document.querySelector("#museumPickerList");
@@ -2061,7 +2040,6 @@
         photoBackgroundInput.value = "#eeeeee";
         currentPhoto = "";
         originalPhoto = "";
-        photoJob += 1;
         photoBox.style.backgroundColor = "#eeeeee";
         previewImage.removeAttribute("src");
         previewImage.classList.add("hidden");
@@ -2070,7 +2048,6 @@
         submitItemButton.textContent = "Speichern";
         cancelEditButton.classList.add("hidden");
         editPhotoButton.classList.add("hidden");
-        photoProcessing.classList.add("hidden");
       }
 
       function startEditItem(id) {
@@ -2312,241 +2289,15 @@
         }
       }
 
-      async function acceptPhoto(photo) {
-        const job = ++photoJob;
+      function acceptPhoto(photo) {
         originalPhoto = photo;
         currentPhoto = photo;
         setPhotoCapturePending(false);
         paintCurrentPhoto();
         savePhotoDraft();
         showScreen("photo", { keepForm: true });
-        photoProcessing.classList.remove("hidden");
-        window.setTimeout(async () => {
-          const processedPhoto = await removePhotoBackground(photo, Number(backgroundStrengthInput.value));
-          if (job !== photoJob) return;
-          currentPhoto = processedPhoto;
-          paintCurrentPhoto();
-          savePhotoDraft();
-          photoProcessing.classList.add("hidden");
-        }, 180);
       }
 
-      function weightedColorDistance(data, first, second) {
-        const red = data[first] - data[second];
-        const green = data[first + 1] - data[second + 1];
-        const blue = data[first + 2] - data[second + 2];
-        return Math.sqrt(red * red * 0.28 + green * green * 0.57 + blue * blue * 0.15);
-      }
-
-      function buildBackgroundPalette(data, width, height) {
-        const samples = [];
-        const edgeDepth = Math.max(2, Math.round(Math.min(width, height) * 0.018));
-        const step = Math.max(1, Math.floor(Math.max(width, height) / 190));
-        const add = (x, y) => {
-          const offset = (y * width + x) * 4;
-          samples.push([data[offset], data[offset + 1], data[offset + 2]]);
-        };
-        for (let y = 0; y < edgeDepth; y += 1) {
-          for (let x = 0; x < width; x += step) {
-            add(x, y);
-            add(x, height - 1 - y);
-          }
-        }
-        for (let x = 0; x < edgeDepth; x += 1) {
-          for (let y = edgeDepth; y < height - edgeDepth; y += step) {
-            add(x, y);
-            add(width - 1 - x, y);
-          }
-        }
-
-        const buckets = new Map();
-        samples.forEach(([red, green, blue]) => {
-          const key = `${red >> 4}-${green >> 4}-${blue >> 4}`;
-          const bucket = buckets.get(key) || { count: 0, red: 0, green: 0, blue: 0 };
-          bucket.count += 1;
-          bucket.red += red;
-          bucket.green += green;
-          bucket.blue += blue;
-          buckets.set(key, bucket);
-        });
-        let centers = [...buckets.values()]
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5)
-          .map((bucket) => [bucket.red / bucket.count, bucket.green / bucket.count, bucket.blue / bucket.count]);
-        if (!centers.length) centers = [[data[0], data[1], data[2]]];
-
-        for (let iteration = 0; iteration < 5; iteration += 1) {
-          const totals = centers.map(() => [0, 0, 0, 0]);
-          samples.forEach((sample) => {
-            let best = 0;
-            let bestDistance = Infinity;
-            centers.forEach((center, index) => {
-              const distance = (sample[0] - center[0]) ** 2 * 0.28 + (sample[1] - center[1]) ** 2 * 0.57 + (sample[2] - center[2]) ** 2 * 0.15;
-              if (distance < bestDistance) {
-                best = index;
-                bestDistance = distance;
-              }
-            });
-            totals[best][0] += sample[0];
-            totals[best][1] += sample[1];
-            totals[best][2] += sample[2];
-            totals[best][3] += 1;
-          });
-          centers = centers.map((center, index) => totals[index][3]
-            ? [totals[index][0] / totals[index][3], totals[index][1] / totals[index][3], totals[index][2] / totals[index][3]]
-            : center);
-        }
-
-        const counts = new Uint32Array(centers.length);
-        samples.forEach((sample) => {
-          let best = 0;
-          let bestDistance = Infinity;
-          centers.forEach((center, index) => {
-            const distance = (sample[0] - center[0]) ** 2 * 0.28 + (sample[1] - center[1]) ** 2 * 0.57 + (sample[2] - center[2]) ** 2 * 0.15;
-            if (distance < bestDistance) {
-              best = index;
-              bestDistance = distance;
-            }
-          });
-          counts[best] += 1;
-        });
-        const minimumCluster = Math.max(3, samples.length * 0.045);
-        return centers.filter((_, index) => counts[index] >= minimumCluster);
-      }
-
-      function paletteDistance(data, offset, palette) {
-        let best = Infinity;
-        for (const color of palette) {
-          const red = data[offset] - color[0];
-          const green = data[offset + 1] - color[1];
-          const blue = data[offset + 2] - color[2];
-          const distance = Math.sqrt(red * red * 0.28 + green * green * 0.57 + blue * blue * 0.15);
-          if (distance < best) best = distance;
-        }
-        return best;
-      }
-
-      async function removePhotoBackground(dataUrl, strength = 56, mayRetry = true) {
-        try {
-          const image = await loadPhotoImage(dataUrl);
-          await new Promise((resolve) => window.requestAnimationFrame(resolve));
-          const canvas = document.createElement("canvas");
-          const processingSide = window.matchMedia("(max-width: 600px)").matches ? 640 : 820;
-          const scale = Math.min(1, processingSide / Math.max(image.naturalWidth, image.naturalHeight));
-          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-          const context = canvas.getContext("2d", { willReadFrequently: true });
-          context.imageSmoothingEnabled = true;
-          context.imageSmoothingQuality = "high";
-          context.drawImage(image, 0, 0, canvas.width, canvas.height);
-          const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
-          const { data, width, height } = pixels;
-          const palette = buildBackgroundPalette(data, width, height);
-          const background = new Uint8Array(width * height);
-          const queue = new Int32Array(width * height);
-          const centerX = (width - 1) / 2;
-          const centerY = (height - 1) / 2;
-          const maxCenterDistance = Math.hypot(centerX, centerY) || 1;
-          const threshold = 34 + Number(strength) * 0.55;
-          let head = 0;
-          let tail = 0;
-
-          const addSeed = (x, y) => {
-            const pixel = y * width + x;
-            if (background[pixel]) return;
-            const offset = pixel * 4;
-            if (paletteDistance(data, offset, palette) > threshold * 0.82) return;
-            background[pixel] = 1;
-            queue[tail++] = pixel;
-          };
-          for (let x = 0; x < width; x += 1) {
-            addSeed(x, 0);
-            addSeed(x, height - 1);
-          }
-          for (let y = 1; y < height - 1; y += 1) {
-            addSeed(0, y);
-            addSeed(width - 1, y);
-          }
-
-          const tryAdd = (nextX, nextY, sourceOffset) => {
-            if (nextX < 0 || nextY < 0 || nextX >= width || nextY >= height) return;
-            const nextPixel = nextY * width + nextX;
-            if (background[nextPixel]) return;
-            const nextOffset = nextPixel * 4;
-            const centerProtection = Math.max(0, 1 - Math.hypot(nextX - centerX, nextY - centerY) / (maxCenterDistance * 0.72));
-            const localThreshold = threshold - centerProtection * 12;
-            const edgeDistance = paletteDistance(data, nextOffset, palette);
-            const neighborDistance = weightedColorDistance(data, sourceOffset, nextOffset);
-            if (edgeDistance <= localThreshold && neighborDistance <= localThreshold * 1.38 + 8) {
-              background[nextPixel] = 1;
-              queue[tail++] = nextPixel;
-            }
-          };
-
-          while (head < tail) {
-            const pixel = queue[head++];
-            const x = pixel % width;
-            const y = Math.floor(pixel / width);
-            const sourceOffset = pixel * 4;
-            tryAdd(x - 1, y, sourceOffset);
-            tryAdd(x + 1, y, sourceOffset);
-            tryAdd(x, y - 1, sourceOffset);
-            tryAdd(x, y + 1, sourceOffset);
-          }
-
-          const cleaned = background.slice();
-          for (let y = 1; y < height - 1; y += 1) {
-            for (let x = 1; x < width - 1; x += 1) {
-              const pixel = y * width + x;
-              let backgroundNeighbors = 0;
-              for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
-                for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
-                  backgroundNeighbors += background[(y + offsetY) * width + x + offsetX];
-                }
-              }
-              if (!background[pixel] && backgroundNeighbors >= 8) cleaned[pixel] = 1;
-              if (background[pixel] && backgroundNeighbors <= 2) cleaned[pixel] = 0;
-            }
-          }
-
-          let foregroundCount = 0;
-          for (let pixel = 0; pixel < cleaned.length; pixel += 1) foregroundCount += cleaned[pixel] ? 0 : 1;
-          const foregroundRatio = foregroundCount / cleaned.length;
-          if (foregroundRatio < 0.025 && mayRetry && strength > 30) {
-            return removePhotoBackground(dataUrl, Math.max(24, strength - 18), false);
-          }
-
-          for (let y = 0; y < height; y += 1) {
-            for (let x = 0; x < width; x += 1) {
-              const pixel = y * width + x;
-              const dataOffset = pixel * 4;
-              if (cleaned[pixel]) {
-                data[dataOffset] = 0;
-                data[dataOffset + 1] = 0;
-                data[dataOffset + 2] = 0;
-                data[dataOffset + 3] = 0;
-                continue;
-              }
-              let foregroundNeighbors = 0;
-              let neighborCount = 0;
-              for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
-                for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
-                  const nextX = x + offsetX;
-                  const nextY = y + offsetY;
-                  if (nextX < 0 || nextY < 0 || nextX >= width || nextY >= height) continue;
-                  neighborCount += 1;
-                  foregroundNeighbors += cleaned[nextY * width + nextX] ? 0 : 1;
-                }
-              }
-              data[dataOffset + 3] = Math.min(data[dataOffset + 3], Math.max(92, Math.round(255 * foregroundNeighbors / neighborCount)));
-            }
-          }
-          context.putImageData(pixels, 0, 0);
-          return canvasPhotoDataUrl(canvas);
-        } catch {
-          return dataUrl;
-        }
-      }
 
       function drawPhotoEditor() {
         if (!editorSourceCanvas || !editorMaskCanvas) return;
@@ -2937,25 +2688,6 @@
       });
       editPhotoButton.addEventListener("click", openPhotoEditor);
       document.querySelector("#closePhotoEditorButton").addEventListener("click", () => photoEditor.close());
-      document.querySelector("#autoRemoveBackgroundButton").addEventListener("click", async () => {
-        if (!originalPhoto || editorProcessing || !editorMaskContext) return;
-        editorProcessing = true;
-        const button = document.querySelector("#autoRemoveBackgroundButton");
-        button.disabled = true;
-        photoEditorStatus.textContent = "Hintergrund wird genau erkannt...";
-        pushEditorHistory();
-        try {
-          const processed = await removePhotoBackground(originalPhoto, Number(backgroundStrengthInput.value));
-          await setEditorMaskFromPhoto(processed);
-          drawPhotoEditor();
-          photoEditorStatus.textContent = "Automatik fertig. Kanten kannst du mit Radieren oder Zurückholen verbessern.";
-        } catch {
-          photoEditorStatus.textContent = "Die Automatik konnte dieses Foto nicht bearbeiten. Nutze Item umranden.";
-        } finally {
-          button.disabled = false;
-          editorProcessing = false;
-        }
-      });
       document.querySelector("#outlinePhotoButton").addEventListener("click", () => setEditorTool("outline"));
       document.querySelector("#erasePhotoButton").addEventListener("click", () => setEditorTool("erase"));
       document.querySelector("#restorePhotoButton").addEventListener("click", () => setEditorTool("restore"));
@@ -2980,7 +2712,7 @@
       });
       document.querySelector("#applyPhotoEditButton").addEventListener("click", applyManualPhotoMask);
       photoEditorCanvas.addEventListener("pointerdown", (event) => {
-        if (!editorMaskContext || editorProcessing) return;
+        if (!editorMaskContext) return;
         event.preventDefault();
         const point = editorPoint(event);
         if (editorTool === "outline") {
@@ -3071,7 +2803,6 @@
           await acceptPhoto(mobilePhoto);
         } catch {
           setPhotoCapturePending(false);
-          photoProcessing.classList.add("hidden");
         }
       });
       photoBackgroundInput.addEventListener("input", () => {

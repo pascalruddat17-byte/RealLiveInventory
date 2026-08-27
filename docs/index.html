@@ -974,6 +974,55 @@
         margin-top: 10px;
       }
 
+      .photo-editor-tools button.active {
+        border-color: var(--ink);
+        background: var(--ink);
+        color: var(--surface);
+      }
+
+      .photo-editor-controls {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .photo-editor-control {
+        display: grid;
+        grid-template-columns: 96px 1fr;
+        gap: 10px;
+        align-items: center;
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+
+      .photo-editor-control input[type="range"] {
+        width: 100%;
+        accent-color: var(--ink);
+      }
+
+      .photo-editor-status,
+      .photo-processing {
+        min-height: 20px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .photo-processing {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        z-index: 2;
+        min-height: 0;
+        padding: 7px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.94);
+        color: #111111;
+      }
+
       .photo-box {
         position: relative;
         display: grid;
@@ -1333,6 +1382,7 @@
           <div class="photo-box" id="photoBox">
             <span><strong>ITEM</strong>Foto oder Datei</span>
             <img class="hidden" id="previewImage" alt="Item Foto" />
+            <div class="photo-processing hidden" id="photoProcessing" role="status">Hintergrund wird entfernt...</div>
           </div>
           <input id="photoInput" type="file" accept="image/*" capture="environment" class="hidden" />
           <button class="primary photo-add-button" id="photoButton" type="button"><img src="./add-icon.png" alt="" /> Foto aufnehmen</button>
@@ -1396,9 +1446,17 @@
           <button class="icon-btn" id="closePhotoEditorButton" type="button" title="Schliessen">×</button>
         </div>
         <div class="photo-editor-canvas-wrap"><canvas id="photoEditorCanvas"></canvas></div>
+        <div class="photo-editor-status" id="photoEditorStatus">Werkzeug auswählen und direkt im Bild bearbeiten.</div>
+        <div class="photo-editor-controls">
+          <label class="photo-editor-control"><span>Mehr löschen</span><input id="backgroundStrengthInput" type="range" min="20" max="90" value="56" /></label>
+          <label class="photo-editor-control"><span>Pinselgröße</span><input id="photoBrushSizeInput" type="range" min="12" max="110" value="44" /></label>
+        </div>
         <div class="photo-editor-tools">
-          <button type="button" id="autoRemoveBackgroundButton">Automatisch löschen</button>
-          <button type="button" id="manualRemoveBackgroundButton">Manuell markieren</button>
+          <button type="button" id="autoRemoveBackgroundButton">Automatisch</button>
+          <button type="button" id="outlinePhotoButton">Item umranden</button>
+          <button type="button" id="erasePhotoButton">Radieren</button>
+          <button type="button" id="restorePhotoButton">Zurückholen</button>
+          <button type="button" id="undoPhotoEditButton">Rückgängig</button>
           <button type="button" id="resetPhotoEditButton">Zurücksetzen</button>
           <button class="primary" type="button" id="applyPhotoEditButton">Übernehmen</button>
         </div>
@@ -1502,7 +1560,13 @@
       let animatedMuseumSlot = null;
       let editorImage = null;
       let editorPath = [];
-      let manualEditMode = false;
+      let editorSourceCanvas = null;
+      let editorMaskCanvas = null;
+      let editorMaskContext = null;
+      let editorTool = "outline";
+      let editorLastPoint = null;
+      let editorHistory = [];
+      let editorProcessing = false;
       let settings = loadSettings();
       const defaultUserName = `User ${getUserNumber()}`;
 
@@ -1535,6 +1599,10 @@
       const photoEditor = document.querySelector("#photoEditor");
       const photoEditorCanvas = document.querySelector("#photoEditorCanvas");
       const photoEditorContext = photoEditorCanvas.getContext("2d");
+      const photoProcessing = document.querySelector("#photoProcessing");
+      const photoEditorStatus = document.querySelector("#photoEditorStatus");
+      const backgroundStrengthInput = document.querySelector("#backgroundStrengthInput");
+      const photoBrushSizeInput = document.querySelector("#photoBrushSizeInput");
       const museumPicker = document.querySelector("#museumPicker");
       const museumPickerList = document.querySelector("#museumPickerList");
       const categoryImageInput = document.querySelector("#categoryImageInput");
@@ -1858,6 +1926,7 @@
         submitItemButton.textContent = "Speichern";
         cancelEditButton.classList.add("hidden");
         editPhotoButton.classList.add("hidden");
+        photoProcessing.classList.add("hidden");
       }
 
       function startEditItem(id) {
@@ -1932,90 +2001,314 @@
           .replace(/'/g, "&#039;");
       }
 
-      function removePhotoBackground(dataUrl) {
-        return new Promise((resolve) => {
+      function loadPhotoImage(dataUrl) {
+        return new Promise((resolve, reject) => {
           const image = new Image();
-          image.onload = () => {
-            const canvas = document.createElement("canvas");
-            const scale = Math.min(1, 720 / Math.max(image.naturalWidth, image.naturalHeight));
-            canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-            canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-            const context = canvas.getContext("2d", { willReadFrequently: true });
-            context.drawImage(image, 0, 0);
-            const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
-            const { data, width, height } = pixels;
-            const visited = new Uint8Array(width * height);
-            const queue = new Int32Array(width * height);
-            let head = 0;
-            let tail = 0;
-            const addEdgePixel = (x, y) => {
-              const pixel = y * width + x;
-              if (visited[pixel]) return;
-              visited[pixel] = 1;
-              queue[tail++] = pixel;
-            };
-            for (let x = 0; x < width; x += 1) {
-              addEdgePixel(x, 0);
-              addEdgePixel(x, height - 1);
-            }
-            for (let y = 1; y < height - 1; y += 1) {
-              addEdgePixel(0, y);
-              addEdgePixel(width - 1, y);
-            }
-            while (head < tail) {
-              const pixel = queue[head++];
-              const x = pixel % width;
-              const y = Math.floor(pixel / width);
-              const source = pixel * 4;
-              data[source + 3] = 0;
-              [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]].forEach(([nextX, nextY]) => {
-                if (nextX < 0 || nextY < 0 || nextX >= width || nextY >= height) return;
-                const nextPixel = nextY * width + nextX;
-                if (visited[nextPixel]) return;
-                const next = nextPixel * 4;
-                const distance = Math.hypot(data[next] - data[source], data[next + 1] - data[source + 1], data[next + 2] - data[source + 2]);
-                if (distance < 58) {
-                  visited[nextPixel] = 1;
-                  queue[tail++] = nextPixel;
-                }
-              });
-            }
-            context.putImageData(pixels, 0, 0);
-            resolve(canvas.toDataURL("image/png"));
-          };
-          image.onerror = () => resolve(dataUrl);
+          image.onload = () => resolve(image);
+          image.onerror = reject;
           image.src = dataUrl;
         });
       }
 
+      function canvasPhotoDataUrl(canvas) {
+        const webp = canvas.toDataURL("image/webp", 0.9);
+        return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/png");
+      }
+
+      function weightedColorDistance(data, first, second) {
+        const red = data[first] - data[second];
+        const green = data[first + 1] - data[second + 1];
+        const blue = data[first + 2] - data[second + 2];
+        return Math.sqrt(red * red * 0.28 + green * green * 0.57 + blue * blue * 0.15);
+      }
+
+      function buildBackgroundPalette(data, width, height) {
+        const samples = [];
+        const edgeDepth = Math.max(2, Math.round(Math.min(width, height) * 0.018));
+        const step = Math.max(1, Math.floor(Math.max(width, height) / 190));
+        const add = (x, y) => {
+          const offset = (y * width + x) * 4;
+          samples.push([data[offset], data[offset + 1], data[offset + 2]]);
+        };
+        for (let y = 0; y < edgeDepth; y += 1) {
+          for (let x = 0; x < width; x += step) {
+            add(x, y);
+            add(x, height - 1 - y);
+          }
+        }
+        for (let x = 0; x < edgeDepth; x += 1) {
+          for (let y = edgeDepth; y < height - edgeDepth; y += step) {
+            add(x, y);
+            add(width - 1 - x, y);
+          }
+        }
+
+        const buckets = new Map();
+        samples.forEach(([red, green, blue]) => {
+          const key = `${red >> 4}-${green >> 4}-${blue >> 4}`;
+          const bucket = buckets.get(key) || { count: 0, red: 0, green: 0, blue: 0 };
+          bucket.count += 1;
+          bucket.red += red;
+          bucket.green += green;
+          bucket.blue += blue;
+          buckets.set(key, bucket);
+        });
+        let centers = [...buckets.values()]
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 5)
+          .map((bucket) => [bucket.red / bucket.count, bucket.green / bucket.count, bucket.blue / bucket.count]);
+        if (!centers.length) centers = [[data[0], data[1], data[2]]];
+
+        for (let iteration = 0; iteration < 5; iteration += 1) {
+          const totals = centers.map(() => [0, 0, 0, 0]);
+          samples.forEach((sample) => {
+            let best = 0;
+            let bestDistance = Infinity;
+            centers.forEach((center, index) => {
+              const distance = (sample[0] - center[0]) ** 2 * 0.28 + (sample[1] - center[1]) ** 2 * 0.57 + (sample[2] - center[2]) ** 2 * 0.15;
+              if (distance < bestDistance) {
+                best = index;
+                bestDistance = distance;
+              }
+            });
+            totals[best][0] += sample[0];
+            totals[best][1] += sample[1];
+            totals[best][2] += sample[2];
+            totals[best][3] += 1;
+          });
+          centers = centers.map((center, index) => totals[index][3]
+            ? [totals[index][0] / totals[index][3], totals[index][1] / totals[index][3], totals[index][2] / totals[index][3]]
+            : center);
+        }
+
+        const counts = new Uint32Array(centers.length);
+        samples.forEach((sample) => {
+          let best = 0;
+          let bestDistance = Infinity;
+          centers.forEach((center, index) => {
+            const distance = (sample[0] - center[0]) ** 2 * 0.28 + (sample[1] - center[1]) ** 2 * 0.57 + (sample[2] - center[2]) ** 2 * 0.15;
+            if (distance < bestDistance) {
+              best = index;
+              bestDistance = distance;
+            }
+          });
+          counts[best] += 1;
+        });
+        const minimumCluster = Math.max(3, samples.length * 0.045);
+        return centers.filter((_, index) => counts[index] >= minimumCluster);
+      }
+
+      function paletteDistance(data, offset, palette) {
+        let best = Infinity;
+        for (const color of palette) {
+          const red = data[offset] - color[0];
+          const green = data[offset + 1] - color[1];
+          const blue = data[offset + 2] - color[2];
+          const distance = Math.sqrt(red * red * 0.28 + green * green * 0.57 + blue * blue * 0.15);
+          if (distance < best) best = distance;
+        }
+        return best;
+      }
+
+      async function removePhotoBackground(dataUrl, strength = 56, mayRetry = true) {
+        try {
+          const image = await loadPhotoImage(dataUrl);
+          await new Promise((resolve) => window.requestAnimationFrame(resolve));
+          const canvas = document.createElement("canvas");
+          const scale = Math.min(1, 820 / Math.max(image.naturalWidth, image.naturalHeight));
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+          const context = canvas.getContext("2d", { willReadFrequently: true });
+          context.imageSmoothingEnabled = true;
+          context.imageSmoothingQuality = "high";
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+          const { data, width, height } = pixels;
+          const palette = buildBackgroundPalette(data, width, height);
+          const background = new Uint8Array(width * height);
+          const queue = new Int32Array(width * height);
+          const centerX = (width - 1) / 2;
+          const centerY = (height - 1) / 2;
+          const maxCenterDistance = Math.hypot(centerX, centerY) || 1;
+          const threshold = 34 + Number(strength) * 0.55;
+          let head = 0;
+          let tail = 0;
+
+          const addSeed = (x, y) => {
+            const pixel = y * width + x;
+            if (background[pixel]) return;
+            const offset = pixel * 4;
+            if (paletteDistance(data, offset, palette) > threshold * 0.82) return;
+            background[pixel] = 1;
+            queue[tail++] = pixel;
+          };
+          for (let x = 0; x < width; x += 1) {
+            addSeed(x, 0);
+            addSeed(x, height - 1);
+          }
+          for (let y = 1; y < height - 1; y += 1) {
+            addSeed(0, y);
+            addSeed(width - 1, y);
+          }
+
+          const tryAdd = (nextX, nextY, sourceOffset) => {
+            if (nextX < 0 || nextY < 0 || nextX >= width || nextY >= height) return;
+            const nextPixel = nextY * width + nextX;
+            if (background[nextPixel]) return;
+            const nextOffset = nextPixel * 4;
+            const centerProtection = Math.max(0, 1 - Math.hypot(nextX - centerX, nextY - centerY) / (maxCenterDistance * 0.72));
+            const localThreshold = threshold - centerProtection * 12;
+            const edgeDistance = paletteDistance(data, nextOffset, palette);
+            const neighborDistance = weightedColorDistance(data, sourceOffset, nextOffset);
+            if (edgeDistance <= localThreshold && neighborDistance <= localThreshold * 1.38 + 8) {
+              background[nextPixel] = 1;
+              queue[tail++] = nextPixel;
+            }
+          };
+
+          while (head < tail) {
+            const pixel = queue[head++];
+            const x = pixel % width;
+            const y = Math.floor(pixel / width);
+            const sourceOffset = pixel * 4;
+            tryAdd(x - 1, y, sourceOffset);
+            tryAdd(x + 1, y, sourceOffset);
+            tryAdd(x, y - 1, sourceOffset);
+            tryAdd(x, y + 1, sourceOffset);
+          }
+
+          const cleaned = background.slice();
+          for (let y = 1; y < height - 1; y += 1) {
+            for (let x = 1; x < width - 1; x += 1) {
+              const pixel = y * width + x;
+              let backgroundNeighbors = 0;
+              for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+                for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+                  backgroundNeighbors += background[(y + offsetY) * width + x + offsetX];
+                }
+              }
+              if (!background[pixel] && backgroundNeighbors >= 8) cleaned[pixel] = 1;
+              if (background[pixel] && backgroundNeighbors <= 2) cleaned[pixel] = 0;
+            }
+          }
+
+          let foregroundCount = 0;
+          for (let pixel = 0; pixel < cleaned.length; pixel += 1) foregroundCount += cleaned[pixel] ? 0 : 1;
+          const foregroundRatio = foregroundCount / cleaned.length;
+          if (foregroundRatio < 0.025 && mayRetry && strength > 30) {
+            return removePhotoBackground(dataUrl, Math.max(24, strength - 18), false);
+          }
+
+          for (let y = 0; y < height; y += 1) {
+            for (let x = 0; x < width; x += 1) {
+              const pixel = y * width + x;
+              const dataOffset = pixel * 4;
+              if (cleaned[pixel]) {
+                data[dataOffset] = 0;
+                data[dataOffset + 1] = 0;
+                data[dataOffset + 2] = 0;
+                data[dataOffset + 3] = 0;
+                continue;
+              }
+              let foregroundNeighbors = 0;
+              let neighborCount = 0;
+              for (let offsetY = -1; offsetY <= 1; offsetY += 1) {
+                for (let offsetX = -1; offsetX <= 1; offsetX += 1) {
+                  const nextX = x + offsetX;
+                  const nextY = y + offsetY;
+                  if (nextX < 0 || nextY < 0 || nextX >= width || nextY >= height) continue;
+                  neighborCount += 1;
+                  foregroundNeighbors += cleaned[nextY * width + nextX] ? 0 : 1;
+                }
+              }
+              data[dataOffset + 3] = Math.min(data[dataOffset + 3], Math.max(92, Math.round(255 * foregroundNeighbors / neighborCount)));
+            }
+          }
+          context.putImageData(pixels, 0, 0);
+          return canvasPhotoDataUrl(canvas);
+        } catch {
+          return dataUrl;
+        }
+      }
+
       function drawPhotoEditor() {
-        if (!editorImage) return;
+        if (!editorSourceCanvas || !editorMaskCanvas) return;
         photoEditorContext.clearRect(0, 0, photoEditorCanvas.width, photoEditorCanvas.height);
-        photoEditorContext.drawImage(editorImage, 0, 0, photoEditorCanvas.width, photoEditorCanvas.height);
-        if (!manualEditMode || editorPath.length < 1) return;
+        photoEditorContext.save();
+        photoEditorContext.drawImage(editorSourceCanvas, 0, 0);
+        photoEditorContext.globalCompositeOperation = "destination-in";
+        photoEditorContext.drawImage(editorMaskCanvas, 0, 0);
+        photoEditorContext.restore();
+        if (editorTool !== "outline" || editorPath.length < 1) return;
         photoEditorContext.save();
         photoEditorContext.strokeStyle = "#f39a2b";
-        photoEditorContext.lineWidth = Math.max(3, photoEditorCanvas.width / 120);
-        photoEditorContext.setLineDash([8, 6]);
+        photoEditorContext.lineWidth = Math.max(3, photoEditorCanvas.width / 150);
+        photoEditorContext.setLineDash([9, 7]);
         photoEditorContext.beginPath();
         editorPath.forEach(([x, y], index) => index ? photoEditorContext.lineTo(x, y) : photoEditorContext.moveTo(x, y));
         photoEditorContext.stroke();
         photoEditorContext.restore();
       }
 
-      function openPhotoEditor() {
+      function setEditorTool(tool) {
+        editorTool = tool;
+        editorPath = [];
+        const toolButtons = {
+          outline: "#outlinePhotoButton",
+          erase: "#erasePhotoButton",
+          restore: "#restorePhotoButton"
+        };
+        Object.entries(toolButtons).forEach(([name, selector]) => {
+          document.querySelector(selector).classList.toggle("active", name === tool);
+        });
+        const messages = {
+          outline: "Ziehe einmal um das Item. Alles ausserhalb wird entfernt.",
+          erase: "Wische über Reste vom Hintergrund.",
+          restore: "Wische über Stellen, die wieder sichtbar werden sollen."
+        };
+        photoEditorStatus.textContent = messages[tool];
+        drawPhotoEditor();
+      }
+
+      async function setEditorMaskFromPhoto(dataUrl) {
+        const maskImage = await loadPhotoImage(dataUrl);
+        editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
+        editorMaskContext.drawImage(maskImage, 0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
+      }
+
+      function pushEditorHistory() {
+        if (!editorMaskContext) return;
+        editorHistory.push(editorMaskContext.getImageData(0, 0, editorMaskCanvas.width, editorMaskCanvas.height));
+        if (editorHistory.length > 7) editorHistory.shift();
+      }
+
+      async function openPhotoEditor() {
         if (!originalPhoto) return;
-        editorImage = new Image();
-        editorImage.onload = () => {
-          const scale = Math.min(1, 720 / Math.max(editorImage.naturalWidth, editorImage.naturalHeight));
+        photoEditor.showModal();
+        photoEditorStatus.textContent = "Foto wird vorbereitet...";
+        try {
+          editorImage = await loadPhotoImage(originalPhoto);
+          const scale = Math.min(1, 820 / Math.max(editorImage.naturalWidth, editorImage.naturalHeight));
           photoEditorCanvas.width = Math.max(1, Math.round(editorImage.naturalWidth * scale));
           photoEditorCanvas.height = Math.max(1, Math.round(editorImage.naturalHeight * scale));
-          editorPath = [];
-          manualEditMode = false;
-          drawPhotoEditor();
-          photoEditor.showModal();
-        };
-        editorImage.src = originalPhoto;
+          editorSourceCanvas = document.createElement("canvas");
+          editorSourceCanvas.width = photoEditorCanvas.width;
+          editorSourceCanvas.height = photoEditorCanvas.height;
+          const sourceContext = editorSourceCanvas.getContext("2d");
+          sourceContext.imageSmoothingEnabled = true;
+          sourceContext.imageSmoothingQuality = "high";
+          sourceContext.drawImage(editorImage, 0, 0, editorSourceCanvas.width, editorSourceCanvas.height);
+          editorMaskCanvas = document.createElement("canvas");
+          editorMaskCanvas.width = photoEditorCanvas.width;
+          editorMaskCanvas.height = photoEditorCanvas.height;
+          editorMaskContext = editorMaskCanvas.getContext("2d", { willReadFrequently: true });
+          await setEditorMaskFromPhoto(currentPhoto || originalPhoto);
+          editorHistory = [];
+          editorLastPoint = null;
+          setEditorTool("outline");
+        } catch {
+          photoEditorStatus.textContent = "Das Foto konnte nicht geöffnet werden.";
+        }
       }
 
       function editorPoint(event) {
@@ -2026,19 +2319,55 @@
         ];
       }
 
+      function applyOutlineMask() {
+        if (!editorMaskContext || editorPath.length < 3) return;
+        pushEditorHistory();
+        editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
+        editorMaskContext.fillStyle = "#ffffff";
+        editorMaskContext.beginPath();
+        editorPath.forEach(([x, y], index) => index ? editorMaskContext.lineTo(x, y) : editorMaskContext.moveTo(x, y));
+        editorMaskContext.closePath();
+        editorMaskContext.fill();
+        editorPath = [];
+        photoEditorStatus.textContent = "Umriss übernommen. Du kannst die Kante noch radieren oder zurückholen.";
+        drawPhotoEditor();
+      }
+
+      function paintEditorMask(from, to) {
+        if (!editorMaskContext || !from || !to) return;
+        const bounds = photoEditorCanvas.getBoundingClientRect();
+        const brushScale = photoEditorCanvas.width / Math.max(1, bounds.width);
+        const brushSize = Number(photoBrushSizeInput.value) * brushScale;
+        editorMaskContext.save();
+        editorMaskContext.lineCap = "round";
+        editorMaskContext.lineJoin = "round";
+        editorMaskContext.lineWidth = brushSize;
+        editorMaskContext.globalCompositeOperation = editorTool === "erase" ? "destination-out" : "source-over";
+        editorMaskContext.strokeStyle = "#ffffff";
+        editorMaskContext.beginPath();
+        editorMaskContext.moveTo(from[0], from[1]);
+        editorMaskContext.lineTo(to[0], to[1]);
+        editorMaskContext.stroke();
+        editorMaskContext.beginPath();
+        editorMaskContext.arc(to[0], to[1], brushSize / 2, 0, Math.PI * 2);
+        editorMaskContext.fillStyle = "#ffffff";
+        if (editorTool === "erase") editorMaskContext.globalCompositeOperation = "destination-out";
+        editorMaskContext.fill();
+        editorMaskContext.restore();
+        drawPhotoEditor();
+      }
+
       function applyManualPhotoMask() {
-        if (!editorImage || editorPath.length < 3) return;
+        if (!editorSourceCanvas || !editorMaskCanvas) return;
+        if (editorTool === "outline" && editorPath.length >= 3) applyOutlineMask();
         const output = document.createElement("canvas");
         output.width = photoEditorCanvas.width;
         output.height = photoEditorCanvas.height;
         const context = output.getContext("2d");
-        context.drawImage(editorImage, 0, 0, output.width, output.height);
+        context.drawImage(editorSourceCanvas, 0, 0);
         context.globalCompositeOperation = "destination-in";
-        context.beginPath();
-        editorPath.forEach(([x, y], index) => index ? context.lineTo(x, y) : context.moveTo(x, y));
-        context.closePath();
-        context.fill();
-        currentPhoto = output.toDataURL("image/png");
+        context.drawImage(editorMaskCanvas, 0, 0);
+        currentPhoto = canvasPhotoDataUrl(output);
         previewImage.src = currentPhoto;
         photoEditor.close();
       }
@@ -2265,36 +2594,82 @@
       editPhotoButton.addEventListener("click", openPhotoEditor);
       document.querySelector("#closePhotoEditorButton").addEventListener("click", () => photoEditor.close());
       document.querySelector("#autoRemoveBackgroundButton").addEventListener("click", async () => {
-        if (!originalPhoto) return;
-        currentPhoto = await removePhotoBackground(originalPhoto);
-        previewImage.src = currentPhoto;
-        photoEditor.close();
+        if (!originalPhoto || editorProcessing || !editorMaskContext) return;
+        editorProcessing = true;
+        const button = document.querySelector("#autoRemoveBackgroundButton");
+        button.disabled = true;
+        photoEditorStatus.textContent = "Hintergrund wird genau erkannt...";
+        pushEditorHistory();
+        try {
+          const processed = await removePhotoBackground(originalPhoto, Number(backgroundStrengthInput.value));
+          await setEditorMaskFromPhoto(processed);
+          drawPhotoEditor();
+          photoEditorStatus.textContent = "Automatik fertig. Kanten kannst du mit Radieren oder Zurückholen verbessern.";
+        } catch {
+          photoEditorStatus.textContent = "Die Automatik konnte dieses Foto nicht bearbeiten. Nutze Item umranden.";
+        } finally {
+          button.disabled = false;
+          editorProcessing = false;
+        }
       });
-      document.querySelector("#manualRemoveBackgroundButton").addEventListener("click", () => {
-        manualEditMode = true;
+      document.querySelector("#outlinePhotoButton").addEventListener("click", () => setEditorTool("outline"));
+      document.querySelector("#erasePhotoButton").addEventListener("click", () => setEditorTool("erase"));
+      document.querySelector("#restorePhotoButton").addEventListener("click", () => setEditorTool("restore"));
+      document.querySelector("#undoPhotoEditButton").addEventListener("click", () => {
+        const previous = editorHistory.pop();
+        if (!previous || !editorMaskContext) return;
+        editorMaskContext.putImageData(previous, 0, 0);
         editorPath = [];
+        photoEditorStatus.textContent = "Letzte Änderung rückgängig gemacht.";
         drawPhotoEditor();
       });
       document.querySelector("#resetPhotoEditButton").addEventListener("click", () => {
-        currentPhoto = originalPhoto;
+        if (!editorMaskContext) return;
+        pushEditorHistory();
+        editorMaskContext.globalCompositeOperation = "source-over";
+        editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
+        editorMaskContext.fillStyle = "#ffffff";
+        editorMaskContext.fillRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
         editorPath = [];
-        manualEditMode = false;
+        photoEditorStatus.textContent = "Original wiederhergestellt.";
         drawPhotoEditor();
       });
       document.querySelector("#applyPhotoEditButton").addEventListener("click", applyManualPhotoMask);
       photoEditorCanvas.addEventListener("pointerdown", (event) => {
-        if (!manualEditMode) return;
+        if (!editorMaskContext || editorProcessing) return;
         event.preventDefault();
-        editorPath = [editorPoint(event)];
+        const point = editorPoint(event);
+        if (editorTool === "outline") {
+          editorPath = [point];
+        } else {
+          pushEditorHistory();
+          editorLastPoint = point;
+          paintEditorMask(point, point);
+        }
         photoEditorCanvas.setPointerCapture(event.pointerId);
         drawPhotoEditor();
       });
       photoEditorCanvas.addEventListener("pointermove", (event) => {
-        if (!manualEditMode || !photoEditorCanvas.hasPointerCapture(event.pointerId)) return;
+        if (!photoEditorCanvas.hasPointerCapture(event.pointerId)) return;
         event.preventDefault();
-        editorPath.push(editorPoint(event));
-        drawPhotoEditor();
+        const point = editorPoint(event);
+        if (editorTool === "outline") {
+          const last = editorPath[editorPath.length - 1];
+          if (!last || Math.hypot(point[0] - last[0], point[1] - last[1]) > 3) editorPath.push(point);
+          drawPhotoEditor();
+        } else {
+          paintEditorMask(editorLastPoint || point, point);
+          editorLastPoint = point;
+        }
       });
+      const finishEditorPointer = (event) => {
+        if (!photoEditorCanvas.hasPointerCapture(event.pointerId)) return;
+        photoEditorCanvas.releasePointerCapture(event.pointerId);
+        if (editorTool === "outline") applyOutlineMask();
+        editorLastPoint = null;
+      };
+      photoEditorCanvas.addEventListener("pointerup", finishEditorPointer);
+      photoEditorCanvas.addEventListener("pointercancel", finishEditorPointer);
       document.querySelector("#avatarButton").addEventListener("click", () => showScreen("customize"));
       document.querySelector("#profilePhotoButton").addEventListener("click", () => profilePhotoInput.click());
       document.querySelector("#resetProfilePhotoButton").addEventListener("click", () => {
@@ -2355,11 +2730,13 @@
           previewImage.classList.remove("hidden");
           photoBox.querySelector("span").classList.add("hidden");
           editPhotoButton.classList.remove("hidden");
+          photoProcessing.classList.remove("hidden");
           window.setTimeout(async () => {
-            const processedPhoto = await removePhotoBackground(rawPhoto);
+            const processedPhoto = await removePhotoBackground(rawPhoto, Number(backgroundStrengthInput.value));
             if (job !== photoJob) return;
             currentPhoto = processedPhoto;
             previewImage.src = processedPhoto;
+            photoProcessing.classList.add("hidden");
           }, 60);
         };
         reader.readAsDataURL(file);

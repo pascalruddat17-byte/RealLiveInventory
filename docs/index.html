@@ -1247,7 +1247,7 @@
 
       .photo-editor-tools {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
         margin-top: 10px;
       }
@@ -1262,6 +1262,27 @@
         display: grid;
         gap: 8px;
         margin-top: 10px;
+      }
+
+      .photo-shape-tools {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 7px;
+        margin-top: 10px;
+      }
+
+      .photo-shape-tools button {
+        min-height: 38px;
+        padding: 6px 4px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        font-size: 0.72rem;
+      }
+
+      .photo-shape-tools button.active {
+        border-color: var(--ink);
+        background: var(--ink);
+        color: var(--surface);
       }
 
       .photo-editor-control {
@@ -1835,6 +1856,13 @@
         <div class="photo-editor-status" id="photoEditorStatus">Ziehe einmal um das Item.</div>
         <div class="photo-editor-controls">
           <label class="photo-editor-control"><span>Pinselgröße</span><input id="photoBrushSizeInput" type="range" min="12" max="110" value="44" /></label>
+          <label class="photo-editor-control"><span>Kante weich</span><input id="photoFeatherInput" type="range" min="0" max="28" value="10" /></label>
+        </div>
+        <div class="photo-shape-tools">
+          <button type="button" id="shapeRectPhotoButton">Rechteck</button>
+          <button type="button" id="shapeSquarePhotoButton">Quadrat</button>
+          <button type="button" id="shapeCirclePhotoButton">Kreis</button>
+          <button type="button" id="shapeOvalPhotoButton">Oval</button>
         </div>
         <div class="photo-editor-tools">
           <button type="button" id="outlinePhotoButton">Item markieren</button>
@@ -1964,6 +1992,8 @@
       let editorTool = "outline";
       let editorLastPoint = null;
       let editorHistory = [];
+      let editorShapeStart = null;
+      let editorShapeCurrent = null;
       let settings = loadSettings();
       const defaultUserName = `User ${getUserNumber()}`;
 
@@ -2008,6 +2038,7 @@
       const photoEditorContext = photoEditorCanvas.getContext("2d");
       const photoEditorStatus = document.querySelector("#photoEditorStatus");
       const photoBrushSizeInput = document.querySelector("#photoBrushSizeInput");
+      const photoFeatherInput = document.querySelector("#photoFeatherInput");
       const museumPicker = document.querySelector("#museumPicker");
       const museumPickerList = document.querySelector("#museumPickerList");
       const categoryImageInput = document.querySelector("#categoryImageInput");
@@ -2724,24 +2755,35 @@
         photoEditorContext.globalCompositeOperation = "destination-in";
         photoEditorContext.drawImage(editorMaskCanvas, 0, 0);
         photoEditorContext.restore();
-        if (editorTool !== "outline" || editorPath.length < 1) return;
         photoEditorContext.save();
         photoEditorContext.strokeStyle = "#f39a2b";
+        photoEditorContext.fillStyle = "rgba(243, 154, 43, 0.18)";
         photoEditorContext.lineWidth = Math.max(3, photoEditorCanvas.width / 150);
         photoEditorContext.setLineDash([9, 7]);
-        photoEditorContext.beginPath();
-        editorPath.forEach(([x, y], index) => index ? photoEditorContext.lineTo(x, y) : photoEditorContext.moveTo(x, y));
-        photoEditorContext.stroke();
+        if (editorTool === "outline" && editorPath.length >= 1) {
+          photoEditorContext.beginPath();
+          editorPath.forEach(([x, y], index) => index ? photoEditorContext.lineTo(x, y) : photoEditorContext.moveTo(x, y));
+          photoEditorContext.stroke();
+        }
+        if (isShapeTool(editorTool) && editorShapeCurrent) {
+          drawEditorShape(photoEditorContext, editorShapeCurrent, editorTool, true);
+        }
         photoEditorContext.restore();
       }
 
       function setEditorTool(tool) {
         editorTool = tool;
         editorPath = [];
+        editorShapeStart = null;
+        editorShapeCurrent = null;
         const toolButtons = {
           outline: "#outlinePhotoButton",
           erase: "#erasePhotoButton",
-          restore: "#restorePhotoButton"
+          restore: "#restorePhotoButton",
+          shapeRect: "#shapeRectPhotoButton",
+          shapeSquare: "#shapeSquarePhotoButton",
+          shapeCircle: "#shapeCirclePhotoButton",
+          shapeOval: "#shapeOvalPhotoButton"
         };
         Object.entries(toolButtons).forEach(([name, selector]) => {
           document.querySelector(selector).classList.toggle("active", name === tool);
@@ -2749,7 +2791,11 @@
         const messages = {
           outline: "Ziehe einmal um das Item. Alles ausserhalb wird entfernt.",
           erase: "Wische über Reste vom Hintergrund.",
-          restore: "Wische über Stellen, die wieder sichtbar werden sollen."
+          restore: "Wische über Stellen, die wieder sichtbar werden sollen.",
+          shapeRect: "Ziehe ein Rechteck über das Item.",
+          shapeSquare: "Ziehe ein Quadrat über das Item.",
+          shapeCircle: "Ziehe einen Kreis über das Item.",
+          shapeOval: "Ziehe ein Oval über das Item."
         };
         photoEditorStatus.textContent = messages[tool];
         drawPhotoEditor();
@@ -2804,6 +2850,56 @@
         ];
       }
 
+      function isShapeTool(tool) {
+        return tool === "shapeRect" || tool === "shapeSquare" || tool === "shapeCircle" || tool === "shapeOval";
+      }
+
+      function shapeFromPoints(start, end, tool) {
+        const x1 = start[0];
+        const y1 = start[1];
+        let x2 = end[0];
+        let y2 = end[1];
+        if (tool === "shapeSquare" || tool === "shapeCircle") {
+          const side = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
+          x2 = x1 + Math.sign(x2 - x1 || 1) * side;
+          y2 = y1 + Math.sign(y2 - y1 || 1) * side;
+        }
+        return {
+          x: Math.min(x1, x2),
+          y: Math.min(y1, y2),
+          width: Math.abs(x2 - x1),
+          height: Math.abs(y2 - y1)
+        };
+      }
+
+      function drawEditorShape(context, shape, tool, preview = false) {
+        if (!shape || shape.width < 2 || shape.height < 2) return;
+        const cx = shape.x + shape.width / 2;
+        const cy = shape.y + shape.height / 2;
+        context.beginPath();
+        if (tool === "shapeCircle" || tool === "shapeOval") {
+          context.ellipse(cx, cy, shape.width / 2, shape.height / 2, 0, 0, Math.PI * 2);
+        } else {
+          context.rect(shape.x, shape.y, shape.width, shape.height);
+        }
+        if (preview) context.fill();
+        context.stroke();
+      }
+
+      function blurEditorMask(radius) {
+        const blur = Number(radius) || 0;
+        if (!editorMaskCanvas || !editorMaskContext || blur <= 0) return;
+        const softened = document.createElement("canvas");
+        softened.width = editorMaskCanvas.width;
+        softened.height = editorMaskCanvas.height;
+        const context = softened.getContext("2d");
+        context.filter = `blur(${blur}px)`;
+        context.drawImage(editorMaskCanvas, 0, 0);
+        editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
+        editorMaskContext.filter = "none";
+        editorMaskContext.drawImage(softened, 0, 0);
+      }
+
       function applyOutlineMask() {
         if (!editorMaskContext || editorPath.length < 3) return;
         pushEditorHistory();
@@ -2814,7 +2910,22 @@
         editorMaskContext.closePath();
         editorMaskContext.fill();
         editorPath = [];
-        photoEditorStatus.textContent = "Umriss übernommen. Du kannst die Kante noch radieren oder zurückholen.";
+        blurEditorMask(Number(photoFeatherInput.value));
+        photoEditorStatus.textContent = "Umriss übernommen. Die Kante ist weich gemacht.";
+        drawPhotoEditor();
+      }
+
+      function applyShapeMask() {
+        if (!editorMaskContext || !editorShapeCurrent || editorShapeCurrent.width < 4 || editorShapeCurrent.height < 4) return;
+        pushEditorHistory();
+        editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
+        editorMaskContext.fillStyle = "#ffffff";
+        editorMaskContext.strokeStyle = "#ffffff";
+        drawEditorShape(editorMaskContext, editorShapeCurrent, editorTool, true);
+        editorShapeStart = null;
+        editorShapeCurrent = null;
+        blurEditorMask(Number(photoFeatherInput.value));
+        photoEditorStatus.textContent = "Form übernommen. Die Kante ist weich gemacht.";
         drawPhotoEditor();
       }
 
@@ -2845,6 +2956,7 @@
       function applyManualPhotoMask() {
         if (!editorSourceCanvas || !editorMaskCanvas) return;
         if (editorTool === "outline" && editorPath.length >= 3) applyOutlineMask();
+        if (isShapeTool(editorTool) && editorShapeCurrent) applyShapeMask();
         const output = document.createElement("canvas");
         output.width = photoEditorCanvas.width;
         output.height = photoEditorCanvas.height;
@@ -3168,11 +3280,17 @@
       document.querySelector("#outlinePhotoButton").addEventListener("click", () => setEditorTool("outline"));
       document.querySelector("#erasePhotoButton").addEventListener("click", () => setEditorTool("erase"));
       document.querySelector("#restorePhotoButton").addEventListener("click", () => setEditorTool("restore"));
+      document.querySelector("#shapeRectPhotoButton").addEventListener("click", () => setEditorTool("shapeRect"));
+      document.querySelector("#shapeSquarePhotoButton").addEventListener("click", () => setEditorTool("shapeSquare"));
+      document.querySelector("#shapeCirclePhotoButton").addEventListener("click", () => setEditorTool("shapeCircle"));
+      document.querySelector("#shapeOvalPhotoButton").addEventListener("click", () => setEditorTool("shapeOval"));
       document.querySelector("#undoPhotoEditButton").addEventListener("click", () => {
         const previous = editorHistory.pop();
         if (!previous || !editorMaskContext) return;
         editorMaskContext.putImageData(previous, 0, 0);
         editorPath = [];
+        editorShapeStart = null;
+        editorShapeCurrent = null;
         photoEditorStatus.textContent = "Letzte Änderung rückgängig gemacht.";
         drawPhotoEditor();
       });
@@ -3184,6 +3302,8 @@
         editorMaskContext.fillStyle = "#ffffff";
         editorMaskContext.fillRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
         editorPath = [];
+        editorShapeStart = null;
+        editorShapeCurrent = null;
         photoEditorStatus.textContent = "Original wiederhergestellt.";
         drawPhotoEditor();
       });
@@ -3194,6 +3314,9 @@
         const point = editorPoint(event);
         if (editorTool === "outline") {
           editorPath = [point];
+        } else if (isShapeTool(editorTool)) {
+          editorShapeStart = point;
+          editorShapeCurrent = shapeFromPoints(point, point, editorTool);
         } else {
           pushEditorHistory();
           editorLastPoint = point;
@@ -3210,6 +3333,9 @@
           const last = editorPath[editorPath.length - 1];
           if (!last || Math.hypot(point[0] - last[0], point[1] - last[1]) > 3) editorPath.push(point);
           drawPhotoEditor();
+        } else if (isShapeTool(editorTool)) {
+          editorShapeCurrent = shapeFromPoints(editorShapeStart || point, point, editorTool);
+          drawPhotoEditor();
         } else {
           paintEditorMask(editorLastPoint || point, point);
           editorLastPoint = point;
@@ -3219,6 +3345,7 @@
         if (!photoEditorCanvas.hasPointerCapture(event.pointerId)) return;
         photoEditorCanvas.releasePointerCapture(event.pointerId);
         if (editorTool === "outline") applyOutlineMask();
+        if (isShapeTool(editorTool)) applyShapeMask();
         editorLastPoint = null;
       };
       photoEditorCanvas.addEventListener("pointerup", finishEditorPointer);

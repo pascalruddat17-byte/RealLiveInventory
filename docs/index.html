@@ -368,11 +368,15 @@
       .category-row {
         display: grid;
         grid-auto-flow: column;
-        grid-auto-columns: minmax(68px, 1fr);
+        grid-auto-columns: 96px;
         gap: 8px;
         overflow-x: auto;
-        padding-bottom: 2px;
+        overscroll-behavior-x: contain;
+        padding: 0 2px 6px;
+        scroll-snap-type: x proximity;
         scrollbar-width: none;
+        touch-action: pan-x;
+        -webkit-overflow-scrolling: touch;
       }
 
       .category-row::-webkit-scrollbar {
@@ -381,23 +385,30 @@
 
       .chip {
         display: grid;
+        grid-template-rows: auto auto;
         min-height: 56px;
         place-items: center;
         gap: 2px;
-        padding: 8px 6px;
-        border: 1px solid var(--line);
-        border-radius: 13px;
-        background: var(--surface);
-        color: var(--muted);
+        padding: 8px 7px 7px;
+        border: 2px solid color-mix(in srgb, var(--box-color, #d6d6d6) 72%, #111111);
+        border-radius: 8px 8px 12px 12px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0 16%, transparent 17%),
+          linear-gradient(180deg, var(--box-color, #d6d6d6), color-mix(in srgb, var(--box-color, #d6d6d6) 72%, #111111));
+        color: #111111;
         font-size: 0.76rem;
         font-weight: 850;
+        box-shadow:
+          inset 0 6px 0 rgba(255, 255, 255, 0.24),
+          inset 0 -6px 0 rgba(0, 0, 0, 0.1);
       }
 
       .category-entry {
         display: grid;
-        grid-template-columns: 1fr 28px;
+        grid-template-columns: 1fr;
         gap: 3px;
-        min-width: 96px;
+        min-width: 92px;
+        scroll-snap-align: start;
       }
 
       .category-entry .chip {
@@ -405,8 +416,8 @@
       }
 
       .category-icon {
-        width: 25px;
-        height: 25px;
+        width: 27px;
+        height: 27px;
         object-fit: contain;
         image-rendering: pixelated;
       }
@@ -448,10 +459,16 @@
       }
 
       .chip.active {
-        border-color: transparent;
-        background: linear-gradient(135deg, #111111, #4f4f4f);
+        border-color: #111111;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.46) 0 16%, transparent 17%),
+          linear-gradient(180deg, color-mix(in srgb, var(--box-color, #d6d6d6) 86%, #ffffff), var(--box-color, #d6d6d6));
         color: white;
-        box-shadow: 0 10px 18px rgba(22, 119, 255, 0.22);
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+        box-shadow:
+          0 0 0 2px rgba(17, 17, 17, 0.12),
+          0 10px 18px rgba(0, 0, 0, 0.18),
+          inset 0 -8px 0 rgba(0, 0, 0, 0.12);
       }
 
       .chip.active strong {
@@ -519,6 +536,7 @@
       }
 
       .item-card {
+        --box-color: #d7d7d7;
         display: grid;
         grid-template-rows: auto auto auto;
         gap: 3px;
@@ -526,7 +544,9 @@
         padding: 4px;
         border: 1px solid var(--line);
         border-radius: 8px;
-        background: var(--surface);
+        background:
+          linear-gradient(90deg, var(--box-color) 0 5px, transparent 5px),
+          var(--surface);
         color: var(--ink);
         text-align: left;
         transform-origin: center bottom;
@@ -1080,6 +1100,14 @@
         flex: 1;
       }
 
+      .category-manager-row input[type="color"] {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        padding: 3px;
+        border-radius: 8px;
+      }
+
       .category-manager-image {
         display: grid;
         width: 42px;
@@ -1229,12 +1257,15 @@
       }
 
       .photo-editor-canvas-wrap {
+        --editor-preview-bg: transparent;
         display: grid;
         min-height: 260px;
         place-items: center;
         overflow: hidden;
         border-radius: 12px;
-        background: repeating-conic-gradient(#eeeeee 0 25%, #ffffff 0 50%) 50% / 18px 18px;
+        background:
+          linear-gradient(var(--editor-preview-bg), var(--editor-preview-bg)),
+          repeating-conic-gradient(#eeeeee 0 25%, #ffffff 0 50%) 50% / 18px 18px;
       }
 
       #photoEditorCanvas {
@@ -1266,7 +1297,7 @@
 
       .photo-shape-tools {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 7px;
         margin-top: 10px;
       }
@@ -1283,6 +1314,45 @@
         border-color: var(--ink);
         background: var(--ink);
         color: var(--surface);
+      }
+
+      .photo-preview-swatches {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .photo-preview-swatch {
+        display: grid;
+        min-height: 34px;
+        place-items: center;
+        border: 2px solid transparent;
+        border-radius: 9px;
+        color: rgba(0, 0, 0, 0.72);
+        font-size: 0.58rem;
+        font-weight: 950;
+      }
+
+      .photo-preview-swatch.active {
+        border-color: var(--ink);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9) inset;
+      }
+
+      .photo-preview-swatch[data-preview-rarity="Secret"] {
+        color: #ffffff;
+      }
+
+      .photo-shape-apply {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .photo-shape-apply button {
+        min-height: 38px;
+        border-radius: 9px;
       }
 
       .photo-editor-control {
@@ -1682,7 +1752,7 @@
               <button class="tab-pill" type="button" data-inventory-view="museum"><span>MUS</span><span>Museum</span></button>
             </div>
             <div>
-              <button class="icon-btn" id="customizeButton" type="button" title="Kategorien bearbeiten">⚙</button>
+              <button class="icon-btn" id="customizeButton" type="button" title="Boxen bearbeiten">⚙</button>
             </div>
           </div>
           <div class="category-row" id="categoryRow"></div>
@@ -1767,7 +1837,7 @@
             <input id="nameInput" required maxlength="28" autocomplete="off" placeholder="Zum Beispiel Kopfhörer" />
           </label>
           <div class="two-col">
-            <label class="item-field"><span>Kategorie</span><select id="categoryInput"></select></label>
+            <label class="item-field"><span>Box</span><select id="categoryInput"></select></label>
             <label class="item-field"><span>Erhalten am</span><input id="dateInput" type="date" aria-label="Erhalten am" /></label>
           </div>
 
@@ -1857,12 +1927,20 @@
         <div class="photo-editor-controls">
           <label class="photo-editor-control"><span>Pinselgröße</span><input id="photoBrushSizeInput" type="range" min="12" max="110" value="44" /></label>
           <label class="photo-editor-control"><span>Kante weich</span><input id="photoFeatherInput" type="range" min="0" max="28" value="10" /></label>
+          <label class="photo-editor-control"><span>Form drehen</span><input id="photoShapeRotateInput" type="range" min="-180" max="180" value="0" /></label>
         </div>
+        <div class="photo-preview-swatches" id="photoPreviewSwatches" aria-label="Hintergrund testen"></div>
         <div class="photo-shape-tools">
+          <button type="button" id="suggestShapePhotoButton">Auto</button>
           <button type="button" id="shapeRectPhotoButton">Rechteck</button>
           <button type="button" id="shapeSquarePhotoButton">Quadrat</button>
           <button type="button" id="shapeCirclePhotoButton">Kreis</button>
           <button type="button" id="shapeOvalPhotoButton">Oval</button>
+        </div>
+        <div class="photo-shape-apply">
+          <button type="button" id="placeShapePhotoButton">Form hinlegen</button>
+          <button class="primary" type="button" id="applyShapePhotoButton">Wegmachen</button>
+          <button type="button" id="clearShapePhotoButton">Form löschen</button>
         </div>
         <div class="photo-editor-tools">
           <button type="button" id="outlinePhotoButton">Item markieren</button>
@@ -1876,9 +1954,9 @@
 
       <dialog class="category-manager" id="categoryManager">
         <div class="category-manager-head">
-          <strong>Kategorien</strong>
+          <strong>Boxen</strong>
           <div>
-            <button class="secondary" id="addCategoryButton" type="button">+ Kategorie</button>
+            <button class="secondary" id="addCategoryButton" type="button">+ Box</button>
             <button class="icon-btn" id="closeCategoryManagerButton" type="button" title="Schliessen">×</button>
           </div>
         </div>
@@ -1950,13 +2028,7 @@
       const DEFAULT_PROFILE_IMAGE = "./profile-default.png";
       const DEFAULT_CATEGORY_IMAGE = "./category-default.png";
       const defaultCategories = [
-        { id: "all", label: "Alle", icon: "ALL" },
-        { id: "lifestyle", label: "Style", icon: "ST" },
-        { id: "tech", label: "Tech", icon: "GX" },
-        { id: "school", label: "Schule", icon: "SC" },
-        { id: "fun", label: "Freizeit", icon: "FR" },
-        { id: "collect", label: "Sammeln", icon: "TC" },
-        { id: "other", label: "Anderes", icon: "ET" }
+        { id: "all", label: "Alle Boxen", icon: "ALL", color: "#d7d7d7" }
       ];
       let categories = loadCategories();
       const DEFAULT_PALETTE = {
@@ -1994,6 +2066,9 @@
       let editorHistory = [];
       let editorShapeStart = null;
       let editorShapeCurrent = null;
+      let editorShapeAction = null;
+      let editorPlacedShapes = [];
+      let editorHasCutSelection = false;
       let settings = loadSettings();
       const defaultUserName = `User ${getUserNumber()}`;
 
@@ -2039,6 +2114,9 @@
       const photoEditorStatus = document.querySelector("#photoEditorStatus");
       const photoBrushSizeInput = document.querySelector("#photoBrushSizeInput");
       const photoFeatherInput = document.querySelector("#photoFeatherInput");
+      const photoShapeRotateInput = document.querySelector("#photoShapeRotateInput");
+      const photoEditorCanvasWrap = document.querySelector(".photo-editor-canvas-wrap");
+      const photoPreviewSwatches = document.querySelector("#photoPreviewSwatches");
       const museumPicker = document.querySelector("#museumPicker");
       const museumPickerList = document.querySelector("#museumPickerList");
       const categoryImageInput = document.querySelector("#categoryImageInput");
@@ -2084,10 +2162,14 @@
       function loadCategories() {
         try {
           const custom = JSON.parse(localStorage.getItem(CATEGORY_KEY)) || [];
-          return [
+          const loaded = [
             ...defaultCategories.map((base) => ({ ...base, ...(custom.find((entry) => entry.id === base.id) || {}) })),
             ...custom.filter((entry) => !defaultCategories.some((base) => base.id === entry.id))
           ];
+          return loaded.map((category, index) => ({
+            ...category,
+            color: category.color || defaultCategories[index % defaultCategories.length]?.color || "#d7d7d7"
+          }));
         } catch {
           return [...defaultCategories];
         }
@@ -2151,7 +2233,11 @@
       }
 
       function categoryName(id) {
-        return categories.find((category) => category.id === id)?.label || "Anderes";
+        return categories.find((category) => category.id === id)?.label || "Keine Box";
+      }
+
+      function categoryColor(id) {
+        return categories.find((category) => category.id === id)?.color || "#d7d7d7";
       }
 
       function formatValue(value) {
@@ -2174,6 +2260,28 @@
         return RARITY_STYLES[rarity]?.color || RARITY_STYLES.Common.color;
       }
 
+      function shortRarityName(rarity) {
+        const names = { Common: "COM", Uncommon: "UNC", Rare: "RARE", Epic: "EPIC", Legendary: "LEG", Mythic: "MYT", Secret: "SEC" };
+        return names[rarity] || String(rarity).slice(0, 3).toUpperCase();
+      }
+
+      function setPhotoEditorPreviewRarity(rarity) {
+        const selected = RARITY_STYLES[rarity] ? rarity : "Common";
+        photoEditorCanvasWrap.style.setProperty("--editor-preview-bg", rarityBackgroundColor(selected));
+        photoPreviewSwatches?.querySelectorAll("[data-preview-rarity]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.previewRarity === selected);
+        });
+      }
+
+      function renderPhotoPreviewSwatches() {
+        photoPreviewSwatches.innerHTML = Object.keys(RARITY_STYLES).map((rarity) => `
+          <button class="photo-preview-swatch" type="button" data-preview-rarity="${rarity}" style="background: ${rarityBackgroundColor(rarity)}">
+            ${shortRarityName(rarity)}
+          </button>
+        `).join("");
+        setPhotoEditorPreviewRarity(rarityInput.value || "Common");
+      }
+
       function setRarity(rarity, saveDraft = true) {
         const selected = RARITY_STYLES[rarity] ? rarity : "Common";
         rarityInput.value = selected;
@@ -2186,6 +2294,7 @@
         photoBox.classList.add("rarity-surface", raritySurfaceClass(selected));
         photoRarityBadge.className = `preview-rarity ${rarityClass(selected)}`;
         photoRarityBadge.textContent = selected;
+        setPhotoEditorPreviewRarity(selected);
         if (saveDraft && !editingId) savePhotoDraft();
       }
 
@@ -2295,23 +2404,21 @@
       }
 
       function renderCategories() {
+        const itemBoxes = categories.filter((category) => category.id !== "all");
         categoryRow.innerHTML = categories
           .map((category) => `
             <div class="category-entry">
-              <button class="chip ${category.id === activeCategory ? "active" : ""}" type="button" data-category="${category.id}">
+              <button class="chip ${category.id === activeCategory ? "active" : ""}" type="button" data-category="${category.id}" style="--box-color: ${escapeHtml(category.color || "#d7d7d7")}">
                 <img class="category-icon" src="${category.image || DEFAULT_CATEGORY_IMAGE}" alt="" />
                 <span>${escapeHtml(category.label)}</span>
-              </button>
-              <button class="category-image-button" type="button" data-category-image="${category.id}" title="Bild fuer Kategorie aendern">
-                <img src="${category.image || DEFAULT_CATEGORY_IMAGE}" alt="" />
               </button>
             </div>
           `)
           .join("");
-        categoryInput.innerHTML = categories
-          .filter((category) => category.id !== "all")
-          .map((category) => `<option value="${category.id}">${category.label}</option>`)
-          .join("");
+        categoryInput.innerHTML = itemBoxes.length
+          ? itemBoxes.map((category) => `<option value="${category.id}">${category.label}</option>`).join("")
+          : `<option value="">Erst Box erstellen</option>`;
+        categoryInput.disabled = itemBoxes.length === 0;
       }
 
       function renderCategoryManager() {
@@ -2321,7 +2428,8 @@
               <img src="${category.image || DEFAULT_CATEGORY_IMAGE}" alt="" />
             </button>
             <input type="text" maxlength="18" value="${escapeHtml(category.label)}" data-category-name="${category.id}" aria-label="Name von ${escapeHtml(category.label)}" />
-            <button class="icon-btn" type="button" data-delete-category="${category.id}" title="Kategorie loeschen">×</button>
+            <input type="color" value="${escapeHtml(category.color || "#d7d7d7")}" data-category-color="${category.id}" aria-label="Farbe von ${escapeHtml(category.label)}" />
+            <button class="icon-btn" type="button" data-delete-category="${category.id}" title="Box loeschen" ${category.id === "all" ? "disabled" : ""}>×</button>
           </div>
         `).join("");
       }
@@ -2343,7 +2451,7 @@
           ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
           : `<span class="slot-icon">${item.icon || "IT"}</span>`;
         return `
-          <button class="item-card ${rarityFrameClass(item.rarity)} ${selectedId === item.id ? "selected" : ""}" type="button" data-item="${item.id}">
+          <button class="item-card ${rarityFrameClass(item.rarity)} ${selectedId === item.id ? "selected" : ""}" type="button" data-item="${item.id}" style="--box-color: ${escapeHtml(categoryColor(item.category))}">
             <span class="item-card-art rarity-surface ${raritySurfaceClass(item.rarity)}">${art}</span>
             <strong class="item-card-name">${escapeHtml(item.name)}</strong>
             <span class="item-card-meta"><span>${escapeHtml(categoryName(item.category))}</span><span class="rarity-badge ${rarityClass(item.rarity)}">${escapeHtml(item.rarity || "Common")}</span></span>
@@ -2765,8 +2873,12 @@
           editorPath.forEach(([x, y], index) => index ? photoEditorContext.lineTo(x, y) : photoEditorContext.moveTo(x, y));
           photoEditorContext.stroke();
         }
+        editorPlacedShapes.forEach((entry) => {
+          drawEditorShape(photoEditorContext, entry.shape, entry.tool, true);
+        });
         if (isShapeTool(editorTool) && editorShapeCurrent) {
           drawEditorShape(photoEditorContext, editorShapeCurrent, editorTool, true);
+          drawShapeHandles(photoEditorContext, editorShapeCurrent);
         }
         photoEditorContext.restore();
       }
@@ -2775,7 +2887,7 @@
         editorTool = tool;
         editorPath = [];
         editorShapeStart = null;
-        editorShapeCurrent = null;
+        editorShapeAction = null;
         const toolButtons = {
           outline: "#outlinePhotoButton",
           erase: "#erasePhotoButton",
@@ -2792,10 +2904,10 @@
           outline: "Ziehe einmal um das Item. Alles ausserhalb wird entfernt.",
           erase: "Wische über Reste vom Hintergrund.",
           restore: "Wische über Stellen, die wieder sichtbar werden sollen.",
-          shapeRect: "Ziehe ein Rechteck über das Item.",
-          shapeSquare: "Ziehe ein Quadrat über das Item.",
-          shapeCircle: "Ziehe einen Kreis über das Item.",
-          shapeOval: "Ziehe ein Oval über das Item."
+          shapeRect: "Ziehe ein Rechteck. Danach kannst du weitere Formen dazu setzen.",
+          shapeSquare: "Ziehe ein Quadrat. Danach kannst du weitere Formen dazu setzen.",
+          shapeCircle: "Ziehe einen Kreis. Danach kannst du weitere Formen dazu setzen.",
+          shapeOval: "Ziehe ein Oval. Danach kannst du weitere Formen dazu setzen."
         };
         photoEditorStatus.textContent = messages[tool];
         drawPhotoEditor();
@@ -2805,17 +2917,23 @@
         const maskImage = await loadPhotoImage(dataUrl);
         editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
         editorMaskContext.drawImage(maskImage, 0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
+        editorHasCutSelection = currentPhoto !== originalPhoto;
       }
 
       function pushEditorHistory() {
         if (!editorMaskContext) return;
-        editorHistory.push(editorMaskContext.getImageData(0, 0, editorMaskCanvas.width, editorMaskCanvas.height));
+        editorHistory.push({
+          mask: editorMaskContext.getImageData(0, 0, editorMaskCanvas.width, editorMaskCanvas.height),
+          hasCutSelection: editorHasCutSelection,
+          placedShapes: editorPlacedShapes.map((entry) => ({ tool: entry.tool, shape: { ...entry.shape } }))
+        });
         if (editorHistory.length > 7) editorHistory.shift();
       }
 
       async function openPhotoEditor() {
         if (!originalPhoto) return;
         photoEditor.showModal();
+        renderPhotoPreviewSwatches();
         photoEditorStatus.textContent = "Foto wird vorbereitet...";
         try {
           editorImage = await loadPhotoImage(originalPhoto);
@@ -2835,8 +2953,10 @@
           editorMaskContext = editorMaskCanvas.getContext("2d", { willReadFrequently: true });
           await setEditorMaskFromPhoto(currentPhoto || originalPhoto);
           editorHistory = [];
+          editorPlacedShapes = [];
           editorLastPoint = null;
           setEditorTool("outline");
+          suggestEditorShape();
         } catch {
           photoEditorStatus.textContent = "Das Foto konnte nicht geöffnet werden.";
         }
@@ -2868,14 +2988,198 @@
           x: Math.min(x1, x2),
           y: Math.min(y1, y2),
           width: Math.abs(x2 - x1),
-          height: Math.abs(y2 - y1)
+          height: Math.abs(y2 - y1),
+          rotation: 0
         };
+      }
+
+      function shapeCenter(shape) {
+        return { x: shape.x + shape.width / 2, y: shape.y + shape.height / 2 };
+      }
+
+      function rotatePoint(point, center, rotation) {
+        const angle = (Number(rotation) || 0) * Math.PI / 180;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        const dx = point.x - center.x;
+        const dy = point.y - center.y;
+        return {
+          x: center.x + dx * cos - dy * sin,
+          y: center.y + dx * sin + dy * cos
+        };
+      }
+
+      function unrotateEditorPoint(point, shape) {
+        const center = shapeCenter(shape);
+        const rotated = rotatePoint({ x: point[0], y: point[1] }, center, -(shape.rotation || 0));
+        return [rotated.x, rotated.y];
+      }
+
+      function shapeHandles(shape) {
+        if (!shape) return [];
+        const cx = shape.x + shape.width / 2;
+        const cy = shape.y + shape.height / 2;
+        const center = { x: cx, y: cy };
+        return [
+          { name: "nw", x: shape.x, y: shape.y },
+          { name: "ne", x: shape.x + shape.width, y: shape.y },
+          { name: "sw", x: shape.x, y: shape.y + shape.height },
+          { name: "se", x: shape.x + shape.width, y: shape.y + shape.height },
+          { name: "move", x: cx, y: cy }
+        ].map((handle) => ({ ...handle, ...rotatePoint(handle, center, shape.rotation || 0) }));
+      }
+
+      function drawShapeHandles(context, shape) {
+        const size = Math.max(10, photoEditorCanvas.width / 52);
+        context.save();
+        context.setLineDash([]);
+        shapeHandles(shape).forEach((handle) => {
+          context.beginPath();
+          context.fillStyle = handle.name === "move" ? "#111111" : "#ffffff";
+          context.strokeStyle = "#f39a2b";
+          context.lineWidth = Math.max(2, photoEditorCanvas.width / 260);
+          context.rect(handle.x - size / 2, handle.y - size / 2, size, size);
+          context.fill();
+          context.stroke();
+        });
+        context.restore();
+      }
+
+      function shapeHitTest(point, shape) {
+        if (!shape) return null;
+        const hitSize = Math.max(18, photoEditorCanvas.width / 30);
+        const handle = shapeHandles(shape).find((entry) =>
+          Math.abs(point[0] - entry.x) <= hitSize / 2 && Math.abs(point[1] - entry.y) <= hitSize / 2
+        );
+        if (handle) return handle.name;
+        const local = unrotateEditorPoint(point, shape);
+        const inside = local[0] >= shape.x && local[0] <= shape.x + shape.width && local[1] >= shape.y && local[1] <= shape.y + shape.height;
+        return inside ? "move" : null;
+      }
+
+      function placedShapeHitIndex(point) {
+        for (let index = editorPlacedShapes.length - 1; index >= 0; index -= 1) {
+          if (shapeHitTest(point, editorPlacedShapes[index].shape)) return index;
+        }
+        return -1;
+      }
+
+      function selectPlacedShape(index) {
+        const entry = editorPlacedShapes.splice(index, 1)[0];
+        if (!entry) return null;
+        setEditorTool(entry.tool);
+        editorShapeCurrent = { ...entry.shape };
+        photoShapeRotateInput.value = String(Math.round(editorShapeCurrent.rotation || 0));
+        photoEditorStatus.textContent = "Form wieder aktiv. Du kannst sie verschieben, drehen oder neu hinlegen.";
+        drawPhotoEditor();
+        return entry;
+      }
+
+      function medianColor(samples) {
+        if (!samples.length) return [255, 255, 255];
+        return [0, 1, 2].map((channel) => {
+          const values = samples.map((sample) => sample[channel]).sort((a, b) => a - b);
+          return values[Math.floor(values.length / 2)];
+        });
+      }
+
+      function suggestEditorShape() {
+        if (!editorSourceCanvas) return;
+        const width = editorSourceCanvas.width;
+        const height = editorSourceCanvas.height;
+        const context = editorSourceCanvas.getContext("2d", { willReadFrequently: true });
+        const image = context.getImageData(0, 0, width, height);
+        const data = image.data;
+        const step = Math.max(4, Math.round(Math.min(width, height) / 120));
+        const edgeSamples = [];
+        for (let y = 0; y < height; y += step) {
+          for (let x = 0; x < width; x += step) {
+            const nearEdge = x < width * 0.12 || x > width * 0.88 || y < height * 0.12 || y > height * 0.88;
+            if (!nearEdge) continue;
+            const index = (y * width + x) * 4;
+            edgeSamples.push([data[index], data[index + 1], data[index + 2]]);
+          }
+        }
+        const bg = medianColor(edgeSamples);
+        let minX = width;
+        let minY = height;
+        let maxX = 0;
+        let maxY = 0;
+        let hits = 0;
+        for (let y = 0; y < height; y += step) {
+          for (let x = 0; x < width; x += step) {
+            const index = (y * width + x) * 4;
+            const diff = Math.abs(data[index] - bg[0]) + Math.abs(data[index + 1] - bg[1]) + Math.abs(data[index + 2] - bg[2]);
+            const centerBias = x > width * 0.05 && x < width * 0.95 && y > height * 0.05 && y < height * 0.95;
+            if (diff > 72 && centerBias) {
+              minX = Math.min(minX, x);
+              minY = Math.min(minY, y);
+              maxX = Math.max(maxX, x);
+              maxY = Math.max(maxY, y);
+              hits += 1;
+            }
+          }
+        }
+        if (hits < 8) {
+          const side = Math.min(width, height) * 0.62;
+          editorTool = "shapeOval";
+          setEditorTool("shapeOval");
+          editorShapeCurrent = {
+            x: (width - side) / 2,
+            y: (height - side) / 2,
+            width: side,
+            height: side,
+            rotation: 0
+          };
+          photoShapeRotateInput.value = "0";
+          photoEditorStatus.textContent = "Auto hat wenig erkannt. Ich habe dir eine Start-Form in die Mitte gelegt.";
+          drawPhotoEditor();
+          return;
+        }
+        const padding = Math.max(12, Math.min(width, height) * 0.045);
+        minX = clampNumber(minX - padding, 0, width);
+        minY = clampNumber(minY - padding, 0, height);
+        maxX = clampNumber(maxX + padding, 0, width);
+        maxY = clampNumber(maxY + padding, 0, height);
+        const shapeWidth = maxX - minX;
+        const shapeHeight = maxY - minY;
+        const ratio = shapeWidth / Math.max(1, shapeHeight);
+        const nextTool = ratio > 0.72 && ratio < 1.28 ? "shapeOval" : "shapeRect";
+        setEditorTool(nextTool);
+        editorShapeCurrent = { x: minX, y: minY, width: shapeWidth, height: shapeHeight, rotation: 0 };
+        photoShapeRotateInput.value = "0";
+        photoEditorStatus.textContent = "Auto-Vorschlag liegt bereit. Du kannst ihn verschieben, größer ziehen oder hinlegen.";
+        drawPhotoEditor();
+      }
+
+      function adjustEditorShape(point) {
+        if (!editorShapeAction || !editorShapeCurrent) return;
+        const start = editorShapeAction.startShape;
+        const dx = point[0] - editorShapeAction.startPoint[0];
+        const dy = point[1] - editorShapeAction.startPoint[1];
+        if (editorShapeAction.kind === "move") {
+          editorShapeCurrent = { ...start, x: start.x + dx, y: start.y + dy };
+          return;
+        }
+        let x1 = start.x;
+        let y1 = start.y;
+        let x2 = start.x + start.width;
+        let y2 = start.y + start.height;
+        if (editorShapeAction.kind.includes("w")) x1 += dx;
+        if (editorShapeAction.kind.includes("e")) x2 += dx;
+        if (editorShapeAction.kind.includes("n")) y1 += dy;
+        if (editorShapeAction.kind.includes("s")) y2 += dy;
+        editorShapeCurrent = { ...shapeFromPoints([x1, y1], [x2, y2], editorTool), rotation: start.rotation || 0 };
       }
 
       function drawEditorShape(context, shape, tool, preview = false) {
         if (!shape || shape.width < 2 || shape.height < 2) return;
         const cx = shape.x + shape.width / 2;
         const cy = shape.y + shape.height / 2;
+        context.save();
+        context.translate(cx, cy);
+        context.rotate((shape.rotation || 0) * Math.PI / 180);
+        context.translate(-cx, -cy);
         context.beginPath();
         if (tool === "shapeCircle" || tool === "shapeOval") {
           context.ellipse(cx, cy, shape.width / 2, shape.height / 2, 0, 0, Math.PI * 2);
@@ -2884,48 +3188,86 @@
         }
         if (preview) context.fill();
         context.stroke();
+        context.restore();
       }
 
-      function blurEditorMask(radius) {
+      function drawHardMaskWithOuterFeather(targetContext, targetCanvas, hardMask, radius) {
         const blur = Number(radius) || 0;
-        if (!editorMaskCanvas || !editorMaskContext || blur <= 0) return;
-        const softened = document.createElement("canvas");
-        softened.width = editorMaskCanvas.width;
-        softened.height = editorMaskCanvas.height;
-        const context = softened.getContext("2d");
-        context.filter = `blur(${blur}px)`;
-        context.drawImage(editorMaskCanvas, 0, 0);
-        editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
-        editorMaskContext.filter = "none";
-        editorMaskContext.drawImage(softened, 0, 0);
+        targetContext.globalCompositeOperation = "source-over";
+        if (blur > 0) {
+          const softened = document.createElement("canvas");
+          softened.width = targetCanvas.width;
+          softened.height = targetCanvas.height;
+          const context = softened.getContext("2d");
+          context.filter = `blur(${blur}px)`;
+          context.drawImage(hardMask, 0, 0);
+          targetContext.drawImage(softened, 0, 0);
+        }
+        targetContext.drawImage(hardMask, 0, 0);
       }
 
       function applyOutlineMask() {
         if (!editorMaskContext || editorPath.length < 3) return;
         pushEditorHistory();
+        const hardMask = document.createElement("canvas");
+        hardMask.width = editorMaskCanvas.width;
+        hardMask.height = editorMaskCanvas.height;
+        const hardContext = hardMask.getContext("2d");
+        hardContext.fillStyle = "#ffffff";
+        hardContext.beginPath();
+        editorPath.forEach(([x, y], index) => index ? hardContext.lineTo(x, y) : hardContext.moveTo(x, y));
+        hardContext.closePath();
+        hardContext.fill();
         editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
-        editorMaskContext.fillStyle = "#ffffff";
-        editorMaskContext.beginPath();
-        editorPath.forEach(([x, y], index) => index ? editorMaskContext.lineTo(x, y) : editorMaskContext.moveTo(x, y));
-        editorMaskContext.closePath();
-        editorMaskContext.fill();
+        drawHardMaskWithOuterFeather(editorMaskContext, editorMaskCanvas, hardMask, Number(photoFeatherInput.value));
+        editorHasCutSelection = true;
         editorPath = [];
-        blurEditorMask(Number(photoFeatherInput.value));
         photoEditorStatus.textContent = "Umriss übernommen. Die Kante ist weich gemacht.";
         drawPhotoEditor();
       }
 
-      function applyShapeMask() {
+      function drawShapeIntoMask(targetContext, targetCanvas, entry) {
+        const shapeMask = document.createElement("canvas");
+        shapeMask.width = targetCanvas.width;
+        shapeMask.height = targetCanvas.height;
+        const shapeContext = shapeMask.getContext("2d");
+        shapeContext.fillStyle = "#ffffff";
+        shapeContext.strokeStyle = "#ffffff";
+        drawEditorShape(shapeContext, entry.shape, entry.tool, true);
+        drawHardMaskWithOuterFeather(targetContext, targetCanvas, shapeMask, Number(photoFeatherInput.value));
+      }
+
+      function placeCurrentShape() {
         if (!editorMaskContext || !editorShapeCurrent || editorShapeCurrent.width < 4 || editorShapeCurrent.height < 4) return;
         pushEditorHistory();
-        editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
-        editorMaskContext.fillStyle = "#ffffff";
-        editorMaskContext.strokeStyle = "#ffffff";
-        drawEditorShape(editorMaskContext, editorShapeCurrent, editorTool, true);
+        editorPlacedShapes.push({ tool: editorTool, shape: { ...editorShapeCurrent } });
         editorShapeStart = null;
         editorShapeCurrent = null;
-        blurEditorMask(Number(photoFeatherInput.value));
-        photoEditorStatus.textContent = "Form übernommen. Die Kante ist weich gemacht.";
+        editorShapeAction = null;
+        photoShapeRotateInput.value = "0";
+        photoEditorStatus.textContent = `${editorPlacedShapes.length} Form${editorPlacedShapes.length === 1 ? "" : "en"} hingelegt. Lege weitere hin oder drücke Wegmachen.`;
+        drawPhotoEditor();
+      }
+
+      function applyShapeMask() {
+        if (!editorMaskContext) return;
+        if (editorShapeCurrent && editorShapeCurrent.width >= 4 && editorShapeCurrent.height >= 4) {
+          editorPlacedShapes.push({ tool: editorTool, shape: { ...editorShapeCurrent } });
+        }
+        pushEditorHistory();
+        editorMaskContext.globalCompositeOperation = "source-over";
+        editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
+        editorPlacedShapes.forEach((entry) => drawShapeIntoMask(editorMaskContext, editorMaskCanvas, entry));
+        editorHasCutSelection = true;
+        const cutCount = editorPlacedShapes.length;
+        editorPlacedShapes = [];
+        editorShapeStart = null;
+        editorShapeCurrent = null;
+        editorShapeAction = null;
+        photoShapeRotateInput.value = "0";
+        photoEditorStatus.textContent = cutCount
+          ? "Alles ausserhalb der hingelegten Formen wurde entfernt."
+          : "Keine Form lag da. Das Bild wurde leer gemacht.";
         drawPhotoEditor();
       }
 
@@ -2956,7 +3298,7 @@
       function applyManualPhotoMask() {
         if (!editorSourceCanvas || !editorMaskCanvas) return;
         if (editorTool === "outline" && editorPath.length >= 3) applyOutlineMask();
-        if (isShapeTool(editorTool) && editorShapeCurrent) applyShapeMask();
+        if (editorPlacedShapes.length || (isShapeTool(editorTool) && editorShapeCurrent)) applyShapeMask();
         const output = document.createElement("canvas");
         output.width = photoEditorCanvas.width;
         output.height = photoEditorCanvas.height;
@@ -2999,6 +3341,7 @@
         if (deleteCategoryButton) {
           if (categories.length <= 1) return;
           const categoryId = deleteCategoryButton.dataset.deleteCategory;
+          if (categoryId === "all") return;
           categories = categories.filter((category) => category.id !== categoryId);
           const fallback = categories.find((category) => category.id === "other") || categories[0];
           items = items.map((item) => item.category === categoryId ? { ...item, category: fallback.id } : item);
@@ -3173,17 +3516,21 @@
         renderInventory();
       });
       document.querySelector("#addCategoryButton").addEventListener("click", () => {
-        const label = window.prompt("Name der neuen Kategorie");
-        const cleanLabel = label?.trim();
-        if (!cleanLabel) return;
-        const id = cleanLabel.toLocaleLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `category-${Date.now()}`;
-        if (categories.some((category) => category.id === id)) return;
-        const custom = { id, label: cleanLabel, icon: "++" };
+        const boxCount = categories.filter((category) => category.id !== "all").length + 1;
+        let cleanLabel = `Box ${boxCount}`;
+        while (categories.some((category) => category.label === cleanLabel)) {
+          cleanLabel = `Box ${Number(cleanLabel.replace(/\D/g, "")) + 1 || Date.now()}`;
+        }
+        const id = `box-${Date.now()}`;
+        const boxColors = ["#d7c0a6", "#9fb7c8", "#c9d39b", "#d5aa78", "#b9a3d4", "#c7c7c7"];
+        const custom = { id, label: cleanLabel, icon: "++", color: boxColors[categories.length % boxColors.length] };
         categories.push(custom);
         saveCustomCategories();
         renderCategories();
         if (categoryManager.open) renderCategoryManager();
         categoryInput.value = id;
+        activeCategory = id;
+        renderAll();
       });
       document.querySelector("#closeCategoryManagerButton").addEventListener("click", () => categoryManager.close());
       categoryManagerList.addEventListener("change", (event) => {
@@ -3196,6 +3543,18 @@
         saveCustomCategories();
         renderCategories();
         renderCategoryManager();
+      });
+      categoryManagerList.addEventListener("input", (event) => {
+        const input = event.target.closest("[data-category-color]");
+        if (!input) return;
+        const category = categories.find((entry) => entry.id === input.dataset.categoryColor);
+        if (!category) return;
+        category.color = input.value;
+        saveCustomCategories();
+        renderCategories();
+        renderInventory();
+        renderSearch();
+        renderDetail();
       });
       document.querySelector("#photoButton").addEventListener("click", (event) => {
         event.preventDefault();
@@ -3280,17 +3639,44 @@
       document.querySelector("#outlinePhotoButton").addEventListener("click", () => setEditorTool("outline"));
       document.querySelector("#erasePhotoButton").addEventListener("click", () => setEditorTool("erase"));
       document.querySelector("#restorePhotoButton").addEventListener("click", () => setEditorTool("restore"));
+      document.querySelector("#suggestShapePhotoButton").addEventListener("click", suggestEditorShape);
       document.querySelector("#shapeRectPhotoButton").addEventListener("click", () => setEditorTool("shapeRect"));
       document.querySelector("#shapeSquarePhotoButton").addEventListener("click", () => setEditorTool("shapeSquare"));
       document.querySelector("#shapeCirclePhotoButton").addEventListener("click", () => setEditorTool("shapeCircle"));
       document.querySelector("#shapeOvalPhotoButton").addEventListener("click", () => setEditorTool("shapeOval"));
+      photoPreviewSwatches.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-preview-rarity]");
+        if (!button) return;
+        setPhotoEditorPreviewRarity(button.dataset.previewRarity);
+      });
+      photoShapeRotateInput.addEventListener("input", () => {
+        if (!editorShapeCurrent) return;
+        editorShapeCurrent.rotation = Number(photoShapeRotateInput.value) || 0;
+        photoEditorStatus.textContent = "Form gedreht. Du kannst sie hinlegen oder weiter anpassen.";
+        drawPhotoEditor();
+      });
+      document.querySelector("#placeShapePhotoButton").addEventListener("click", placeCurrentShape);
+      document.querySelector("#applyShapePhotoButton").addEventListener("click", applyShapeMask);
+      document.querySelector("#clearShapePhotoButton").addEventListener("click", () => {
+        editorShapeStart = null;
+        editorShapeCurrent = null;
+        editorShapeAction = null;
+        editorPlacedShapes = [];
+        photoShapeRotateInput.value = "0";
+        photoEditorStatus.textContent = "Formen gelöscht.";
+        drawPhotoEditor();
+      });
       document.querySelector("#undoPhotoEditButton").addEventListener("click", () => {
         const previous = editorHistory.pop();
         if (!previous || !editorMaskContext) return;
-        editorMaskContext.putImageData(previous, 0, 0);
+        editorMaskContext.putImageData(previous.mask || previous, 0, 0);
+        editorHasCutSelection = Boolean(previous.hasCutSelection);
+        editorPlacedShapes = previous.placedShapes?.map((entry) => ({ tool: entry.tool, shape: { ...entry.shape } })) || [];
         editorPath = [];
         editorShapeStart = null;
         editorShapeCurrent = null;
+        editorShapeAction = null;
+        photoShapeRotateInput.value = "0";
         photoEditorStatus.textContent = "Letzte Änderung rückgängig gemacht.";
         drawPhotoEditor();
       });
@@ -3301,9 +3687,13 @@
         editorMaskContext.clearRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
         editorMaskContext.fillStyle = "#ffffff";
         editorMaskContext.fillRect(0, 0, editorMaskCanvas.width, editorMaskCanvas.height);
+        editorHasCutSelection = false;
+        editorPlacedShapes = [];
         editorPath = [];
         editorShapeStart = null;
         editorShapeCurrent = null;
+        editorShapeAction = null;
+        photoShapeRotateInput.value = "0";
         photoEditorStatus.textContent = "Original wiederhergestellt.";
         drawPhotoEditor();
       });
@@ -3315,8 +3705,22 @@
         if (editorTool === "outline") {
           editorPath = [point];
         } else if (isShapeTool(editorTool)) {
-          editorShapeStart = point;
-          editorShapeCurrent = shapeFromPoints(point, point, editorTool);
+          const hit = shapeHitTest(point, editorShapeCurrent);
+          if (hit) {
+            editorShapeAction = { kind: hit, startPoint: point, startShape: { ...editorShapeCurrent } };
+            photoShapeRotateInput.value = String(Math.round(editorShapeCurrent.rotation || 0));
+          } else {
+            const placedIndex = placedShapeHitIndex(point);
+            if (placedIndex >= 0) {
+              selectPlacedShape(placedIndex);
+              editorShapeAction = { kind: "move", startPoint: point, startShape: { ...editorShapeCurrent } };
+            } else {
+              editorShapeStart = point;
+              editorShapeCurrent = shapeFromPoints(point, point, editorTool);
+              photoShapeRotateInput.value = "0";
+              editorShapeAction = { kind: "draw", startPoint: point, startShape: { ...editorShapeCurrent } };
+            }
+          }
         } else {
           pushEditorHistory();
           editorLastPoint = point;
@@ -3334,7 +3738,11 @@
           if (!last || Math.hypot(point[0] - last[0], point[1] - last[1]) > 3) editorPath.push(point);
           drawPhotoEditor();
         } else if (isShapeTool(editorTool)) {
-          editorShapeCurrent = shapeFromPoints(editorShapeStart || point, point, editorTool);
+          if (editorShapeAction?.kind === "draw") {
+            editorShapeCurrent = shapeFromPoints(editorShapeStart || point, point, editorTool);
+          } else {
+            adjustEditorShape(point);
+          }
           drawPhotoEditor();
         } else {
           paintEditorMask(editorLastPoint || point, point);
@@ -3345,7 +3753,10 @@
         if (!photoEditorCanvas.hasPointerCapture(event.pointerId)) return;
         photoEditorCanvas.releasePointerCapture(event.pointerId);
         if (editorTool === "outline") applyOutlineMask();
-        if (isShapeTool(editorTool)) applyShapeMask();
+        if (isShapeTool(editorTool) && editorShapeCurrent) {
+          photoEditorStatus.textContent = "Form liegt bereit. Du kannst sie verschieben, größer ziehen oder hinlegen.";
+        }
+        editorShapeAction = null;
         editorLastPoint = null;
       };
       photoEditorCanvas.addEventListener("pointerup", finishEditorPointer);
@@ -3447,7 +3858,7 @@
           ...(original || {}),
           id: editingId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
           name: document.querySelector("#nameInput").value.trim(),
-          category: document.querySelector("#categoryInput").value,
+          category: document.querySelector("#categoryInput").value || "",
           date: document.querySelector("#dateInput").value || "",
           rarity: rarityInput.value,
           value: Number(valueInput.value) || 0,

@@ -231,6 +231,115 @@
         gap: 10px;
       }
 
+      .item-field {
+        display: grid;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .item-field > span,
+      .rarity-field legend {
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 900;
+      }
+
+      .photo-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .photo-actions:has(.photo-edit-button.hidden) .photo-add-button {
+        grid-column: 1 / -1;
+      }
+
+      .rarity-field {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .rarity-picker {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 7px;
+      }
+
+      .rarity-option {
+        display: grid;
+        min-width: 0;
+        min-height: 54px;
+        padding: 6px 3px;
+        place-items: center;
+        gap: 4px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: var(--surface-2);
+        color: var(--muted);
+        font-size: 0.62rem;
+        font-weight: 900;
+      }
+
+      .rarity-option.active {
+        border-color: var(--ink);
+        background: var(--surface);
+        color: var(--ink);
+        box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.12);
+      }
+
+      .rarity-swatch {
+        position: relative;
+        display: block;
+        width: 24px;
+        height: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.28);
+        border-radius: 6px;
+      }
+
+      .value-row {
+        position: relative;
+      }
+
+      .value-row::after {
+        content: "EUR";
+        position: absolute;
+        right: 13px;
+        top: 50%;
+        color: var(--muted);
+        font-size: 0.68rem;
+        font-weight: 900;
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+
+      .value-row input {
+        padding-right: 48px;
+      }
+
+      .value-presets {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 5px;
+      }
+
+      .value-presets button {
+        min-width: 0;
+        min-height: 34px;
+        padding: 5px 2px;
+        border-radius: 7px;
+        font-size: 0.68rem;
+      }
+
+      .value-presets button.active {
+        border-color: var(--ink);
+        background: var(--ink);
+        color: #ffffff;
+      }
+
       .search-row {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -468,6 +577,7 @@
       }
 
       .item-card-art {
+        position: relative;
         display: grid;
         width: 100%;
         aspect-ratio: 1;
@@ -521,9 +631,77 @@
       .rarity-uncommon { color: #249653; }
       .rarity-rare { color: #287ed1; }
       .rarity-epic { color: #8b55c7; }
-      .rarity-legendary { color: #d98b20; }
-      .rarity-mythic { color: #e45757; }
+      .rarity-legendary { color: #9b6b00; }
+      .rarity-mythic { color: #a77d00; text-shadow: 0 0 8px rgba(255, 216, 54, 0.35); }
       .rarity-secret { color: #111111; text-shadow: 0 0 8px rgba(17, 17, 17, 0.22); }
+
+      .rarity-surface {
+        --rarity-bg: #c9cdd2;
+        --rarity-edge: #8c929a;
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        border-color: var(--rarity-edge) !important;
+        background: var(--rarity-bg) !important;
+      }
+
+      .rarity-surface > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .rarity-surface::after {
+        content: "";
+        position: absolute;
+        inset: -45%;
+        z-index: 0;
+        opacity: 0;
+        background: linear-gradient(105deg, transparent 34%, rgba(255, 255, 255, 0.72) 49%, transparent 64%);
+        pointer-events: none;
+        transform: translateX(-70%) rotate(8deg);
+      }
+
+      .rarity-surface-common { --rarity-bg: #c9cdd2; --rarity-edge: #8c929a; }
+      .rarity-surface-uncommon { --rarity-bg: #66c77d; --rarity-edge: #238443; }
+      .rarity-surface-rare { --rarity-bg: #63aef2; --rarity-edge: #246fae; }
+      .rarity-surface-epic { --rarity-bg: #a477dd; --rarity-edge: #6b3ba8; }
+      .rarity-surface-legendary { --rarity-bg: #b88612; --rarity-edge: #725000; }
+      .rarity-surface-mythic { --rarity-bg: #ffe477; --rarity-edge: #c79b00; }
+      .rarity-surface-secret { --rarity-bg: #151515; --rarity-edge: #000000; color: #ffffff; }
+
+      .rarity-surface-mythic::after,
+      .rarity-surface-secret::after {
+        opacity: 1;
+        animation: rarity-shimmer 2.8s ease-in-out infinite;
+      }
+
+      .rarity-surface-secret::after {
+        background: linear-gradient(105deg, transparent 34%, rgba(255, 255, 255, 0.38) 49%, transparent 64%);
+      }
+
+      @keyframes rarity-shimmer {
+        0%, 28% { transform: translateX(-75%) rotate(8deg); }
+        70%, 100% { transform: translateX(75%) rotate(8deg); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .rarity-surface-mythic::after,
+        .rarity-surface-secret::after {
+          animation: none;
+          transform: translateX(18%) rotate(8deg);
+        }
+      }
+
+      .rarity-frame-common { border-color: #a5aab0; background: #f2f3f4; }
+      .rarity-frame-uncommon { border-color: #49a962; background: #edf8ef; }
+      .rarity-frame-rare { border-color: #3d91da; background: #eef6fd; }
+      .rarity-frame-epic { border-color: #8354bd; background: #f5effb; }
+      .rarity-frame-legendary { border-color: #9c7008; background: #f5ecd1; }
+      .rarity-frame-mythic { border-color: #d6aa10; background: #fff8d6; box-shadow: 0 0 12px rgba(255, 220, 72, 0.28); }
+      .rarity-frame-secret { border-color: #202020; background: #242424; color: #ffffff; box-shadow: 0 0 12px rgba(0, 0, 0, 0.3); }
+      .rarity-frame-secret .item-card-meta,
+      .rarity-frame-secret .item-value { color: #d0d0d0; }
+      .rarity-frame-secret .rarity-secret { color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.4); }
 
       .item-value {
         color: var(--muted);
@@ -590,7 +768,8 @@
       .slot-photo {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        padding: 4px;
+        object-fit: contain;
       }
 
       .star {
@@ -680,7 +859,8 @@
       .detail-art img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        padding: 4px;
+        object-fit: contain;
       }
 
       .detail-card h2 {
@@ -850,8 +1030,19 @@
         width: 52px;
         height: 52px;
         object-fit: contain;
+      }
+
+      .museum-choice-art {
+        display: grid;
+        width: 52px;
+        height: 52px;
+        place-items: center;
+        border: 1px solid var(--line);
         border-radius: 8px;
-        background: var(--slot);
+      }
+
+      .museum-choice-art .slot-icon {
+        width: 70%;
       }
 
       .category-manager {
@@ -907,22 +1098,6 @@
         width: 30px;
         height: 30px;
         object-fit: contain;
-      }
-
-      .photo-background-row {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 10px;
-        align-items: center;
-      }
-
-      .photo-background-row input[type="color"] {
-        width: 44px;
-        height: 36px;
-        padding: 2px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--surface);
       }
 
       .photo-edit-button {
@@ -1128,7 +1303,21 @@
       .photo-box img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        padding: 8px;
+        object-fit: contain;
+      }
+
+      .preview-rarity {
+        position: absolute !important;
+        top: 9px;
+        left: 9px;
+        z-index: 3 !important;
+        padding: 5px 8px;
+        border: 1px solid rgba(255, 255, 255, 0.62);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.9);
+        font-size: 0.66rem;
+        font-weight: 950;
       }
 
       .photo-box span {
@@ -1489,32 +1678,51 @@
             <strong id="formTitle">Neues Item</strong>
             <button class="icon-btn hidden" id="cancelEditButton" type="button" title="Bearbeiten abbrechen">↩</button>
           </div>
-          <div class="photo-box" id="photoBox">
-            <span><strong>ITEM</strong>Foto oder Datei</span>
+          <div class="photo-box rarity-surface rarity-surface-common" id="photoBox">
+            <span id="photoPlaceholder"><strong>ITEM</strong>Foto oder Datei</span>
             <img class="hidden" id="previewImage" alt="Item Foto" />
+            <div class="preview-rarity rarity-common" id="photoRarityBadge">Common</div>
           </div>
-          <button class="primary photo-add-button" id="photoButton" type="button"><img src="./add-icon.png" alt="" /> Foto aufnehmen</button>
-          <button class="photo-edit-button hidden" id="editPhotoButton" type="button">Item ausschneiden</button>
-          <label class="photo-background-row">
-            <span>Hintergrundfarbe</span>
-            <input id="photoBackgroundInput" type="color" value="#eeeeee" aria-label="Hintergrundfarbe des Items" />
-          </label>
+          <div class="photo-actions">
+            <button class="primary photo-add-button" id="photoButton" type="button"><img src="./add-icon.png" alt="" /> <span id="photoButtonLabel">Foto aufnehmen</span></button>
+            <button class="photo-edit-button hidden" id="editPhotoButton" type="button">Item ausschneiden</button>
+          </div>
 
-          <input id="nameInput" required maxlength="28" placeholder="Name vom Item" />
+          <label class="item-field">
+            <span>Name</span>
+            <input id="nameInput" required maxlength="28" autocomplete="off" placeholder="Zum Beispiel Kopfhörer" />
+          </label>
           <div class="two-col">
-            <select id="categoryInput"></select>
-            <select id="rarityInput" aria-label="Seltenheit">
-              <option value="Common">Common</option>
-              <option value="Uncommon">Uncommon</option>
-              <option value="Rare">Rare</option>
-              <option value="Epic">Epic</option>
-              <option value="Legendary">Legendary</option>
-              <option value="Mythic">Mythic</option>
-              <option value="Secret">Secret</option>
-            </select>
+            <label class="item-field"><span>Kategorie</span><select id="categoryInput"></select></label>
+            <label class="item-field"><span>Erhalten am</span><input id="dateInput" type="date" aria-label="Erhalten am" /></label>
           </div>
-          <input id="dateInput" type="date" aria-label="Erhalten am" />
-          <input id="valueInput" type="number" min="0" step="1" inputmode="decimal" list="valueOptions" placeholder="Wert in Euro" aria-label="Wert in Euro" />
+
+          <fieldset class="rarity-field">
+            <legend>Seltenheit</legend>
+            <input id="rarityInput" type="hidden" value="Common" />
+            <div class="rarity-picker" id="rarityPicker">
+              <button class="rarity-option active" type="button" data-rarity="Common" aria-pressed="true"><span class="rarity-swatch rarity-surface rarity-surface-common"></span><span>Common</span></button>
+              <button class="rarity-option" type="button" data-rarity="Uncommon" aria-pressed="false"><span class="rarity-swatch rarity-surface rarity-surface-uncommon"></span><span>Uncommon</span></button>
+              <button class="rarity-option" type="button" data-rarity="Rare" aria-pressed="false"><span class="rarity-swatch rarity-surface rarity-surface-rare"></span><span>Rare</span></button>
+              <button class="rarity-option" type="button" data-rarity="Epic" aria-pressed="false"><span class="rarity-swatch rarity-surface rarity-surface-epic"></span><span>Epic</span></button>
+              <button class="rarity-option" type="button" data-rarity="Legendary" aria-pressed="false"><span class="rarity-swatch rarity-surface rarity-surface-legendary"></span><span>Legendary</span></button>
+              <button class="rarity-option" type="button" data-rarity="Mythic" aria-pressed="false"><span class="rarity-swatch rarity-surface rarity-surface-mythic"></span><span>Mythic</span></button>
+              <button class="rarity-option" type="button" data-rarity="Secret" aria-pressed="false"><span class="rarity-swatch rarity-surface rarity-surface-secret"></span><span>Secret</span></button>
+            </div>
+          </fieldset>
+
+          <label class="item-field">
+            <span>Wert</span>
+            <div class="value-row"><input id="valueInput" type="number" min="0" step="0.01" inputmode="decimal" list="valueOptions" placeholder="0,00" aria-label="Wert in Euro" /></div>
+          </label>
+          <div class="value-presets" aria-label="Wert schnell auswählen">
+            <button type="button" data-value-preset="0">0</button>
+            <button type="button" data-value-preset="5">5</button>
+            <button type="button" data-value-preset="10">10</button>
+            <button type="button" data-value-preset="25">25</button>
+            <button type="button" data-value-preset="50">50</button>
+            <button type="button" data-value-preset="100">100</button>
+          </div>
           <datalist id="valueOptions">
             <option value="0"></option>
             <option value="1"></option>
@@ -1532,7 +1740,10 @@
             <option value="500"></option>
             <option value="1000"></option>
           </datalist>
-          <textarea id="noteInput" rows="2" maxlength="90" placeholder="Kurze Info"></textarea>
+          <label class="item-field">
+            <span>Kurze Info</span>
+            <textarea id="noteInput" rows="2" maxlength="140" placeholder="Was ist besonders an diesem Item?"></textarea>
+          </label>
           <div class="form-actions">
             <button type="button" id="clearFormButton">Leeren</button>
             <button class="primary" id="submitItemButton" type="submit">Speichern</button>
@@ -1646,6 +1857,15 @@
       const USER_NUMBER_KEY = "reallife-game-user-number-v1";
       const PHOTO_DRAFT_KEY = "reallife-game-photo-draft-v1";
       const PHOTO_CAPTURE_PENDING_KEY = "reallife-game-photo-capture-pending-v1";
+      const RARITY_STYLES = {
+        Common: { key: "common", color: "#c9cdd2" },
+        Uncommon: { key: "uncommon", color: "#66c77d" },
+        Rare: { key: "rare", color: "#63aef2" },
+        Epic: { key: "epic", color: "#a477dd" },
+        Legendary: { key: "legendary", color: "#b88612" },
+        Mythic: { key: "mythic", color: "#ffe477" },
+        Secret: { key: "secret", color: "#151515" }
+      };
       const DEFAULT_PROFILE_IMAGE = "./profile-default.png";
       const DEFAULT_CATEGORY_IMAGE = "./category-default.png";
       const defaultCategories = [
@@ -1717,7 +1937,11 @@
       const formTitle = document.querySelector("#formTitle");
       const submitItemButton = document.querySelector("#submitItemButton");
       const cancelEditButton = document.querySelector("#cancelEditButton");
-      const photoBackgroundInput = document.querySelector("#photoBackgroundInput");
+      const rarityInput = document.querySelector("#rarityInput");
+      const rarityPicker = document.querySelector("#rarityPicker");
+      const photoPlaceholder = document.querySelector("#photoPlaceholder");
+      const photoRarityBadge = document.querySelector("#photoRarityBadge");
+      const photoButtonLabel = document.querySelector("#photoButtonLabel");
       const valueInput = document.querySelector("#valueInput");
       const editPhotoButton = document.querySelector("#editPhotoButton");
       const photoEditor = document.querySelector("#photoEditor");
@@ -1846,7 +2070,41 @@
       }
 
       function rarityClass(rarity) {
-        return `rarity-${String(rarity || "Common").toLocaleLowerCase().replace(/[^a-z]+/g, "-")}`;
+        return `rarity-${RARITY_STYLES[rarity]?.key || "common"}`;
+      }
+
+      function raritySurfaceClass(rarity) {
+        return `rarity-surface-${RARITY_STYLES[rarity]?.key || "common"}`;
+      }
+
+      function rarityFrameClass(rarity) {
+        return `rarity-frame-${RARITY_STYLES[rarity]?.key || "common"}`;
+      }
+
+      function rarityBackgroundColor(rarity) {
+        return RARITY_STYLES[rarity]?.color || RARITY_STYLES.Common.color;
+      }
+
+      function setRarity(rarity, saveDraft = true) {
+        const selected = RARITY_STYLES[rarity] ? rarity : "Common";
+        rarityInput.value = selected;
+        rarityPicker.querySelectorAll("[data-rarity]").forEach((button) => {
+          const active = button.dataset.rarity === selected;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+        Object.values(RARITY_STYLES).forEach(({ key }) => photoBox.classList.remove(`rarity-surface-${key}`));
+        photoBox.classList.add("rarity-surface", raritySurfaceClass(selected));
+        photoRarityBadge.className = `preview-rarity ${rarityClass(selected)}`;
+        photoRarityBadge.textContent = selected;
+        if (saveDraft && !editingId) savePhotoDraft();
+      }
+
+      function updateValuePresetState() {
+        const value = Number(valueInput.value || 0);
+        document.querySelectorAll("[data-value-preset]").forEach((button) => {
+          button.classList.toggle("active", Number(button.dataset.valuePreset) === value && valueInput.value !== "");
+        });
       }
 
       function filteredItems() {
@@ -1907,7 +2165,7 @@
           ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
           : `<span class="slot-icon">${item.icon || "IT"}</span>`;
         return `
-          <button class="slot ${selectedId === item.id ? "selected" : ""} ${extraClass}" type="button" data-item="${item.id}" style="background-color: ${item.backgroundColor || "var(--slot)"}">
+          <button class="slot rarity-surface ${raritySurfaceClass(item.rarity)} ${selectedId === item.id ? "selected" : ""} ${extraClass}" type="button" data-item="${item.id}">
             ${art}
           </button>
         `;
@@ -1918,8 +2176,8 @@
           ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
           : `<span class="slot-icon">${item.icon || "IT"}</span>`;
         return `
-          <button class="item-card ${selectedId === item.id ? "selected" : ""}" type="button" data-item="${item.id}">
-            <span class="item-card-art" style="background-color: ${item.backgroundColor || "var(--slot)"}">${art}</span>
+          <button class="item-card ${rarityFrameClass(item.rarity)} ${selectedId === item.id ? "selected" : ""}" type="button" data-item="${item.id}">
+            <span class="item-card-art rarity-surface ${raritySurfaceClass(item.rarity)}">${art}</span>
             <strong class="item-card-name">${escapeHtml(item.name)}</strong>
             <span class="item-card-meta"><span>${escapeHtml(categoryName(item.category))}</span><span class="rarity-badge ${rarityClass(item.rarity)}">${escapeHtml(item.rarity || "Common")}</span></span>
             <span class="item-value">${formatValue(item.value)}</span>
@@ -1954,7 +2212,7 @@
           const art = item.photo
             ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
             : `<span class="slot-icon">${item.icon || "IT"}</span>`;
-          return `<div class="pedestal${dropClass}" role="button" tabindex="0" draggable="true" data-item="${item.id}" data-museum-slot="${index}"><span class="slot museum-slot">${art}</span><div class="pedestal-name">${escapeHtml(item.name)}</div></div>`;
+          return `<div class="pedestal${dropClass}" role="button" tabindex="0" draggable="true" data-item="${item.id}" data-museum-slot="${index}"><span class="slot museum-slot rarity-surface ${raritySurfaceClass(item.rarity)}">${art}</span><div class="pedestal-name">${escapeHtml(item.name)}</div></div>`;
         }).join("");
         if (animatedMuseumSlot !== null) {
           window.setTimeout(() => {
@@ -1969,7 +2227,7 @@
         const choices = [...items].sort((a, b) => a.name.localeCompare(b.name, "de", { sensitivity: "base" }));
         museumPickerList.innerHTML = choices.length ? choices.map((item) => {
           const art = item.photo ? `<img src="${item.photo}" alt="" />` : `<span class="slot-icon">${item.icon || "IT"}</span>`;
-          return `<button class="museum-choice" type="button" data-choice-item="${item.id}">${art}<strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.rarity)}</span></button>`;
+          return `<button class="museum-choice ${rarityFrameClass(item.rarity)}" type="button" data-choice-item="${item.id}"><span class="museum-choice-art rarity-surface ${raritySurfaceClass(item.rarity)}">${art}</span><strong>${escapeHtml(item.name)}</strong><span class="${rarityClass(item.rarity)}">${escapeHtml(item.rarity)}</span></button>`;
         }).join("") : `<p class="empty-note">Dein Inventar ist noch leer.</p>`;
       }
 
@@ -2001,7 +2259,7 @@
           ? `<img src="${item.photo}" alt="${escapeHtml(item.name)}" />`
           : `<span class="slot-icon">${item.icon || "IT"}</span>`;
         detailCard.innerHTML = `
-          <div class="detail-art">${art}</div>
+          <div class="detail-art rarity-surface ${raritySurfaceClass(item.rarity)}">${art}</div>
           <div>
             <h2>${escapeHtml(item.name)}</h2>
             <p>${categoryName(item.category)} · <span class="${rarityClass(item.rarity)}">${item.rarity || "Common"}</span></p>
@@ -2036,14 +2294,14 @@
         editingId = null;
         clearPhotoDraft();
         itemForm.reset();
-        document.querySelector("#rarityInput").value = "Common";
-        photoBackgroundInput.value = "#eeeeee";
+        setRarity("Common", false);
+        updateValuePresetState();
         currentPhoto = "";
         originalPhoto = "";
-        photoBox.style.backgroundColor = "#eeeeee";
         previewImage.removeAttribute("src");
         previewImage.classList.add("hidden");
-        photoBox.querySelector("span").classList.remove("hidden");
+        photoPlaceholder.classList.remove("hidden");
+        photoButtonLabel.textContent = "Foto aufnehmen";
         formTitle.textContent = "Neues Item";
         submitItemButton.textContent = "Speichern";
         cancelEditButton.classList.add("hidden");
@@ -2058,25 +2316,26 @@
         document.querySelector("#nameInput").value = item.name;
         document.querySelector("#categoryInput").value = item.category;
         document.querySelector("#dateInput").value = item.date || "";
-        document.querySelector("#rarityInput").value = item.rarity;
+        setRarity(item.rarity || "Common", false);
         document.querySelector("#noteInput").value = item.note || "";
         valueInput.value = item.value || "";
-        photoBackgroundInput.value = item.backgroundColor || "#eeeeee";
+        updateValuePresetState();
         currentPhoto = item.photo || "";
         originalPhoto = currentPhoto;
         editPhotoButton.classList.toggle("hidden", !currentPhoto);
-        photoBox.style.backgroundColor = item.backgroundColor || "#eeeeee";
         if (currentPhoto) {
           previewImage.src = currentPhoto;
           previewImage.classList.remove("hidden");
-          photoBox.querySelector("span").classList.add("hidden");
+          photoPlaceholder.classList.add("hidden");
+          photoButtonLabel.textContent = "Foto ändern";
         } else {
           previewImage.removeAttribute("src");
           previewImage.classList.add("hidden");
-          photoBox.querySelector("span").classList.remove("hidden");
+          photoPlaceholder.classList.remove("hidden");
+          photoButtonLabel.textContent = "Foto aufnehmen";
         }
         formTitle.textContent = "Item bearbeiten";
-        submitItemButton.textContent = "Update";
+        submitItemButton.textContent = "Änderungen speichern";
         cancelEditButton.classList.remove("hidden");
         showScreen("photo");
       }
@@ -2145,7 +2404,7 @@
         });
       }
 
-      async function makeMobilePhotoCopyFromFile(file, maxSide = 960) {
+      async function makeMobilePhotoCopyFromFile(file, maxSide = 820) {
         let objectUrl = "";
         try {
           objectUrl = URL.createObjectURL(file);
@@ -2182,7 +2441,6 @@
             photo: currentPhoto,
             originalPhoto,
             updatedAt: Date.now(),
-            backgroundColor: photoBackgroundInput.value,
             name: document.querySelector("#nameInput").value,
             category: document.querySelector("#categoryInput").value,
             rarity: document.querySelector("#rarityInput").value,
@@ -2205,17 +2463,19 @@
       }
 
       function paintCurrentPhoto() {
-        photoBox.style.backgroundColor = photoBackgroundInput.value || "#eeeeee";
+        setRarity(rarityInput.value || "Common", false);
         if (currentPhoto) {
           previewImage.src = currentPhoto;
           previewImage.classList.remove("hidden");
-          photoBox.querySelector("span").classList.add("hidden");
+          photoPlaceholder.classList.add("hidden");
           editPhotoButton.classList.remove("hidden");
+          photoButtonLabel.textContent = "Foto ändern";
         } else {
           previewImage.removeAttribute("src");
           previewImage.classList.add("hidden");
-          photoBox.querySelector("span").classList.remove("hidden");
+          photoPlaceholder.classList.remove("hidden");
           editPhotoButton.classList.add("hidden");
+          photoButtonLabel.textContent = "Foto aufnehmen";
         }
       }
 
@@ -2225,7 +2485,7 @@
           const draft = JSON.parse(savedDraft || "null");
           const pendingSince = Number(localStorage.getItem(PHOTO_CAPTURE_PENDING_KEY)) || 0;
           const recentlyPending = pendingSince && Date.now() - pendingSince < 10 * 60 * 1000;
-          if (!draft || (!draft.photo && !draft.originalPhoto)) {
+          if (!draft || (!draft.photo && !draft.originalPhoto && !String(draft.name || "").trim())) {
             if (recentlyPending) showScreen("photo", { keepForm: true });
             else setPhotoCapturePending(false);
             return;
@@ -2233,12 +2493,12 @@
           editingId = null;
           currentPhoto = draft.photo || draft.originalPhoto || "";
           originalPhoto = draft.originalPhoto || currentPhoto;
-          photoBackgroundInput.value = draft.backgroundColor || "#eeeeee";
           document.querySelector("#nameInput").value = draft.name || "";
           document.querySelector("#categoryInput").value = draft.category || document.querySelector("#categoryInput").value;
-          document.querySelector("#rarityInput").value = draft.rarity || "Common";
+          setRarity(draft.rarity || "Common", false);
           document.querySelector("#dateInput").value = draft.date || "";
           valueInput.value = draft.value || "";
+          updateValuePresetState();
           document.querySelector("#noteInput").value = draft.note || "";
           paintCurrentPhoto();
           localStorage.setItem(PHOTO_DRAFT_KEY, JSON.stringify(draft));
@@ -2663,6 +2923,18 @@
         event.preventDefault();
         openAppCamera();
       });
+      rarityPicker.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-rarity]");
+        if (!button) return;
+        setRarity(button.dataset.rarity);
+      });
+      document.querySelector(".value-presets").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-value-preset]");
+        if (!button) return;
+        valueInput.value = button.dataset.valuePreset;
+        valueInput.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      valueInput.addEventListener("input", updateValuePresetState);
       document.querySelector("#closeCameraButton").addEventListener("click", () => {
         stopAppCamera();
         setPhotoCapturePending(false);
@@ -2670,7 +2942,7 @@
       document.querySelector("#cameraFileButton").addEventListener("click", openNativePhotoPicker);
       document.querySelector("#captureCameraButton").addEventListener("click", async () => {
         if (!cameraStream || cameraVideo.readyState < 2) return;
-        const maxSide = 960;
+        const maxSide = 820;
         const scale = Math.min(1, maxSide / Math.max(cameraVideo.videoWidth, cameraVideo.videoHeight));
         const canvas = document.createElement("canvas");
         canvas.width = Math.max(1, Math.round(cameraVideo.videoWidth * scale));
@@ -2805,11 +3077,6 @@
           setPhotoCapturePending(false);
         }
       });
-      photoBackgroundInput.addEventListener("input", () => {
-        photoBox.style.backgroundColor = photoBackgroundInput.value;
-        savePhotoDraft();
-      });
-
       profilePhotoInput.addEventListener("change", () => {
         const file = profilePhotoInput.files?.[0];
         if (!file) return;
@@ -2845,11 +3112,11 @@
           name: document.querySelector("#nameInput").value.trim(),
           category: document.querySelector("#categoryInput").value,
           date: document.querySelector("#dateInput").value || "",
-          rarity: document.querySelector("#rarityInput").value,
+          rarity: rarityInput.value,
           value: Number(valueInput.value) || 0,
           note: document.querySelector("#noteInput").value.trim(),
           photo: currentPhoto,
-          backgroundColor: photoBackgroundInput.value,
+          backgroundColor: rarityBackgroundColor(rarityInput.value),
           icon: original?.icon || "IT"
         };
         items = editingId

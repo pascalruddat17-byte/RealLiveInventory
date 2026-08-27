@@ -943,6 +943,111 @@
         background: rgba(0, 0, 0, 0.6);
       }
 
+      .camera-capture {
+        width: min(520px, calc(100% - 24px));
+        height: min(760px, calc(100dvh - 24px));
+        max-width: none;
+        max-height: none;
+        padding: 0;
+        overflow: hidden;
+        border: 0;
+        border-radius: 16px;
+        background: #111111;
+        color: #ffffff;
+      }
+
+      .camera-capture::backdrop {
+        background: #000000;
+      }
+
+      .camera-stage {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 480px;
+        overflow: hidden;
+        background: #111111;
+      }
+
+      .camera-stage video {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .camera-message {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        color: #ffffff;
+        font-weight: 850;
+        text-align: center;
+      }
+
+      .camera-close {
+        position: absolute;
+        top: max(12px, env(safe-area-inset-top));
+        right: 12px;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border-color: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.5);
+        color: #ffffff;
+        font-size: 1.5rem;
+      }
+
+      .camera-controls {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 16px;
+        align-items: center;
+        padding: 18px 20px max(18px, env(safe-area-inset-bottom));
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.82));
+      }
+
+      .camera-file-button {
+        justify-self: start;
+        border-color: rgba(255, 255, 255, 0.65);
+        background: rgba(0, 0, 0, 0.42);
+        color: #ffffff;
+      }
+
+      .camera-shutter {
+        display: grid;
+        width: 72px;
+        height: 72px;
+        padding: 5px;
+        place-items: center;
+        border: 3px solid #ffffff;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.24);
+      }
+
+      .camera-shutter span {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: #ffffff;
+      }
+
+      @media (max-width: 600px) {
+        .camera-capture {
+          width: 100%;
+          height: 100dvh;
+          margin: 0;
+          border-radius: 0;
+        }
+      }
+
       .photo-editor-head {
         display: flex;
         align-items: center;
@@ -1451,6 +1556,19 @@
       </section>
       <input id="photoInput" type="file" accept="image/*" capture="environment" class="hidden" />
 
+      <dialog class="camera-capture" id="cameraCapture">
+        <div class="camera-stage">
+          <video id="cameraVideo" autoplay muted playsinline></video>
+          <div class="camera-message" id="cameraMessage">Kamera wird geöffnet...</div>
+          <button class="camera-close" id="closeCameraButton" type="button" aria-label="Kamera schließen">×</button>
+          <div class="camera-controls">
+            <button class="camera-file-button" id="cameraFileButton" type="button">Datei</button>
+            <button class="camera-shutter" id="captureCameraButton" type="button" aria-label="Foto aufnehmen"><span></span></button>
+            <span aria-hidden="true"></span>
+          </div>
+        </div>
+      </dialog>
+
       <dialog class="museum-picker" id="museumPicker">
         <div class="museum-picker-head">
           <strong>Item ins Museum</strong>
@@ -1544,6 +1662,7 @@
       const MUSEUM_KEY = "reallife-game-museum-v1";
       const USER_NUMBER_KEY = "reallife-game-user-number-v1";
       const PHOTO_DRAFT_KEY = "reallife-game-photo-draft-v1";
+      const PHOTO_CAPTURE_PENDING_KEY = "reallife-game-photo-capture-pending-v1";
       const DEFAULT_PROFILE_IMAGE = "./profile-default.png";
       const DEFAULT_CATEGORY_IMAGE = "./category-default.png";
       const defaultCategories = [
@@ -1573,6 +1692,7 @@
       let currentPhoto = "";
       let originalPhoto = "";
       let photoJob = 0;
+      let cameraStream = null;
       let categoryImageId = null;
       let draggedMuseumSlot = null;
       let pointerMuseumDrag = null;
@@ -1606,6 +1726,9 @@
       const categoryRow = document.querySelector("#categoryRow");
       const categoryInput = document.querySelector("#categoryInput");
       const photoInput = document.querySelector("#photoInput");
+      const cameraCapture = document.querySelector("#cameraCapture");
+      const cameraVideo = document.querySelector("#cameraVideo");
+      const cameraMessage = document.querySelector("#cameraMessage");
       const previewImage = document.querySelector("#previewImage");
       const photoBox = document.querySelector("#photoBox");
       const profilePhotoInput = document.querySelector("#profilePhotoInput");
@@ -2036,11 +2159,21 @@
         return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/png");
       }
 
-      async function makeMobilePhotoCopy(dataUrl, maxSide = 1200) {
+      function readPhotoFile(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function makeMobilePhotoCopyFromFile(file, maxSide = 960) {
+        let objectUrl = "";
         try {
-          const image = await loadPhotoImage(dataUrl);
+          objectUrl = URL.createObjectURL(file);
+          const image = await loadPhotoImage(objectUrl);
           const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
-          if (scale >= 0.98 && dataUrl.length < 1400000) return dataUrl;
           const canvas = document.createElement("canvas");
           canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
           canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
@@ -2048,11 +2181,22 @@
           context.imageSmoothingEnabled = true;
           context.imageSmoothingQuality = "high";
           context.drawImage(image, 0, 0, canvas.width, canvas.height);
-          const compact = canvas.toDataURL("image/jpeg", 0.86);
-          return compact.length < dataUrl.length ? compact : dataUrl;
+          return canvas.toDataURL("image/jpeg", 0.82);
         } catch {
-          return dataUrl;
+          return readPhotoFile(file);
+        } finally {
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
         }
+      }
+
+      function setPhotoCapturePending(pending) {
+        try {
+          if (pending) {
+            localStorage.setItem(PHOTO_CAPTURE_PENDING_KEY, String(Date.now()));
+          } else {
+            localStorage.removeItem(PHOTO_CAPTURE_PENDING_KEY);
+          }
+        } catch {}
       }
 
       function savePhotoDraft() {
@@ -2060,6 +2204,7 @@
           const draft = {
             photo: currentPhoto,
             originalPhoto,
+            updatedAt: Date.now(),
             backgroundColor: photoBackgroundInput.value,
             name: document.querySelector("#nameInput").value,
             category: document.querySelector("#categoryInput").value,
@@ -2069,14 +2214,16 @@
             note: document.querySelector("#noteInput").value
           };
           if (draft.photo || draft.originalPhoto || draft.name.trim()) {
-            sessionStorage.setItem(PHOTO_DRAFT_KEY, JSON.stringify(draft));
+            localStorage.setItem(PHOTO_DRAFT_KEY, JSON.stringify(draft));
           }
         } catch {}
       }
 
       function clearPhotoDraft() {
         try {
+          localStorage.removeItem(PHOTO_DRAFT_KEY);
           sessionStorage.removeItem(PHOTO_DRAFT_KEY);
+          localStorage.removeItem(PHOTO_CAPTURE_PENDING_KEY);
         } catch {}
       }
 
@@ -2097,8 +2244,15 @@
 
       function restorePhotoDraft() {
         try {
-          const draft = JSON.parse(sessionStorage.getItem(PHOTO_DRAFT_KEY) || "null");
-          if (!draft || (!draft.photo && !draft.originalPhoto)) return;
+          const savedDraft = localStorage.getItem(PHOTO_DRAFT_KEY) || sessionStorage.getItem(PHOTO_DRAFT_KEY);
+          const draft = JSON.parse(savedDraft || "null");
+          const pendingSince = Number(localStorage.getItem(PHOTO_CAPTURE_PENDING_KEY)) || 0;
+          const recentlyPending = pendingSince && Date.now() - pendingSince < 10 * 60 * 1000;
+          if (!draft || (!draft.photo && !draft.originalPhoto)) {
+            if (recentlyPending) showScreen("photo", { keepForm: true });
+            else setPhotoCapturePending(false);
+            return;
+          }
           editingId = null;
           currentPhoto = draft.photo || draft.originalPhoto || "";
           originalPhoto = draft.originalPhoto || currentPhoto;
@@ -2110,8 +2264,71 @@
           valueInput.value = draft.value || "";
           document.querySelector("#noteInput").value = draft.note || "";
           paintCurrentPhoto();
+          localStorage.setItem(PHOTO_DRAFT_KEY, JSON.stringify(draft));
+          sessionStorage.removeItem(PHOTO_DRAFT_KEY);
+          setPhotoCapturePending(false);
           showScreen("photo", { keepForm: true });
         } catch {}
+      }
+
+      function stopAppCamera() {
+        if (cameraStream) cameraStream.getTracks().forEach((track) => track.stop());
+        cameraStream = null;
+        cameraVideo.srcObject = null;
+        if (cameraCapture.open) cameraCapture.close();
+      }
+
+      function openNativePhotoPicker() {
+        stopAppCamera();
+        setPhotoCapturePending(true);
+        photoInput.value = "";
+        photoInput.click();
+      }
+
+      async function openAppCamera() {
+        setPhotoCapturePending(true);
+        savePhotoDraft();
+        if (!navigator.mediaDevices?.getUserMedia) {
+          openNativePhotoPicker();
+          return;
+        }
+        cameraMessage.textContent = "Kamera wird geöffnet...";
+        cameraMessage.classList.remove("hidden");
+        if (!cameraCapture.open) cameraCapture.showModal();
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+          });
+          cameraVideo.srcObject = cameraStream;
+          await cameraVideo.play();
+          cameraMessage.classList.add("hidden");
+        } catch {
+          if (cameraStream) cameraStream.getTracks().forEach((track) => track.stop());
+          cameraStream = null;
+          cameraVideo.srcObject = null;
+          cameraMessage.textContent = "Kamera blockiert. Tippe unten auf Datei.";
+          cameraMessage.classList.remove("hidden");
+        }
+      }
+
+      async function acceptPhoto(photo) {
+        const job = ++photoJob;
+        originalPhoto = photo;
+        currentPhoto = photo;
+        setPhotoCapturePending(false);
+        paintCurrentPhoto();
+        savePhotoDraft();
+        showScreen("photo", { keepForm: true });
+        photoProcessing.classList.remove("hidden");
+        window.setTimeout(async () => {
+          const processedPhoto = await removePhotoBackground(photo, Number(backgroundStrengthInput.value));
+          if (job !== photoJob) return;
+          currentPhoto = processedPhoto;
+          paintCurrentPhoto();
+          savePhotoDraft();
+          photoProcessing.classList.add("hidden");
+        }, 180);
       }
 
       function weightedColorDistance(data, first, second) {
@@ -2214,7 +2431,8 @@
           const image = await loadPhotoImage(dataUrl);
           await new Promise((resolve) => window.requestAnimationFrame(resolve));
           const canvas = document.createElement("canvas");
-          const scale = Math.min(1, 820 / Math.max(image.naturalWidth, image.naturalHeight));
+          const processingSide = window.matchMedia("(max-width: 600px)").matches ? 640 : 820;
+          const scale = Math.min(1, processingSide / Math.max(image.naturalWidth, image.naturalHeight));
           canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
           canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
           const context = canvas.getContext("2d", { willReadFrequently: true });
@@ -2468,6 +2686,7 @@
         context.drawImage(editorMaskCanvas, 0, 0);
         currentPhoto = canvasPhotoDataUrl(output);
         previewImage.src = currentPhoto;
+        savePhotoDraft();
         photoEditor.close();
       }
 
@@ -2691,8 +2910,30 @@
       });
       document.querySelector("#photoButton").addEventListener("click", (event) => {
         event.preventDefault();
-        photoInput.value = "";
-        photoInput.click();
+        openAppCamera();
+      });
+      document.querySelector("#closeCameraButton").addEventListener("click", () => {
+        stopAppCamera();
+        setPhotoCapturePending(false);
+      });
+      document.querySelector("#cameraFileButton").addEventListener("click", openNativePhotoPicker);
+      document.querySelector("#captureCameraButton").addEventListener("click", async () => {
+        if (!cameraStream || cameraVideo.readyState < 2) return;
+        const maxSide = 960;
+        const scale = Math.min(1, maxSide / Math.max(cameraVideo.videoWidth, cameraVideo.videoHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(cameraVideo.videoWidth * scale));
+        canvas.height = Math.max(1, Math.round(cameraVideo.videoHeight * scale));
+        const context = canvas.getContext("2d");
+        context.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+        const photo = canvas.toDataURL("image/jpeg", 0.82);
+        stopAppCamera();
+        await acceptPhoto(photo);
+      });
+      cameraCapture.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        stopAppCamera();
+        setPhotoCapturePending(false);
       });
       editPhotoButton.addEventListener("click", openPhotoEditor);
       document.querySelector("#closePhotoEditorButton").addEventListener("click", () => photoEditor.close());
@@ -2819,30 +3060,19 @@
         reader.readAsDataURL(file);
       });
 
-      photoInput.addEventListener("change", () => {
+      photoInput.addEventListener("change", async () => {
         const file = photoInput.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const rawPhoto = String(reader.result);
-          const job = ++photoJob;
-          const mobilePhoto = await makeMobilePhotoCopy(rawPhoto);
-          if (job !== photoJob) return;
-          originalPhoto = mobilePhoto;
-          currentPhoto = mobilePhoto;
-          paintCurrentPhoto();
-          savePhotoDraft();
-          photoProcessing.classList.remove("hidden");
-          window.setTimeout(async () => {
-            const processedPhoto = await removePhotoBackground(mobilePhoto, Number(backgroundStrengthInput.value));
-            if (job !== photoJob) return;
-            currentPhoto = processedPhoto;
-            previewImage.src = processedPhoto;
-            savePhotoDraft();
-            photoProcessing.classList.add("hidden");
-          }, 60);
-        };
-        reader.readAsDataURL(file);
+        if (!file) {
+          setPhotoCapturePending(false);
+          return;
+        }
+        try {
+          const mobilePhoto = await makeMobilePhotoCopyFromFile(file);
+          await acceptPhoto(mobilePhoto);
+        } catch {
+          setPhotoCapturePending(false);
+          photoProcessing.classList.add("hidden");
+        }
       });
       photoBackgroundInput.addEventListener("input", () => {
         photoBox.style.backgroundColor = photoBackgroundInput.value;
@@ -2866,6 +3096,13 @@
       });
       itemForm.addEventListener("change", () => {
         if (!editingId) savePhotoDraft();
+      });
+      window.addEventListener("pagehide", () => {
+        if (!editingId && currentPhoto) savePhotoDraft();
+        stopAppCamera();
+      });
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden" && !editingId && currentPhoto) savePhotoDraft();
       });
 
       document.querySelector("#itemForm").addEventListener("submit", (event) => {

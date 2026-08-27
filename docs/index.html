@@ -28,7 +28,7 @@
         --muted: #646464;
         --pack: #d6ad91;
         --shadow: 0 14px 28px rgba(0, 0, 0, 0.1);
-        --slot-size: 62px;
+        --slot-size: 52px;
       }
 
       * {
@@ -408,18 +408,18 @@
 
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-        gap: 8px;
+        grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+        gap: 6px;
       }
 
       .item-card {
         display: grid;
         grid-template-rows: auto auto auto;
-        gap: 6px;
+        gap: 4px;
         min-width: 0;
-        padding: 7px;
+        padding: 5px;
         border: 1px solid var(--line);
-        border-radius: 13px;
+        border-radius: 10px;
         background: var(--surface);
         color: var(--ink);
         text-align: left;
@@ -474,7 +474,7 @@
         place-items: center;
         overflow: hidden;
         border: 1px solid var(--line);
-        border-radius: 9px;
+        border-radius: 7px;
         background: var(--slot);
       }
 
@@ -490,7 +490,7 @@
 
       .item-card-name {
         overflow: hidden;
-        font-size: 0.82rem;
+        font-size: 0.74rem;
         font-weight: 950;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -499,10 +499,10 @@
       .item-card-meta {
         display: flex;
         justify-content: space-between;
-        gap: 5px;
+        gap: 4px;
         overflow: hidden;
         color: var(--muted);
-        font-size: 0.65rem;
+        font-size: 0.58rem;
         font-weight: 850;
       }
 
@@ -1279,7 +1279,7 @@
 
       @media (max-width: 390px) {
         :root {
-          --slot-size: 68px;
+          --slot-size: 52px;
         }
 
         .brand-title {
@@ -1708,7 +1708,7 @@
         Object.entries(cssVariables).forEach(([key, variable]) => {
           document.documentElement.style.setProperty(variable, settings.palette[key]);
         });
-        document.documentElement.style.setProperty("--slot-size", "62px");
+        document.documentElement.style.setProperty("--slot-size", "52px");
         document.querySelector("#profileNameText").textContent = settings.nickname || defaultUserName;
         document.querySelector("#avatarImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
         document.querySelector("#profilePreviewImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;

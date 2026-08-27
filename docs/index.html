@@ -28,7 +28,7 @@
         --muted: #646464;
         --pack: #d6ad91;
         --shadow: 0 14px 28px rgba(0, 0, 0, 0.1);
-        --slot-size: 52px;
+        --slot-size: 48px;
       }
 
       * {
@@ -355,9 +355,9 @@
       }
 
       .toolbar-head {
-        display: flex;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         align-items: center;
-        justify-content: space-between;
         gap: 10px;
       }
 
@@ -470,29 +470,26 @@
       }
 
       .inventory-tabs {
-        position: fixed;
-        right: 50%;
-        bottom: 78px;
-        z-index: 9;
-        width: min(360px, calc(100% - 24px));
-        padding: 5px;
+        width: 100%;
+        min-width: 0;
+        padding: 3px;
         border: 1px solid var(--line);
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.96);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
-        transform: translateX(50%);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.88);
       }
 
       .tab-pill {
         display: grid;
         grid-template-columns: auto 1fr;
         align-items: center;
-        gap: 8px;
-        padding: 10px 12px;
+        gap: 5px;
+        min-height: 36px;
+        padding: 7px 8px;
         border: 1px solid var(--line);
-        border-radius: 13px;
+        border-radius: 9px;
         background: var(--surface-2);
         color: var(--muted);
+        font-size: 0.72rem;
         font-weight: 900;
       }
 
@@ -517,18 +514,18 @@
 
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-        gap: 6px;
+        grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+        gap: 4px;
       }
 
       .item-card {
         display: grid;
         grid-template-rows: auto auto auto;
-        gap: 4px;
+        gap: 3px;
         min-width: 0;
-        padding: 5px;
+        padding: 4px;
         border: 1px solid var(--line);
-        border-radius: 10px;
+        border-radius: 8px;
         background: var(--surface);
         color: var(--ink);
         text-align: left;
@@ -672,7 +669,7 @@
       .rarity-surface-mythic::after,
       .rarity-surface-secret::after {
         opacity: 1;
-        animation: rarity-shimmer 2.8s ease-in-out infinite;
+        animation: rarity-shimmer 1.45s ease-in-out infinite;
       }
 
       .rarity-surface-secret::after {
@@ -680,8 +677,8 @@
       }
 
       @keyframes rarity-shimmer {
-        0%, 28% { transform: translateX(-75%) rotate(8deg); }
-        70%, 100% { transform: translateX(75%) rotate(8deg); }
+        0%, 12% { transform: translateX(-75%) rotate(8deg); }
+        62%, 100% { transform: translateX(75%) rotate(8deg); }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -737,8 +734,9 @@
           rgba(255, 255, 255, 0.62);
         background-size: 18px 18px;
         color: #9a9a9a;
-        font-size: 1.15rem;
+        font-size: 0;
         font-weight: 850;
+        cursor: default;
       }
 
       .slot.selected {
@@ -1292,19 +1290,69 @@
       .photo-box {
         position: relative;
         display: grid;
-        min-height: 260px;
+        width: 100%;
+        min-height: 0;
+        aspect-ratio: 1;
         overflow: hidden;
         place-items: center;
         border: 2px dashed #a9cffc;
         border-radius: 16px;
         background: #f4f4f4;
+        touch-action: none;
+        user-select: none;
       }
 
       .photo-box img {
-        width: 100%;
-        height: 100%;
-        padding: 8px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: calc(100% - 16px);
+        height: calc(100% - 16px);
+        padding: 0;
         object-fit: contain;
+        pointer-events: none;
+        transform:
+          translate(calc(-50% + var(--photo-x, 0%)), calc(-50% + var(--photo-y, 0%)))
+          rotate(var(--photo-rotation, 0deg))
+          scale(var(--photo-scale, 1));
+        transform-origin: center;
+        will-change: transform;
+      }
+
+      .photo-box.has-photo {
+        border-style: solid;
+        cursor: grab;
+      }
+
+      .photo-box.has-photo:active {
+        cursor: grabbing;
+      }
+
+      .photo-transform-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 8px;
+        align-items: end;
+      }
+
+      .photo-transform-control {
+        display: grid;
+        gap: 5px;
+        min-width: 0;
+        color: var(--muted);
+        font-size: 0.68rem;
+        font-weight: 850;
+      }
+
+      .photo-transform-control input {
+        height: 28px;
+      }
+
+      .photo-transform-reset {
+        min-height: 39px;
+        padding: 7px 10px;
+        border-radius: 9px;
+        font-size: 0.72rem;
       }
 
       .preview-rarity {
@@ -1559,7 +1607,7 @@
 
       @media (max-width: 390px) {
         :root {
-          --slot-size: 46px;
+          --slot-size: 42px;
         }
 
         .brand-title {
@@ -1567,8 +1615,8 @@
         }
 
         .grid {
-          grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-          gap: 5px;
+          grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+          gap: 4px;
         }
 
         .item-card {
@@ -1608,6 +1656,10 @@
         <div class="panel toolbar">
           <div class="toolbar-head">
             <strong>Inventar</strong>
+            <div class="tabs inventory-tabs" id="inventoryViewTabs">
+              <button class="tab-pill active" type="button" data-inventory-view="inventory"><span>INV</span><span>Inventar</span></button>
+              <button class="tab-pill" type="button" data-inventory-view="museum"><span>MUS</span><span>Museum</span></button>
+            </div>
             <div>
               <button class="icon-btn" id="customizeButton" type="button" title="Kategorien bearbeiten">⚙</button>
             </div>
@@ -1631,10 +1683,6 @@
               <option value="Mythic">Mythic</option>
               <option value="Secret">Secret</option>
             </select>
-          </div>
-          <div class="tabs inventory-tabs" id="inventoryViewTabs">
-            <button class="tab-pill active" type="button" data-inventory-view="inventory"><span>INV</span><span>Inventar</span></button>
-            <button class="tab-pill" type="button" data-inventory-view="museum"><span>MUS</span><span>Museum</span></button>
           </div>
         </div>
 
@@ -1682,6 +1730,11 @@
             <span id="photoPlaceholder"><strong>ITEM</strong>Foto oder Datei</span>
             <img class="hidden" id="previewImage" alt="Item Foto" />
             <div class="preview-rarity rarity-common" id="photoRarityBadge">Common</div>
+          </div>
+          <div class="photo-transform-controls hidden" id="photoTransformControls">
+            <label class="photo-transform-control"><span>Größe</span><input id="photoScaleInput" type="range" min="55" max="220" value="100" /></label>
+            <label class="photo-transform-control"><span>Drehen</span><input id="photoRotateInput" type="range" min="-180" max="180" value="0" /></label>
+            <button class="photo-transform-reset" id="resetPhotoTransformButton" type="button">Reset</button>
           </div>
           <div class="photo-actions">
             <button class="primary photo-add-button" id="photoButton" type="button"><img src="./add-icon.png" alt="" /> <span id="photoButtonLabel">Foto aufnehmen</span></button>
@@ -1845,7 +1898,7 @@
       </button>
       <button class="nav-btn" type="button" data-nav="photo">
         <img src="./add-icon.png" alt="" />
-        Foto
+        Add Item
       </button>
     </nav>
 
@@ -1894,6 +1947,9 @@
       let museumSlots = loadMuseumSlots();
       let currentPhoto = "";
       let originalPhoto = "";
+      let photoTransform = { x: 0, y: 0, scale: 1, rotation: 0 };
+      let photoPointers = new Map();
+      let photoGestureStart = null;
       let cameraStream = null;
       let categoryImageId = null;
       let draggedMuseumSlot = null;
@@ -1942,6 +1998,9 @@
       const photoPlaceholder = document.querySelector("#photoPlaceholder");
       const photoRarityBadge = document.querySelector("#photoRarityBadge");
       const photoButtonLabel = document.querySelector("#photoButtonLabel");
+      const photoTransformControls = document.querySelector("#photoTransformControls");
+      const photoScaleInput = document.querySelector("#photoScaleInput");
+      const photoRotateInput = document.querySelector("#photoRotateInput");
       const valueInput = document.querySelector("#valueInput");
       const editPhotoButton = document.querySelector("#editPhotoButton");
       const photoEditor = document.querySelector("#photoEditor");
@@ -2053,7 +2112,6 @@
         Object.entries(cssVariables).forEach(([key, variable]) => {
           document.documentElement.style.setProperty(variable, settings.palette[key]);
         });
-        document.documentElement.style.setProperty("--slot-size", "52px");
         document.querySelector("#profileNameText").textContent = settings.nickname || defaultUserName;
         document.querySelector("#avatarImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
         document.querySelector("#profilePreviewImage").src = settings.profilePhoto || DEFAULT_PROFILE_IMAGE;
@@ -2105,6 +2163,84 @@
         document.querySelectorAll("[data-value-preset]").forEach((button) => {
           button.classList.toggle("active", Number(button.dataset.valuePreset) === value && valueInput.value !== "");
         });
+      }
+
+      function clampNumber(value, min, max) {
+        return Math.min(max, Math.max(min, Number(value) || 0));
+      }
+
+      function resetPhotoTransform(saveDraft = true) {
+        photoTransform = { x: 0, y: 0, scale: 1, rotation: 0 };
+        applyPhotoTransform(saveDraft);
+      }
+
+      function applyPhotoTransform(saveDraft = true) {
+        photoTransform.x = clampNumber(photoTransform.x, -45, 45);
+        photoTransform.y = clampNumber(photoTransform.y, -45, 45);
+        photoTransform.scale = clampNumber(photoTransform.scale, 0.55, 2.2);
+        photoTransform.rotation = clampNumber(photoTransform.rotation, -180, 180);
+        previewImage.style.setProperty("--photo-x", `${photoTransform.x}%`);
+        previewImage.style.setProperty("--photo-y", `${photoTransform.y}%`);
+        previewImage.style.setProperty("--photo-scale", String(photoTransform.scale));
+        previewImage.style.setProperty("--photo-rotation", `${photoTransform.rotation}deg`);
+        photoScaleInput.value = String(Math.round(photoTransform.scale * 100));
+        photoRotateInput.value = String(Math.round(photoTransform.rotation));
+        if (saveDraft && !editingId) savePhotoDraft();
+      }
+
+      function updatePhotoTransformFromControls() {
+        photoTransform.scale = Number(photoScaleInput.value) / 100;
+        photoTransform.rotation = Number(photoRotateInput.value);
+        applyPhotoTransform();
+      }
+
+      function pointDistance(a, b) {
+        return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      }
+
+      function pointAngle(a, b) {
+        return Math.atan2(b.clientY - a.clientY, b.clientX - a.clientX) * 180 / Math.PI;
+      }
+
+      function pointCenter(a, b) {
+        return { clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 };
+      }
+
+      function startPhotoGesture() {
+        const pointers = [...photoPointers.values()];
+        photoGestureStart = { transform: { ...photoTransform }, pointers };
+        if (pointers.length >= 2) {
+          photoGestureStart.distance = pointDistance(pointers[0], pointers[1]);
+          photoGestureStart.angle = pointAngle(pointers[0], pointers[1]);
+          photoGestureStart.center = pointCenter(pointers[0], pointers[1]);
+        }
+      }
+
+      async function composeCurrentPhoto() {
+        if (!currentPhoto) return "";
+        const image = await loadPhotoImage(currentPhoto);
+        const size = 720;
+        const padding = 36;
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const context = canvas.getContext("2d");
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = "high";
+        const baseScale = Math.min((size - padding * 2) / image.naturalWidth, (size - padding * 2) / image.naturalHeight);
+        const drawWidth = image.naturalWidth * baseScale * photoTransform.scale;
+        const drawHeight = image.naturalHeight * baseScale * photoTransform.scale;
+        context.translate(size / 2 + size * photoTransform.x / 100, size / 2 + size * photoTransform.y / 100);
+        context.rotate(photoTransform.rotation * Math.PI / 180);
+        context.drawImage(image, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+        return canvasPhotoDataUrl(canvas);
+      }
+
+      function isNeutralPhotoTransform() {
+        return Math.abs(photoTransform.x) < 0.01
+          && Math.abs(photoTransform.y) < 0.01
+          && Math.abs(photoTransform.scale - 1) < 0.01
+          && Math.abs(photoTransform.rotation) < 0.01;
       }
 
       function filteredItems() {
@@ -2160,7 +2296,7 @@
       }
 
       function slotMarkup(item, extraClass = "") {
-        if (!item) return `<button class="slot empty ${extraClass}" type="button" data-nav="photo">+</button>`;
+        if (!item) return `<button class="slot empty ${extraClass}" type="button" aria-label="Leerer Slot"></button>`;
         const art = item.photo
           ? `<img class="slot-photo" src="${item.photo}" alt="${escapeHtml(item.name)}" />`
           : `<span class="slot-icon">${item.icon || "IT"}</span>`;
@@ -2298,8 +2434,11 @@
         updateValuePresetState();
         currentPhoto = "";
         originalPhoto = "";
+        resetPhotoTransform(false);
         previewImage.removeAttribute("src");
         previewImage.classList.add("hidden");
+        photoBox.classList.remove("has-photo");
+        photoTransformControls.classList.add("hidden");
         photoPlaceholder.classList.remove("hidden");
         photoButtonLabel.textContent = "Foto aufnehmen";
         formTitle.textContent = "Neues Item";
@@ -2322,15 +2461,20 @@
         updateValuePresetState();
         currentPhoto = item.photo || "";
         originalPhoto = currentPhoto;
+        resetPhotoTransform(false);
         editPhotoButton.classList.toggle("hidden", !currentPhoto);
         if (currentPhoto) {
           previewImage.src = currentPhoto;
           previewImage.classList.remove("hidden");
+          photoBox.classList.add("has-photo");
+          photoTransformControls.classList.remove("hidden");
           photoPlaceholder.classList.add("hidden");
           photoButtonLabel.textContent = "Foto ändern";
         } else {
           previewImage.removeAttribute("src");
           previewImage.classList.add("hidden");
+          photoBox.classList.remove("has-photo");
+          photoTransformControls.classList.add("hidden");
           photoPlaceholder.classList.remove("hidden");
           photoButtonLabel.textContent = "Foto aufnehmen";
         }
@@ -2446,7 +2590,8 @@
             rarity: document.querySelector("#rarityInput").value,
             date: document.querySelector("#dateInput").value,
             value: valueInput.value,
-            note: document.querySelector("#noteInput").value
+            note: document.querySelector("#noteInput").value,
+            photoTransform
           };
           if (draft.photo || draft.originalPhoto || draft.name.trim()) {
             localStorage.setItem(PHOTO_DRAFT_KEY, JSON.stringify(draft));
@@ -2467,16 +2612,21 @@
         if (currentPhoto) {
           previewImage.src = currentPhoto;
           previewImage.classList.remove("hidden");
+          photoBox.classList.add("has-photo");
+          photoTransformControls.classList.remove("hidden");
           photoPlaceholder.classList.add("hidden");
           editPhotoButton.classList.remove("hidden");
           photoButtonLabel.textContent = "Foto ändern";
         } else {
           previewImage.removeAttribute("src");
           previewImage.classList.add("hidden");
+          photoBox.classList.remove("has-photo");
+          photoTransformControls.classList.add("hidden");
           photoPlaceholder.classList.remove("hidden");
           editPhotoButton.classList.add("hidden");
           photoButtonLabel.textContent = "Foto aufnehmen";
         }
+        applyPhotoTransform(false);
       }
 
       function restorePhotoDraft() {
@@ -2493,6 +2643,12 @@
           editingId = null;
           currentPhoto = draft.photo || draft.originalPhoto || "";
           originalPhoto = draft.originalPhoto || currentPhoto;
+          photoTransform = {
+            x: Number(draft.photoTransform?.x) || 0,
+            y: Number(draft.photoTransform?.y) || 0,
+            scale: Number(draft.photoTransform?.scale) || 1,
+            rotation: Number(draft.photoTransform?.rotation) || 0
+          };
           document.querySelector("#nameInput").value = draft.name || "";
           document.querySelector("#categoryInput").value = draft.category || document.querySelector("#categoryInput").value;
           setRarity(draft.rarity || "Common", false);
@@ -2552,6 +2708,7 @@
       function acceptPhoto(photo) {
         originalPhoto = photo;
         currentPhoto = photo;
+        resetPhotoTransform(false);
         setPhotoCapturePending(false);
         paintCurrentPhoto();
         savePhotoDraft();
@@ -2704,6 +2861,10 @@
       document.addEventListener("click", (event) => {
         const nav = event.target.closest("[data-nav]");
         if (nav) {
+          if (nav.dataset.nav === "customize" && screens.customize.classList.contains("active")) {
+            showScreen("inventory");
+            return;
+          }
           if (nav.dataset.nav === "photo") resetItemForm();
           showScreen(nav.dataset.nav);
           return;
@@ -2796,6 +2957,11 @@
         const itemButton = event.target.closest("[data-item]");
         if (itemButton) {
           selectItem(itemButton.dataset.item);
+          return;
+        }
+
+        if (itemGrid.contains(event.target) || (screens.inventory.classList.contains("active") && event.target.closest("#inventoryPanel"))) {
+          selectItem(null);
           return;
         }
 
@@ -2923,6 +3089,45 @@
         event.preventDefault();
         openAppCamera();
       });
+      photoScaleInput.addEventListener("input", updatePhotoTransformFromControls);
+      photoRotateInput.addEventListener("input", updatePhotoTransformFromControls);
+      document.querySelector("#resetPhotoTransformButton").addEventListener("click", () => resetPhotoTransform());
+      photoBox.addEventListener("pointerdown", (event) => {
+        if (!currentPhoto) return;
+        event.preventDefault();
+        photoBox.setPointerCapture?.(event.pointerId);
+        photoPointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+        startPhotoGesture();
+      });
+      photoBox.addEventListener("pointermove", (event) => {
+        if (!photoPointers.has(event.pointerId) || !photoGestureStart) return;
+        event.preventDefault();
+        photoPointers.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+        const pointers = [...photoPointers.values()];
+        const bounds = photoBox.getBoundingClientRect();
+        if (pointers.length >= 2 && photoGestureStart.pointers.length >= 2) {
+          const center = pointCenter(pointers[0], pointers[1]);
+          const startCenter = photoGestureStart.center;
+          const distance = Math.max(1, pointDistance(pointers[0], pointers[1]));
+          photoTransform.x = photoGestureStart.transform.x + (center.clientX - startCenter.clientX) * 100 / Math.max(1, bounds.width);
+          photoTransform.y = photoGestureStart.transform.y + (center.clientY - startCenter.clientY) * 100 / Math.max(1, bounds.height);
+          photoTransform.scale = photoGestureStart.transform.scale * distance / Math.max(1, photoGestureStart.distance);
+          photoTransform.rotation = photoGestureStart.transform.rotation + pointAngle(pointers[0], pointers[1]) - photoGestureStart.angle;
+        } else {
+          const start = photoGestureStart.pointers[0];
+          photoTransform.x = photoGestureStart.transform.x + (event.clientX - start.clientX) * 100 / Math.max(1, bounds.width);
+          photoTransform.y = photoGestureStart.transform.y + (event.clientY - start.clientY) * 100 / Math.max(1, bounds.height);
+        }
+        applyPhotoTransform();
+      });
+      const finishPhotoPointer = (event) => {
+        if (!photoPointers.has(event.pointerId)) return;
+        photoPointers.delete(event.pointerId);
+        if (photoBox.hasPointerCapture?.(event.pointerId)) photoBox.releasePointerCapture(event.pointerId);
+        startPhotoGesture();
+      };
+      photoBox.addEventListener("pointerup", finishPhotoPointer);
+      photoBox.addEventListener("pointercancel", finishPhotoPointer);
       rarityPicker.addEventListener("click", (event) => {
         const button = event.target.closest("[data-rarity]");
         if (!button) return;
@@ -3018,7 +3223,9 @@
       };
       photoEditorCanvas.addEventListener("pointerup", finishEditorPointer);
       photoEditorCanvas.addEventListener("pointercancel", finishEditorPointer);
-      document.querySelector("#avatarButton").addEventListener("click", () => showScreen("customize"));
+      document.querySelector("#avatarButton").addEventListener("click", () => {
+        showScreen(screens.customize.classList.contains("active") ? "inventory" : "customize");
+      });
       document.querySelector("#profilePhotoButton").addEventListener("click", () => profilePhotoInput.click());
       document.querySelector("#resetProfilePhotoButton").addEventListener("click", () => {
         settings.profilePhoto = DEFAULT_PROFILE_IMAGE;
@@ -3103,9 +3310,12 @@
         if (document.visibilityState === "hidden" && !editingId && currentPhoto) savePhotoDraft();
       });
 
-      document.querySelector("#itemForm").addEventListener("submit", (event) => {
+      document.querySelector("#itemForm").addEventListener("submit", async (event) => {
         event.preventDefault();
         const original = items.find((item) => item.id === editingId);
+        const finalPhoto = currentPhoto && (!editingId || currentPhoto !== original?.photo || !isNeutralPhotoTransform())
+          ? await composeCurrentPhoto()
+          : currentPhoto;
         const formItem = {
           ...(original || {}),
           id: editingId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
@@ -3115,7 +3325,7 @@
           rarity: rarityInput.value,
           value: Number(valueInput.value) || 0,
           note: document.querySelector("#noteInput").value.trim(),
-          photo: currentPhoto,
+          photo: finalPhoto,
           backgroundColor: rarityBackgroundColor(rarityInput.value),
           icon: original?.icon || "IT"
         };

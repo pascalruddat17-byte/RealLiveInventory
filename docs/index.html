@@ -1279,11 +1279,30 @@
 
       @media (max-width: 390px) {
         :root {
-          --slot-size: 52px;
+          --slot-size: 46px;
         }
 
         .brand-title {
           font-size: 1.5rem;
+        }
+
+        .grid {
+          grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+          gap: 5px;
+        }
+
+        .item-card {
+          gap: 3px;
+          padding: 4px;
+          border-radius: 8px;
+        }
+
+        .item-card-name {
+          font-size: 0.66rem;
+        }
+
+        .item-card-meta {
+          font-size: 0.52rem;
         }
 
         .showcase {

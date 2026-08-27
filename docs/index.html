@@ -1384,7 +1384,6 @@
             <img class="hidden" id="previewImage" alt="Item Foto" />
             <div class="photo-processing hidden" id="photoProcessing" role="status">Hintergrund wird entfernt...</div>
           </div>
-          <input id="photoInput" type="file" accept="image/*" capture="environment" class="hidden" />
           <button class="primary photo-add-button" id="photoButton" type="button"><img src="./add-icon.png" alt="" /> Foto aufnehmen</button>
           <button class="photo-edit-button hidden" id="editPhotoButton" type="button">Foto bearbeiten</button>
           <label class="photo-background-row">
@@ -1431,6 +1430,7 @@
           </div>
         </form>
       </section>
+      <input id="photoInput" type="file" accept="image/*" capture="environment" class="hidden" />
 
       <dialog class="museum-picker" id="museumPicker">
         <div class="museum-picker-head">
@@ -1524,6 +1524,7 @@
       const CATEGORY_KEY = "reallife-game-categories-v1";
       const MUSEUM_KEY = "reallife-game-museum-v1";
       const USER_NUMBER_KEY = "reallife-game-user-number-v1";
+      const PHOTO_DRAFT_KEY = "reallife-game-photo-draft-v1";
       const DEFAULT_PROFILE_IMAGE = "./profile-default.png";
       const DEFAULT_CATEGORY_IMAGE = "./category-default.png";
       const defaultCategories = [
@@ -1912,6 +1913,7 @@
 
       function resetItemForm() {
         editingId = null;
+        clearPhotoDraft();
         itemForm.reset();
         document.querySelector("#rarityInput").value = "Common";
         photoBackgroundInput.value = "#eeeeee";
@@ -1960,14 +1962,14 @@
         showScreen("photo");
       }
 
-      function showScreen(name) {
+      function showScreen(name, options = {}) {
         Object.entries(screens).forEach(([key, screen]) => {
           screen.classList.toggle("active", key === name);
         });
         document.querySelectorAll(".nav-btn").forEach((button) => {
           button.classList.toggle("active", button.dataset.nav === name);
         });
-        if (name === "photo" && !editingId) {
+        if (name === "photo" && !editingId && !options.keepForm) {
           resetItemForm();
         }
         if (name !== "inventory" && !editingId) {
@@ -2013,6 +2015,84 @@
       function canvasPhotoDataUrl(canvas) {
         const webp = canvas.toDataURL("image/webp", 0.9);
         return webp.startsWith("data:image/webp") ? webp : canvas.toDataURL("image/png");
+      }
+
+      async function makeMobilePhotoCopy(dataUrl, maxSide = 1200) {
+        try {
+          const image = await loadPhotoImage(dataUrl);
+          const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+          if (scale >= 0.98 && dataUrl.length < 1400000) return dataUrl;
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+          const context = canvas.getContext("2d");
+          context.imageSmoothingEnabled = true;
+          context.imageSmoothingQuality = "high";
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          const compact = canvas.toDataURL("image/jpeg", 0.86);
+          return compact.length < dataUrl.length ? compact : dataUrl;
+        } catch {
+          return dataUrl;
+        }
+      }
+
+      function savePhotoDraft() {
+        try {
+          const draft = {
+            photo: currentPhoto,
+            originalPhoto,
+            backgroundColor: photoBackgroundInput.value,
+            name: document.querySelector("#nameInput").value,
+            category: document.querySelector("#categoryInput").value,
+            rarity: document.querySelector("#rarityInput").value,
+            date: document.querySelector("#dateInput").value,
+            value: valueInput.value,
+            note: document.querySelector("#noteInput").value
+          };
+          if (draft.photo || draft.originalPhoto || draft.name.trim()) {
+            sessionStorage.setItem(PHOTO_DRAFT_KEY, JSON.stringify(draft));
+          }
+        } catch {}
+      }
+
+      function clearPhotoDraft() {
+        try {
+          sessionStorage.removeItem(PHOTO_DRAFT_KEY);
+        } catch {}
+      }
+
+      function paintCurrentPhoto() {
+        photoBox.style.backgroundColor = photoBackgroundInput.value || "#eeeeee";
+        if (currentPhoto) {
+          previewImage.src = currentPhoto;
+          previewImage.classList.remove("hidden");
+          photoBox.querySelector("span").classList.add("hidden");
+          editPhotoButton.classList.remove("hidden");
+        } else {
+          previewImage.removeAttribute("src");
+          previewImage.classList.add("hidden");
+          photoBox.querySelector("span").classList.remove("hidden");
+          editPhotoButton.classList.add("hidden");
+        }
+      }
+
+      function restorePhotoDraft() {
+        try {
+          const draft = JSON.parse(sessionStorage.getItem(PHOTO_DRAFT_KEY) || "null");
+          if (!draft || (!draft.photo && !draft.originalPhoto)) return;
+          editingId = null;
+          currentPhoto = draft.photo || draft.originalPhoto || "";
+          originalPhoto = draft.originalPhoto || currentPhoto;
+          photoBackgroundInput.value = draft.backgroundColor || "#eeeeee";
+          document.querySelector("#nameInput").value = draft.name || "";
+          document.querySelector("#categoryInput").value = draft.category || document.querySelector("#categoryInput").value;
+          document.querySelector("#rarityInput").value = draft.rarity || "Common";
+          document.querySelector("#dateInput").value = draft.date || "";
+          valueInput.value = draft.value || "";
+          document.querySelector("#noteInput").value = draft.note || "";
+          paintCurrentPhoto();
+          showScreen("photo", { keepForm: true });
+        } catch {}
       }
 
       function weightedColorDistance(data, first, second) {
@@ -2590,7 +2670,11 @@
         renderCategories();
         renderCategoryManager();
       });
-      document.querySelector("#photoButton").addEventListener("click", () => photoInput.click());
+      document.querySelector("#photoButton").addEventListener("click", (event) => {
+        event.preventDefault();
+        photoInput.value = "";
+        photoInput.click();
+      });
       editPhotoButton.addEventListener("click", openPhotoEditor);
       document.querySelector("#closePhotoEditorButton").addEventListener("click", () => photoEditor.close());
       document.querySelector("#autoRemoveBackgroundButton").addEventListener("click", async () => {
@@ -2720,22 +2804,22 @@
         const file = photoInput.files?.[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = () => {
+        reader.onload = async () => {
           const rawPhoto = String(reader.result);
           const job = ++photoJob;
-          originalPhoto = rawPhoto;
-          currentPhoto = rawPhoto;
-          previewImage.src = rawPhoto;
-          photoBox.style.backgroundColor = photoBackgroundInput.value;
-          previewImage.classList.remove("hidden");
-          photoBox.querySelector("span").classList.add("hidden");
-          editPhotoButton.classList.remove("hidden");
+          const mobilePhoto = await makeMobilePhotoCopy(rawPhoto);
+          if (job !== photoJob) return;
+          originalPhoto = mobilePhoto;
+          currentPhoto = mobilePhoto;
+          paintCurrentPhoto();
+          savePhotoDraft();
           photoProcessing.classList.remove("hidden");
           window.setTimeout(async () => {
-            const processedPhoto = await removePhotoBackground(rawPhoto, Number(backgroundStrengthInput.value));
+            const processedPhoto = await removePhotoBackground(mobilePhoto, Number(backgroundStrengthInput.value));
             if (job !== photoJob) return;
             currentPhoto = processedPhoto;
             previewImage.src = processedPhoto;
+            savePhotoDraft();
             photoProcessing.classList.add("hidden");
           }, 60);
         };
@@ -2743,6 +2827,7 @@
       });
       photoBackgroundInput.addEventListener("input", () => {
         photoBox.style.backgroundColor = photoBackgroundInput.value;
+        savePhotoDraft();
       });
 
       profilePhotoInput.addEventListener("change", () => {
@@ -2755,6 +2840,13 @@
           applySettings();
         };
         reader.readAsDataURL(file);
+      });
+
+      itemForm.addEventListener("input", () => {
+        if (!editingId) savePhotoDraft();
+      });
+      itemForm.addEventListener("change", () => {
+        if (!editingId) savePhotoDraft();
       });
 
       document.querySelector("#itemForm").addEventListener("submit", (event) => {
@@ -2777,6 +2869,7 @@
           ? items.map((item) => item.id === editingId ? formItem : item)
           : [formItem, ...items];
         saveItems();
+        clearPhotoDraft();
         selectedId = formItem.id;
         resetItemForm();
         selectedId = formItem.id;
@@ -2792,6 +2885,7 @@
 
       renderPalette();
       renderAll();
+      restorePhotoDraft();
     </script>
   </body>
 </html>

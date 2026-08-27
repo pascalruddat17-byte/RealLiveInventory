@@ -510,6 +510,12 @@
         font-weight: 900;
       }
 
+      .tab-pill img {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+      }
+
       .tab-pill.active {
         border-color: transparent;
         background: #111111;
@@ -906,6 +912,12 @@
         padding: 0;
         font-size: 0.72rem;
         font-weight: 950;
+      }
+
+      .icon-btn img {
+        width: 25px;
+        height: 25px;
+        object-fit: contain;
       }
 
       .showcase {
@@ -1345,7 +1357,7 @@
 
       .photo-shape-apply {
         display: grid;
-        grid-template-columns: 1fr 1fr auto;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
         margin-top: 8px;
       }
@@ -1748,8 +1760,8 @@
           <div class="toolbar-head">
             <strong>Inventar</strong>
             <div class="tabs inventory-tabs" id="inventoryViewTabs">
-              <button class="tab-pill active" type="button" data-inventory-view="inventory"><span>INV</span><span>Inventar</span></button>
-              <button class="tab-pill" type="button" data-inventory-view="museum"><span>MUS</span><span>Museum</span></button>
+              <button class="tab-pill active" type="button" data-inventory-view="inventory"><img src="./backpack-icon.png" alt="" /><span>Inventar</span></button>
+              <button class="tab-pill" type="button" data-inventory-view="museum"><img src="./museum-icon.png" alt="" /><span>Museum</span></button>
             </div>
             <div>
               <button class="icon-btn" id="customizeButton" type="button" title="Boxen bearbeiten">⚙</button>
@@ -1938,9 +1950,9 @@
           <button type="button" id="shapeOvalPhotoButton">Oval</button>
         </div>
         <div class="photo-shape-apply">
-          <button type="button" id="placeShapePhotoButton">Form hinlegen</button>
           <button class="primary" type="button" id="applyShapePhotoButton">Wegmachen</button>
-          <button type="button" id="clearShapePhotoButton">Form löschen</button>
+          <button type="button" id="deleteActiveShapePhotoButton">Aktive löschen</button>
+          <button type="button" id="clearShapePhotoButton">Alle löschen</button>
         </div>
         <div class="photo-editor-tools">
           <button type="button" id="outlinePhotoButton">Item markieren</button>
@@ -2543,8 +2555,9 @@
             <p>${escapeHtml(item.note || "Keine Info")}</p>
           </div>
           <div class="detail-actions">
+            <button class="icon-btn" type="button" data-action="close" title="Beschreibung schliessen">↓</button>
             <button class="icon-btn" type="button" data-action="edit">✎</button>
-            <button class="icon-btn" type="button" data-action="museum">MUS</button>
+            <button class="icon-btn" type="button" data-action="museum" title="Museum"><img src="./museum-icon.png" alt="" /></button>
             <button class="icon-btn" type="button" data-action="delete">✕</button>
           </div>
         `;
@@ -3054,12 +3067,19 @@
         if (handle) return handle.name;
         const local = unrotateEditorPoint(point, shape);
         const inside = local[0] >= shape.x && local[0] <= shape.x + shape.width && local[1] >= shape.y && local[1] <= shape.y + shape.height;
-        return inside ? "move" : null;
+        return inside ? "inside" : null;
+      }
+
+      function shapeCenterHitTest(point, shape) {
+        if (!shape) return false;
+        const centerHandle = shapeHandles(shape).find((entry) => entry.name === "move");
+        const hitSize = Math.max(22, photoEditorCanvas.width / 24);
+        return Boolean(centerHandle && Math.abs(point[0] - centerHandle.x) <= hitSize / 2 && Math.abs(point[1] - centerHandle.y) <= hitSize / 2);
       }
 
       function placedShapeHitIndex(point) {
         for (let index = editorPlacedShapes.length - 1; index >= 0; index -= 1) {
-          if (shapeHitTest(point, editorPlacedShapes[index].shape)) return index;
+          if (shapeCenterHitTest(point, editorPlacedShapes[index].shape)) return index;
         }
         return -1;
       }
@@ -3090,7 +3110,10 @@
         const context = editorSourceCanvas.getContext("2d", { willReadFrequently: true });
         const image = context.getImageData(0, 0, width, height);
         const data = image.data;
-        const step = Math.max(4, Math.round(Math.min(width, height) / 120));
+        const step = Math.max(3, Math.round(Math.min(width, height) / 190));
+        const cols = Math.ceil(width / step);
+        const rows = Math.ceil(height / step);
+        const cellCount = cols * rows;
         const edgeSamples = [];
         for (let y = 0; y < height; y += step) {
           for (let x = 0; x < width; x += step) {
@@ -3101,26 +3124,185 @@
           }
         }
         const bg = medianColor(edgeSamples);
-        let minX = width;
-        let minY = height;
-        let maxX = 0;
-        let maxY = 0;
-        let hits = 0;
-        for (let y = 0; y < height; y += step) {
-          for (let x = 0; x < width; x += step) {
+        const cells = new Uint8Array(cols * rows);
+        const scores = new Float32Array(cellCount);
+        const getColorAt = (x, y) => {
+          const px = clampNumber(Math.round(x), 0, width - 1);
+          const py = clampNumber(Math.round(y), 0, height - 1);
+          const index = (py * width + px) * 4;
+          return [data[index], data[index + 1], data[index + 2]];
+        };
+        const luminance = (color) => color[0] * 0.2126 + color[1] * 0.7152 + color[2] * 0.0722;
+        for (let row = 0; row < rows; row += 1) {
+          for (let col = 0; col < cols; col += 1) {
+            const x = Math.min(width - 1, col * step);
+            const y = Math.min(height - 1, row * step);
             const index = (y * width + x) * 4;
-            const diff = Math.abs(data[index] - bg[0]) + Math.abs(data[index + 1] - bg[1]) + Math.abs(data[index + 2] - bg[2]);
-            const centerBias = x > width * 0.05 && x < width * 0.95 && y > height * 0.05 && y < height * 0.95;
-            if (diff > 72 && centerBias) {
-              minX = Math.min(minX, x);
-              minY = Math.min(minY, y);
-              maxX = Math.max(maxX, x);
-              maxY = Math.max(maxY, y);
-              hits += 1;
+            const color = [data[index], data[index + 1], data[index + 2]];
+            const bgDiff = Math.abs(color[0] - bg[0]) + Math.abs(color[1] - bg[1]) + Math.abs(color[2] - bg[2]);
+            const left = luminance(getColorAt(x - step * 1.8, y));
+            const right = luminance(getColorAt(x + step * 1.8, y));
+            const top = luminance(getColorAt(x, y - step * 1.8));
+            const bottom = luminance(getColorAt(x, y + step * 1.8));
+            const edge = Math.abs(left - right) + Math.abs(top - bottom);
+            const colorRange = Math.max(color[0], color[1], color[2]) - Math.min(color[0], color[1], color[2]);
+            const notEdge = x > width * 0.035 && x < width * 0.965 && y > height * 0.035 && y < height * 0.965;
+            const score = edge * 1.55 + Math.min(130, bgDiff) * 0.58 + colorRange * 0.42;
+            scores[row * cols + col] = score;
+            if (notEdge && (edge > 22 || (bgDiff > 60 && edge > 9) || (colorRange > 52 && bgDiff > 38))) {
+              cells[row * cols + col] = 1;
             }
           }
         }
-        if (hits < 8) {
+        const visited = new Uint8Array(cols * rows);
+        const components = [];
+        const minCells = Math.max(4, Math.round((cols * rows) * 0.00024));
+        for (let row = 0; row < rows; row += 1) {
+          for (let col = 0; col < cols; col += 1) {
+            const startIndex = row * cols + col;
+            if (!cells[startIndex] || visited[startIndex]) continue;
+            const queue = [[col, row]];
+            visited[startIndex] = 1;
+            let minCol = col;
+            let maxCol = col;
+            let minRow = row;
+            let maxRow = row;
+            let count = 0;
+            let scoreSum = 0;
+            let weightedX = 0;
+            let weightedY = 0;
+            for (let cursor = 0; cursor < queue.length; cursor += 1) {
+              const [cx, cy] = queue[cursor];
+              count += 1;
+              const score = scores[cy * cols + cx] || 1;
+              scoreSum += score;
+              weightedX += cx * step * score;
+              weightedY += cy * step * score;
+              minCol = Math.min(minCol, cx);
+              maxCol = Math.max(maxCol, cx);
+              minRow = Math.min(minRow, cy);
+              maxRow = Math.max(maxRow, cy);
+              [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => {
+                const nx = cx + dx;
+                const ny = cy + dy;
+                if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) return;
+                const nextIndex = ny * cols + nx;
+                if (!cells[nextIndex] || visited[nextIndex]) return;
+                visited[nextIndex] = 1;
+                queue.push([nx, ny]);
+              });
+            }
+            if (count >= minCells) {
+              const padding = Math.max(7, Math.min(width, height) * 0.022);
+              const centerX = scoreSum ? weightedX / scoreSum : (minCol + maxCol) * step / 2;
+              const centerY = scoreSum ? weightedY / scoreSum : (minRow + maxRow) * step / 2;
+              components.push({
+                x: clampNumber(minCol * step - padding, 0, width),
+                y: clampNumber(minRow * step - padding, 0, height),
+                width: clampNumber((maxCol - minCol + 1) * step + padding * 2, 4, width),
+                height: clampNumber((maxRow - minRow + 1) * step + padding * 2, 4, height),
+                count,
+                score: scoreSum,
+                centerX,
+                centerY
+              });
+            }
+          }
+        }
+        const normalizeCandidate = (candidate) => {
+          const minSide = Math.max(28, Math.min(width, height) * 0.12);
+          const maxSide = Math.max(minSide, Math.min(width, height) * 0.34);
+          let nextWidth = clampNumber(candidate.width, minSide, maxSide);
+          let nextHeight = clampNumber(candidate.height, minSide, maxSide);
+          const ratio = nextWidth / Math.max(1, nextHeight);
+          if (ratio > 1.85) nextWidth = nextHeight * 1.55;
+          if (ratio < 0.54) nextHeight = nextWidth * 1.55;
+          nextWidth = clampNumber(nextWidth, minSide, maxSide);
+          nextHeight = clampNumber(nextHeight, minSide, maxSide);
+          return {
+            x: clampNumber(candidate.centerX - nextWidth / 2, 0, width - nextWidth),
+            y: clampNumber(candidate.centerY - nextHeight / 2, 0, height - nextHeight),
+            width: nextWidth,
+            height: nextHeight,
+            count: candidate.count,
+            score: candidate.score
+          };
+        };
+        const createTileCandidates = (component) => {
+          const maxTileSide = Math.max(38, Math.min(width, height) * 0.22);
+          const tileCols = Math.max(1, Math.ceil(component.width / maxTileSide));
+          const tileRows = Math.max(1, Math.ceil(component.height / maxTileSide));
+          const tileWidth = component.width / tileCols;
+          const tileHeight = component.height / tileRows;
+          const pieces = [];
+          for (let tileRow = 0; tileRow < tileRows; tileRow += 1) {
+            for (let tileCol = 0; tileCol < tileCols; tileCol += 1) {
+              const tileX = component.x + tileCol * tileWidth;
+              const tileY = component.y + tileRow * tileHeight;
+              const tileRight = tileX + tileWidth;
+              const tileBottom = tileY + tileHeight;
+              let minX = width;
+              let minY = height;
+              let maxX = 0;
+              let maxY = 0;
+              let count = 0;
+              let scoreSum = 0;
+              let weightedX = 0;
+              let weightedY = 0;
+              const startCol = Math.max(0, Math.floor(tileX / step));
+              const endCol = Math.min(cols - 1, Math.ceil(tileRight / step));
+              const startRow = Math.max(0, Math.floor(tileY / step));
+              const endRow = Math.min(rows - 1, Math.ceil(tileBottom / step));
+              for (let row = startRow; row <= endRow; row += 1) {
+                for (let col = startCol; col <= endCol; col += 1) {
+                  if (!cells[row * cols + col]) continue;
+                  const x = col * step;
+                  const y = row * step;
+                  if (x < tileX || x > tileRight || y < tileY || y > tileBottom) continue;
+                  const score = scores[row * cols + col] || 1;
+                  count += 1;
+                  scoreSum += score;
+                  weightedX += x * score;
+                  weightedY += y * score;
+                  minX = Math.min(minX, x);
+                  minY = Math.min(minY, y);
+                  maxX = Math.max(maxX, x);
+                  maxY = Math.max(maxY, y);
+                }
+              }
+              if (count >= Math.max(3, Math.round(minCells * 0.36))) {
+                const padding = Math.max(8, Math.min(width, height) * 0.026);
+                pieces.push(normalizeCandidate({
+                  x: minX - padding,
+                  y: minY - padding,
+                  width: maxX - minX + step + padding * 2,
+                  height: maxY - minY + step + padding * 2,
+                  count,
+                  score: scoreSum,
+                  centerX: scoreSum ? weightedX / scoreSum : (minX + maxX) / 2,
+                  centerY: scoreSum ? weightedY / scoreSum : (minY + maxY) / 2
+                }));
+              }
+            }
+          }
+          return pieces;
+        };
+        const candidates = components.flatMap((component) => {
+          const tooLarge = component.width > Math.min(width, height) * 0.34 || component.height > Math.min(width, height) * 0.34 || component.width * component.height > width * height * 0.13;
+          return tooLarge ? createTileCandidates(component) : [normalizeCandidate(component)];
+        });
+        candidates.sort((a, b) => b.score - a.score);
+        const picked = [];
+        candidates.forEach((component) => {
+          if (picked.length >= 12) return;
+          const overlaps = picked.some((existing) => {
+            const xOverlap = Math.max(0, Math.min(component.x + component.width, existing.x + existing.width) - Math.max(component.x, existing.x));
+            const yOverlap = Math.max(0, Math.min(component.y + component.height, existing.y + existing.height) - Math.max(component.y, existing.y));
+            return xOverlap * yOverlap > Math.min(component.width * component.height, existing.width * existing.height) * 0.64;
+          });
+          if (!overlaps) picked.push(component);
+        });
+        if (!picked.length) {
           const side = Math.min(width, height) * 0.62;
           editorTool = "shapeOval";
           setEditorTool("shapeOval");
@@ -3136,19 +3318,18 @@
           drawPhotoEditor();
           return;
         }
-        const padding = Math.max(12, Math.min(width, height) * 0.045);
-        minX = clampNumber(minX - padding, 0, width);
-        minY = clampNumber(minY - padding, 0, height);
-        maxX = clampNumber(maxX + padding, 0, width);
-        maxY = clampNumber(maxY + padding, 0, height);
-        const shapeWidth = maxX - minX;
-        const shapeHeight = maxY - minY;
-        const ratio = shapeWidth / Math.max(1, shapeHeight);
-        const nextTool = ratio > 0.72 && ratio < 1.28 ? "shapeOval" : "shapeRect";
+        editorPlacedShapes = picked.slice(1).map((component) => {
+          const ratio = component.width / Math.max(1, component.height);
+          const tool = ratio > 0.56 && ratio < 1.7 ? "shapeOval" : "shapeRect";
+          return { tool, shape: { x: component.x, y: component.y, width: component.width, height: component.height, rotation: 0 } };
+        });
+        const first = picked[0];
+        const ratio = first.width / Math.max(1, first.height);
+        const nextTool = ratio > 0.56 && ratio < 1.7 ? "shapeOval" : "shapeRect";
         setEditorTool(nextTool);
-        editorShapeCurrent = { x: minX, y: minY, width: shapeWidth, height: shapeHeight, rotation: 0 };
+        editorShapeCurrent = { x: first.x, y: first.y, width: first.width, height: first.height, rotation: 0 };
         photoShapeRotateInput.value = "0";
-        photoEditorStatus.textContent = "Auto-Vorschlag liegt bereit. Du kannst ihn verschieben, größer ziehen oder hinlegen.";
+        photoEditorStatus.textContent = `${picked.length} Detail-Form${picked.length === 1 ? "" : "en"} gefunden. Tippe Formen an, lösche falsche oder passe sie an.`;
         drawPhotoEditor();
       }
 
@@ -3247,6 +3428,17 @@
         photoShapeRotateInput.value = "0";
         photoEditorStatus.textContent = `${editorPlacedShapes.length} Form${editorPlacedShapes.length === 1 ? "" : "en"} hingelegt. Lege weitere hin oder drücke Wegmachen.`;
         drawPhotoEditor();
+      }
+
+      function autoPlaceCurrentShape() {
+        if (!editorShapeCurrent || editorShapeCurrent.width < 4 || editorShapeCurrent.height < 4) return false;
+        editorPlacedShapes.push({ tool: editorTool, shape: { ...editorShapeCurrent } });
+        editorShapeStart = null;
+        editorShapeCurrent = null;
+        editorShapeAction = null;
+        photoShapeRotateInput.value = "0";
+        photoEditorStatus.textContent = `${editorPlacedShapes.length} Form${editorPlacedShapes.length === 1 ? "" : "en"} bereit. Tippe eine Mitte an zum Bearbeiten oder drücke Wegmachen.`;
+        return true;
       }
 
       function applyShapeMask() {
@@ -3379,6 +3571,11 @@
 
         const action = event.target.closest("[data-action]");
         if (action && selectedId) {
+          if (action.dataset.action === "close") {
+            selectedId = null;
+            renderAll();
+            return;
+          }
           if (action.dataset.action === "edit") {
             startEditItem(selectedId);
             return;
@@ -3655,8 +3852,20 @@
         photoEditorStatus.textContent = "Form gedreht. Du kannst sie hinlegen oder weiter anpassen.";
         drawPhotoEditor();
       });
-      document.querySelector("#placeShapePhotoButton").addEventListener("click", placeCurrentShape);
       document.querySelector("#applyShapePhotoButton").addEventListener("click", applyShapeMask);
+      document.querySelector("#deleteActiveShapePhotoButton").addEventListener("click", () => {
+        if (!editorShapeCurrent) {
+          photoEditorStatus.textContent = "Keine aktive Form zum Löschen.";
+          return;
+        }
+        pushEditorHistory();
+        editorShapeStart = null;
+        editorShapeCurrent = null;
+        editorShapeAction = null;
+        photoShapeRotateInput.value = "0";
+        photoEditorStatus.textContent = "Aktive Form gelöscht.";
+        drawPhotoEditor();
+      });
       document.querySelector("#clearShapePhotoButton").addEventListener("click", () => {
         editorShapeStart = null;
         editorShapeCurrent = null;
@@ -3706,19 +3915,22 @@
           editorPath = [point];
         } else if (isShapeTool(editorTool)) {
           const hit = shapeHitTest(point, editorShapeCurrent);
-          if (hit) {
+          if (hit && hit !== "inside") {
             editorShapeAction = { kind: hit, startPoint: point, startShape: { ...editorShapeCurrent } };
             photoShapeRotateInput.value = String(Math.round(editorShapeCurrent.rotation || 0));
           } else {
+            if (editorShapeCurrent && !hit) autoPlaceCurrentShape();
             const placedIndex = placedShapeHitIndex(point);
             if (placedIndex >= 0) {
               selectPlacedShape(placedIndex);
               editorShapeAction = { kind: "move", startPoint: point, startShape: { ...editorShapeCurrent } };
-            } else {
+            } else if (!hit) {
               editorShapeStart = point;
               editorShapeCurrent = shapeFromPoints(point, point, editorTool);
               photoShapeRotateInput.value = "0";
               editorShapeAction = { kind: "draw", startPoint: point, startShape: { ...editorShapeCurrent } };
+            } else {
+              photoEditorStatus.textContent = "Zum Bewegen den Griff in der Mitte ziehen.";
             }
           }
         } else {
@@ -3754,7 +3966,7 @@
         photoEditorCanvas.releasePointerCapture(event.pointerId);
         if (editorTool === "outline") applyOutlineMask();
         if (isShapeTool(editorTool) && editorShapeCurrent) {
-          photoEditorStatus.textContent = "Form liegt bereit. Du kannst sie verschieben, größer ziehen oder hinlegen.";
+          photoEditorStatus.textContent = "Form liegt bereit. Zieh die Mitte zum Bewegen oder tipp daneben zum Ablegen.";
         }
         editorShapeAction = null;
         editorLastPoint = null;
